@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "motion/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const textMotion = {
   rest: {
@@ -22,12 +23,14 @@ const slashMotion = {
 };
 
 export default function SideBarButton({ title, icon, route }) {
+  const pathName = usePathname()
+  const isActive = route === pathName
   return (
     <Link href={route}>
       <motion.div
         initial="rest"
         whileHover="hover"
-        animate="rest"
+        animate= {isActive ? "hover": "rest"}
         className="w-full h-[43px] flex text-sm group"
       >
         <motion.div
