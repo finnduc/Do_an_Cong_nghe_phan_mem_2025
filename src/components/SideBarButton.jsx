@@ -10,6 +10,7 @@ const textMotion = {
   },
   hover: {
     color: "white",
+    backgroundColor: '#3b82f6',
     x: 10,
   },
 };
@@ -19,6 +20,7 @@ const slashMotion = {
   hover: {
     opacity: 1,
     x: -1,
+    
   },
 };
 
@@ -35,13 +37,12 @@ export default function SideBarButton({ title, icon, route }) {
       >
         <motion.div
           variants={slashMotion}
-          className="flex w-[20px] h-full rounded-r-md bg-blue"
+          className="flex w-[7px] h-full rounded-r-md bg-blue-500"
         >
-          <div className="w-[10px] bg-blue-500 rounded-r-md" />
         </motion.div>
         <motion.div
           variants={textMotion}
-          className="h-full w-full mr-6 rounded-md flex items-center gap-x-3 px-4 group-hover:bg-blue-500"
+          className="h-full w-full mr-6 rounded-md flex items-center gap-x-3 px-4"
         >
           {icon}
           {title}
