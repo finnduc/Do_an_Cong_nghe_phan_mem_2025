@@ -9,15 +9,19 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import Link from "next/link";
 
 // Zod validation schema
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
-  username: z.string().min(4, 'Username must be at least 4 characters long').max(8, 'Username must be less than 8 characters long'),
+  username: z
+    .string()
+    .min(4, "Username must be at least 4 characters long")
+    .max(8, "Username must be less than 8 characters long"),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters long")
@@ -31,7 +35,7 @@ export default function SignupPage() {
     defaultValues: {
       email: "",
       username: "",
-      password: "", 
+      password: "",
     },
   });
 
@@ -44,10 +48,13 @@ export default function SignupPage() {
     <div className="w-[450px] min-h-[550px] text-black mx-auto bg-white rounded-xl px-10 py-14 flex flex-col items-center shadow-md">
       <div className="text-2xl font-semibold mb-2">Create an Account</div>
       <div className="text-sm font-medium text-gray-600 mb-6">
-            Create an account to continue
+        Create an account to continue
       </div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="w-full mx-4 flex flex-col gap-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="w-full mx-4 flex flex-col gap-6"
+        >
           <FormField
             control={form.control}
             name="email"
@@ -85,15 +92,34 @@ export default function SignupPage() {
                 </FormControl>
                 <FormMessage />
                 <div className="flex items-center gap-2">
-                    <Checkbox id='remember'  className='border-blue-200 data-[state=checked]:bg-blue-500'/>
-                    <label htmlFor="remember" className="text-xs text-gray-500">Remember password</label>
+                  <Checkbox
+                    id="remember"
+                    className="border-blue-200 data-[state=checked]:bg-blue-500"
+                  />
+                  <label htmlFor="remember" className="text-xs text-gray-500">
+                    Remember password
+                  </label>
                 </div>
               </FormItem>
             )}
           />
-          <Button type="submit" className='w-[300px] self-center bg-blue-500 hover:bg-blue-700 mt-4 mb-4'>Sign up</Button>
+            <Button
+              type="submit"
+              className="w-[300px] self-center bg-blue-500 hover:bg-blue-700"
+            >
+              Sign up
+            </Button>
         </form>
       </Form>
+      <div className="flex gap-1 w-[300px] mt-1 mb-4">
+        <div className="text-sm text-gray-500">Already have account?</div>
+        <Link
+          className="p-0 text-sm text-blue-500 hover:underline"
+          href="/login"
+        >
+          Login
+        </Link>
+      </div>
     </div>
   );
 }

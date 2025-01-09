@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import Link from "next/link";
 
 // Zod validation schema
 const formSchema = z.object({
@@ -40,7 +41,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="w-[450px] h-[480px] text-black mx-auto bg-white rounded-xl px-10 py-14 flex flex-col items-center shadow-md">
+    <div className="w-[450px] min-h-[480px] text-black mx-auto bg-white rounded-xl px-10 py-14 flex flex-col items-center shadow-md">
       <div className="text-2xl font-semibold mb-2">Login to Account</div>
       <div className="text-sm font-medium text-gray-600 mb-6">
         Please enter your email and password to continue.
@@ -80,6 +81,15 @@ export default function LoginPage() {
           <Button type="submit" className='w-[300px] self-center bg-blue-500 hover:bg-blue-700 mt-4'>Log in</Button>
         </form>
       </Form>
+      <div className="flex gap-1 w-[300px] mt-1 mb-5">
+        <div className="text-sm text-gray-500">Don't have account?</div>
+        <Link
+          className="p-0 text-sm text-blue-500 hover:underline"
+          href="/signup"
+        >
+          Signup now!
+        </Link>
+      </div>
     </div>
   );
 }
