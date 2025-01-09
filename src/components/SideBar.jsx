@@ -9,6 +9,7 @@ import {
   Bot,
   Settings,
   LogOut,
+  History
 } from "lucide-react";
 
 const main = {
@@ -21,6 +22,7 @@ const main = {
 const transaction = {
   "Xuất kho": [<ArrowRightFromLine size={20} />, '/exports'],
   "Nhập kho": [<Import size={20} />, '/imports'],
+  "Lịch sử": [<History size={20}/>, '/history']
 };
 
 const helper = {
@@ -34,7 +36,7 @@ const other = {
 
 export default function SideBar() {
   return (
-    <div className="min-w-[225px] pt-3 h-screen bg-white text-black flex flex-col gap-6 divide-y-[1px]">
+    <div className="min-w-[225px] pt-3 h-full bg-white text-black flex flex-col gap-6 divide-y-[1px]">
       <div className="flex flex-col gap-2">
             {Object.entries(main).map(([title, other], id) => (
                 <SideBarButton key={id} title={title} icon={other[0]} route={other[1]} />
