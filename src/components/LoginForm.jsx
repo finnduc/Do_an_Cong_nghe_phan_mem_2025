@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
+import { motion } from "motion/react";
 
 // Zod validation schema
 const formSchema = z.object({
@@ -40,7 +41,7 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="w-[450px] min-h-[480px] text-black mx-auto bg-white rounded-xl px-10 py-14 flex flex-col items-center shadow-md">
+    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-[450px] min-h-[480px] text-black mx-auto bg-white rounded-xl px-10 py-14 flex flex-col items-center shadow-md">
       <div className="text-2xl font-semibold mb-2">Login to Account</div>
       <div className="text-sm font-medium text-gray-600 mb-6">
         Please enter your email and password to continue.
@@ -89,6 +90,6 @@ export default function LoginForm() {
           Signup now!
         </Link>
       </div>
-    </div>
+    </motion.div>
   );
 }

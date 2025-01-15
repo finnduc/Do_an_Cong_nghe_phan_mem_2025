@@ -31,7 +31,7 @@ export default function SideBarButton({ title, icon, route }) {
         initial="rest"
         whileHover="hover"
         animate={isActive ? "hover" : "rest"}
-        className="w-full h-[43px] flex text-sm group"
+        className="w-full h-[41px] flex text-sm group"
       >
         <motion.div
           variants={slashMotion}

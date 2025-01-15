@@ -33,7 +33,7 @@ export default function LogoutButton({ icon, title }) {
         initial="rest"
         whileHover="hover"
         animate="rest"
-        className="w-full h-[43px] flex text-sm group"
+        className="w-full h-[41px] flex text-sm group"
         onClick={() => {
           setIsOpen(true);
         }}
