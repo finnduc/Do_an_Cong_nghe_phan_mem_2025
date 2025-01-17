@@ -52,7 +52,7 @@ class AccessService {
                 }
             });
 
-            const tokens = await creatTokenPair({ ID : user_id[0].ID } , publicKey , privateKey);
+            const tokens = await creatTokenPair({ ID : user_id[0].user_id } , publicKey , privateKey);
 
             await keyTokenService.createKeyToken({
                 user_id: user_id[0].user_id,

@@ -15,15 +15,15 @@ class KeyTokenService {
     };
     
 
-    findByUserName = async (userName) => {
-        const query = `SELECT * FROM key_tokens WHERE user = ? LIMIT 1;`;
-        const rows = await executeQuery(query, [userName]);
+    findByUserId = async (user_id) => {
+        const query = `SELECT * FROM api_keys WHERE user_id = ? LIMIT 1;`;
+        const rows = await executeQuery(query, [user_id]);
         return rows.length ? rows[0] : null;
     };
 
-    removeKeyByUserName = async (userName) => {
-        const query = `DELETE FROM key_tokens WHERE user = ?;`;
-        const result = await executeQuery(query, [userName]);
+    removeKeyByUserId = async (user_id) => {
+        const query = `DELETE FROM api_keys WHERE user_id = ?;`;
+        const result = await executeQuery(query, [user_id]);
         return result.affectedRows;
     };
 }

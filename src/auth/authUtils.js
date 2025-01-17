@@ -10,6 +10,7 @@ const HEADERS = {
 };
 
 const creatTokenPair = async ( payload , publicKey , privateKey) => {
+    console.log(`creatTokenPair::`, payload);
     try {
         const accessToken = await jwt.sign(
             payload,
@@ -48,70 +49,69 @@ const creatTokenPair = async ( payload , publicKey , privateKey) => {
     }
 };
 
-// const authentication = asyncHandler ( async (req, res, next) => {
-//     /*
-//     1 - check userName misssing ???
-//     2 - get accessToken ???
-//     3 - verifyToken ???
-//     4 - check user in dbs ???
-//     5 - check keyStore with this userName ???
-//     6 - OK all => return next()
-//      */
-//     try {
-//         const userName = req.headers[HEADERS.CLIENT_ID];
-//         console.log("userName : " , userName )
-//         if(!userName) {
-//             return res.status(401).json({
-//                 message: 'The userName is required'
-//             });
-//         }
-//         console.log("userName 2 : " , userName )
-//         const keyStore = await keyTokenService.findByUserName(userName);
-//         console.log("KeyStore : " , keyStore.publicKey );
-//         if(!keyStore) {
-//             return res.status(401).json({
-//                 message: 'The userName does not exist'
-//             });
-//         }
+const authentication = asyncHandler ( async (req, res, next) => {
+    /*
+    1 - check userName misssing ???
+    2 - get accessToken ???
+    3 - verifyToken ???
+    4 - check user in dbs ???
+    5 - check keyStore with this userName ???
+    6 - OK all => return next()
+     */
+    try {
+        const user_id = req.headers[HEADERS.CLIENT_ID];
+      
+        if(!user_id) {
+            return res.status(401).json({
+                message: 'Who are you?'
+            });
+        }
 
-//         const accessToken = req.headers[HEADERS.AUTHORIZATION];
-//         console.log("accessToken : " , accessToken )
-//         if(!accessToken) {
-//             return res.status(401).json({
-//                 message: 'The accessToken is required'
-//             });
-//         }
+        const keyStore = await keyTokenService.findByUserId(user_id);
 
-//         const decodeUser = jwt.verify( accessToken, keyStore.publicKey, (err, decode) => {
-//             if(err) {
-//                 console.log(`Error verify::`, err);
-//             } else {
-//                 console.log(`Decode verify::`, decode);
-//                 return decode;
-//             };
-//         });
+        if(!keyStore) {
+            return res.status(401).json({
+                message: 'The keyStore is not found'
+            });
+        }
 
-//         console.log(`Decode verify UserName : ` , decodeUser.user );
-//         req.user = decodeUser.user;
-//         if(decodeUser.user !== userName ) {
-//             return res.status(401).json({
-//                 message: 'The userName is not valid'
-//             });
-//         }
+        const accessToken = req.headers[HEADERS.AUTHORIZATION];
 
-        
-//         req.keyStore = keyStore;
-//         console.log("req.keyStore : " , req.keyStore );
+        if(!accessToken) {
+            return res.status(401).json({
+                message: 'You are not authorized'
+            });
+        }
 
-//         return next();
+        const decodeUser = jwt.verify( accessToken, keyStore.public_key, (err, decode) => {
+            if(err) {
+                console.log(`Error verify::`, err);
+            } else {
+                console.log(`Decode verify::`, decode);
+                return decode;
+            };
+        });
 
-//     } catch (error) {
-//         return res.status(400).json({
-//             message: "Error. Please try again"
-//         });
-//     }
-// });
+        req.user_id = decodeUser.ID;
+        if(decodeUser.ID !== user_id ) {
+            return res.status(401).json({
+                message: 'The userName is not valid'
+            });
+        }
+    
+        req.keyStore = keyStore;
+        console.log(`keyStore::`, keyStore);
+
+        return next();
+
+    } catch (error) {
+        return res.status(400).json({
+            message: "Error. Please try again"
+        });
+    }
+});
 
 module.exports = {
-    creatTokenPair
+    creatTokenPair,
+    authentication
 }
