@@ -31,7 +31,7 @@ const apiKey = async (req, res, next) => {
     }
     catch (error) {
         return res.status(403).json({
-            message: 'error',
+            message: 'error',     
         });
     }
 };
@@ -56,6 +56,6 @@ const permission = ( permission ) => {
 }
 
 module.exports = {
-    apiKey,
+    apiKey, 
     permission
 };

@@ -1,38 +1,31 @@
-const keyTokenModel = require("../models/keyToken.model");
-const { ObjectId } = require("mongodb");
-const { Types } = require("mongoose")
+const { executeQuery } = require('../database/executeQuery');
 
-class keyTokenService {
-    static createKeyToken = async ({ user , refreshToken , publicKey , privateKey }) => {
-        try {
-            //level 0
-            // const publicKeyString = publicKey.toString();
-            // const tokens = await keyTokenModel.create({
-            //     user: user,
-            //     publicKey: publicKeyString
-            // });
-            // return tokens ? tokens.publicKey : null;
-            //level xxx
-            const filter = { user: user }, update = { publicKey, privateKey , refreshTokensUsed: [] , refreshToken }, options = { upsert: true, new: true};
-            const tokens = await keyTokenModel.findOneAndUpdate(
-                filter,
-                update,
-                options
-            );
+class KeyTokenService {
 
-            return tokens ? tokens.publicKey : null;
-        } catch (error) {
-            return error;
-        }
-    }
+    createKeyToken = async ({ user_id, refreshToken, publicKey, privateKey }) => {
+        const query = `
+        INSERT INTO api_keys (user_id, public_key, refresh_token, refresh_token_user)
+        VALUES (?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE 
+            public_key = VALUES(public_key),
+            refresh_token = VALUES(refresh_token),
+            refresh_token_user = '[]';
+        `;
+        return executeQuery(query, [user_id, publicKey, refreshToken, '[]']);
+    };
+    
 
-    static findByUserName = async (userName) => {
-        return await keyTokenModel.findOne({ user: userName }).lean();
-    }
+    findByUserName = async (userName) => {
+        const query = `SELECT * FROM key_tokens WHERE user = ? LIMIT 1;`;
+        const rows = await executeQuery(query, [userName]);
+        return rows.length ? rows[0] : null;
+    };
 
-    static removeKeyByUserName = async (userName) => {
-        return await keyTokenModel.deleteMany( { user: userName });
-    }
-};
+    removeKeyByUserName = async (userName) => {
+        const query = `DELETE FROM key_tokens WHERE user = ?;`;
+        const result = await executeQuery(query, [userName]);
+        return result.affectedRows;
+    };
+}
 
-module.exports = keyTokenService;
+module.exports = new KeyTokenService();

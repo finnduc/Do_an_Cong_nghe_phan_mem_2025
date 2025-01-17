@@ -1,5 +1,5 @@
 // src/database/init.mysql.js
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 const mysqlConfig = require('../configs/mysql.config');
 const { checkDatabaseStatus } = require('../helpers/check.connect.mysql');
 
@@ -22,4 +22,5 @@ pool.getConnection((err, connection) => {
 const access = checkDatabaseStatus(pool);
 console.log( "Số lượng truy cập: " , access);
 
-module.exports = pool;
+module.exports = pool
+
