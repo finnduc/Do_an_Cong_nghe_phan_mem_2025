@@ -6,10 +6,9 @@ const { authentication } = require('../auth/authUtils');
 Routes.use('/access', require('./Access.router/index'));
 
 Routes.use(authentication);
-
-Routes.get('/', (req, res) => {
-    res.json({ message: 'Welcome to the API' });
-});
+// partner routes
+Routes.use('/partner', require('./Partner.router/index'));
+Routes.use('/employee', require('./Employee.router/index'));
 
 // Export the Routes module
 module.exports = Routes;

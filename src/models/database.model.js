@@ -77,7 +77,16 @@ const createAllTables = async () => {
       FOREIGN KEY (product_id) REFERENCES products (product_id) ON DELETE CASCADE ON UPDATE CASCADE,
       FOREIGN KEY (partner_id) REFERENCES partners (partner_id) ON DELETE CASCADE ON UPDATE CASCADE,
       FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE ON UPDATE CASCADE
-    )`
+    )`,
+
+    `CREATE TABLE IF NOT EXISTS parameters (
+      parameter_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+      name VARCHAR(100) UNIQUE NOT NULL,
+      categories TEXT NOT NULL,
+      partners JSON NOT NULL,
+      employees JSON NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
   ];
 
   for (const [index, query] of queries.entries()) {
