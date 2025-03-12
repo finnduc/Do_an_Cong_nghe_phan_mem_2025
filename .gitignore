@@ -1,0 +1,8 @@
+__pycache__/
+unsloth_compiled_cache/
+.env
+*.sql
+test/
+lora_model/
+qwen2.5-coder-0.5B-sql/
+dataset/

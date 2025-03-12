@@ -1,0 +1,13 @@
+numpy
+unsloth
+openai
+langchain
+langgraph
+langchain-openai
+langchain-core
+typing-extensions
+pydantic
+mysql-connector-python
+python-dotenv
+requests
+fastapi
