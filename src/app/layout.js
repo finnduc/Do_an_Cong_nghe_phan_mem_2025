@@ -18,10 +18,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen`}
-      >
+    // Thêm suppressHydrationWarning={true} vào thẻ html
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning={true} // <--- Thêm dòng này
+    >
+      <body className="antialiased h-screen">
         <main>{children}</main>
       </body>
     </html>

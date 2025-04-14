@@ -1,12 +1,21 @@
-import SideBar from "../../components/SideBar";
-import TopBar from "../../components/TopBar";
+"use client";
 
-export default function MainLayout({children}){
-    return <div className="h-screen flex flex-col bg-[#f5f6fa]">
-        <TopBar />
-        <div className="grow flex w-full">
-            <SideBar />
-            {children}
-        </div>
+
+import Sidebar from "../../components/sidebar";
+import Topbar from "../../components/topbar";
+
+export default function MainLayout({ children }) {
+  return (
+    <div className="flex h-screen flex-col bg-[#f5f6fa]">
+      {" "}
+      <div className="flex flex-grow w-full overflow-hidden">
+        {" "}
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto">
+          {" "}
+          {children}
+        </main>
+      </div>
     </div>
+  );
 }

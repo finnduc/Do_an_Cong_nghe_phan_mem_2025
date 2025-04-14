@@ -1,5 +1,7 @@
-export default function StockPage(){
-    return <div className="w-full text-black mt-[40px] mx-[50px] bg-white">
-        StockPage
+export default function ExportPage() {
+  return (
+    <div className="mt-5 mx-[10px] bg-white shadow rounded-lg inline-block">
+      <CreateEmployeeForm />
     </div>
+  );
 }
