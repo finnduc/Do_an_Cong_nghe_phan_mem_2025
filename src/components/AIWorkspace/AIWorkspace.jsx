@@ -29,6 +29,7 @@ export default function AIWorkspace() {
   const [currentData, setCurrentData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const originalQueryRef = useRef(""); // Lưu giá trị SQL gốc
   const tempQueryRef = useRef(""); // Lưu giá trị SQL tạm thời khi chỉnh sửa
@@ -53,20 +54,23 @@ export default function AIWorkspace() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question }),
       });
-
       const data = await response.json();
-      if (!response.ok) throw new Error(data.detail);
-
+      if (!response.ok) {
+        toast.error(data.detail);
+      }
       setSqlQuery(formatSQL(data.sql_statement));
       setCurrentData(data.data);
     } catch {
-      toast.error("The request failed due to an error. Please try again.");
+      toast.error(
+        "Có lỗi xảy ra khi tạo truy vấn SQL. Vui lòng thử lại hoặc liên hệ với người quản trị."
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleExecution = async () => {
+    setErrorMessage("");
     if (!sqlQuery.trim()) {
       toast.error("Truy vấn SQL chưa được nhập.");
       return;
@@ -81,20 +85,25 @@ export default function AIWorkspace() {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.detail);
-
+      console.log(data);
+      if (!response.ok) {
+        setErrorMessage(data.detail);
+      }
       setCurrentData(data.data);
-    } catch {
-      toast.error("The request failed due to an error. Please try again.");
+    } catch (e) {
+      console.log(e);
+      toast.error(
+        "Có lỗi xảy ra khi tạo truy vấn SQL. Vui lòng thử lại hoặc liên hệ với người quản trị."
+      );
     } finally {
       setIsExecuting(false);
     }
   };
 
   return (
-    <div className="w-full bg-white rounded-lg flex flex-col p-5 border border-input gap-2 h-[550px]">
+    <div className="w-full flex flex-col gap-2 h-[550px]">
       <Toaster />
-      <div className="border border-input rounded-xl shadow-sm flex p-3 w-full">
+      <div className="border border-input rounded-xl shadow-sm flex p-3 w-full bg-white">
         <Textarea
           className="min-h-[40px] resize-none overflow-hidden border-0 shadow-none focus-visible:ring-0 px-0 py-0"
           placeholder="Nhập yêu cầu của bạn để tạo truy vấn SQL."
@@ -116,28 +125,37 @@ export default function AIWorkspace() {
           )}
         </button>
       </div>
-
-      <HoverCard openDelay={1}>
-        <HoverCardTrigger className="self-end border-2 border-blue-500 rounded-lg text-blue-500 hover:text-white hover:bg-blue-500">
-          <button
-            className="p-2 rounded-xl"
-            onClick={() => {
-              setOpenSQL(true);
-              setIsEditing(false);
-              originalQueryRef.current = sqlQuery; // Lưu query gốc
-              tempQueryRef.current = sqlQuery;
-            }}
-          >
-            <Pencil strokeWidth={2.5} size={20} />
-          </button>
-        </HoverCardTrigger>
-        <HoverCardContent className="size-fit text-sm">
-          Chỉnh sửa truy vấn SQL
-        </HoverCardContent>
-      </HoverCard>
-
-      {currentData && (
-        <ReuseTable columns={currentData.columns} rows={currentData.rows} />
+      <div className="w-full flex">
+        <div className="text-xs text-gray-600 text-center grow">AI có thể mắc sai lầm khi tạo truy vấn SQL. Hãy kiểm tra lại truy vấn để tránh sai sót.</div>
+        <HoverCard openDelay={1}>
+          <HoverCardTrigger className="ml-auto border-2 border-blue-500 rounded-lg text-blue-500 hover:text-white hover:bg-blue-500">
+            <button
+              className="p-2 rounded-xl"
+              onClick={() => {
+                setOpenSQL(true);
+                setIsEditing(false);
+                originalQueryRef.current = sqlQuery; // Lưu query gốc
+                tempQueryRef.current = sqlQuery;
+              }}
+            >
+              <Pencil strokeWidth={2.5} size={20} />
+            </button>
+          </HoverCardTrigger>
+          <HoverCardContent className="size-fit text-sm">
+            Chỉnh sửa truy vấn SQL
+          </HoverCardContent>
+        </HoverCard>
+      </div>
+      {typeof currentData === "string" ? (
+        <div className="w-full text-center text-black/75">{currentData}</div>
+      ) : (
+        currentData && (
+          <ReuseTable
+            columns={currentData.columns}
+            rows={currentData.rows}
+            rowsPerPage={7}
+          />
+        )
       )}
 
       {openSQL && (
@@ -145,7 +163,7 @@ export default function AIWorkspace() {
           <div className="bg-stone-50 rounded-2xl p-[20px] flex flex-col items-center gap-2">
             <CodeMirror
               key={forceUpdate}
-              value={tempQueryRef.current}
+              value={formatSQL(tempQueryRef.current)}
               extensions={[
                 sql(),
                 !isEditing ? EditorState.readOnly.of(true) : [],
@@ -154,6 +172,9 @@ export default function AIWorkspace() {
               width="500px"
               onChange={(value) => (tempQueryRef.current = value)}
             />
+            {errorMessage && (
+              <div className="text-red-500 text-sm w-full">{errorMessage}</div>
+            )}
             <div className="w-full flex justify-between">
               <div className="flex self-end gap-2">
                 <Button
@@ -172,6 +193,7 @@ export default function AIWorkspace() {
                   <Button
                     className="bg-blue-500 text-white hover:bg-blue-700"
                     onClick={() => {
+                      originalQueryRef.current = tempQueryRef.current;
                       setIsEditing(false);
                       setSqlQuery(tempQueryRef.current);
                     }}
@@ -186,7 +208,7 @@ export default function AIWorkspace() {
                   onClick={() => {
                     setOpenSQL(false);
                     setIsEditing(false);
-                    tempQueryRef.current = originalQueryRef.current; // Không thay đổi query nếu chưa lưu
+                    tempQueryRef.current = originalQueryRef.current;
                   }}
                 >
                   Đóng
@@ -194,6 +216,7 @@ export default function AIWorkspace() {
                 <Button
                   className="bg-blue-500 text-white hover:bg-blue-700"
                   onClick={handleExecution}
+                  disabled={isExecuting || isEditing}
                 >
                   {isExecuting ? "Đang chạy" : "Chạy lệnh"}
                 </Button>

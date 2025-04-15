@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import Link from "next/link";
 import { motion } from "motion/react";
 
 // Zod validation schema
@@ -42,9 +41,9 @@ export default function LoginForm() {
 
   return (
     <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-[450px] min-h-[480px] text-black mx-auto bg-white rounded-xl px-10 py-14 flex flex-col items-center shadow-md">
-      <div className="text-2xl font-semibold mb-2">Login to Account</div>
+      <div className="text-2xl font-semibold mb-2">Đăng nhập vào tài khoản</div>
       <div className="text-sm font-medium text-gray-600 mb-6">
-        Please enter your email and password to continue.
+        Hãy nhập email và mật khẩu của bạn để tiếp tục.
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="w-full mx-4 flex flex-col gap-6">
@@ -53,7 +52,7 @@ export default function LoginForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email address</FormLabel>
+                <FormLabel>Tài khoản Email</FormLabel>
                 <FormControl>
                   <Input placeholder="example@gmail.com" {...field} />
                 </FormControl>
@@ -66,30 +65,21 @@ export default function LoginForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>Mật khẩu</FormLabel>
                 <FormControl>
                   <Input placeholder="********" {...field} type="password" />
                 </FormControl>
                 <FormMessage />
                 <div className="flex items-center gap-1">
                     <Checkbox id='remember'  className='border-blue-200 data-[state=checked]:bg-blue-500'/>
-                    <label htmlFor="remember" className="text-xs text-gray-500">Remember password</label>
+                    <label htmlFor="remember" className="text-xs text-gray-500">Ghi nhớ mật khẩu</label>
                 </div>
               </FormItem>
             )}
           />
-          <Button type="submit" className='w-[300px] self-center bg-blue-500 hover:bg-blue-700 mt-4'>Log in</Button>
+          <Button type="submit" className='w-[300px] self-center bg-blue-500 hover:bg-blue-700 mt-4'>Đăng nhập</Button>
         </form>
       </Form>
-      <div className="flex gap-1 w-[300px] mt-1 mb-5">
-        <div className="text-sm text-gray-500">Don't have account?</div>
-        <Link
-          className="p-0 text-sm text-blue-500 hover:underline"
-          href="/signup"
-        >
-          Signup now!
-        </Link>
-      </div>
     </motion.div>
   );
 }
