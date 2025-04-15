@@ -184,10 +184,10 @@ function SimpleTable() {
                 <td className="py-2 px-4 border-b text-left">{item.phone}</td>
                 <td className="py-2 px-4 border-b text-left">{item.address}</td>
                 <td className="py-2 px-4 border-b text-left">
-                  {item.created_at}
+                  {item.partner_type}
                 </td>
                 <td className="py-2 px-4 border-b text-left">
-                  {item.partner_type}
+                  {item.created_at}
                 </td>
                 <td className="py-2 px-4 border-b text-left whitespace-nowrap">
                   <button className="mr-2 mb-1 md:mb-0 px-3 py-1 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-black hover:bg-blue-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">

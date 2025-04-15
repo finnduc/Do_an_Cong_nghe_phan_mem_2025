@@ -38,11 +38,11 @@ export default function PartnerPage() {
           </button>
         </nav>
       </div>
-      <div className="flex-grow mt-1px  flex justify-center">
+      <div className="flex-grow mt-1px  flex justify-center md:items-start">
         {activeTab === "create" && <CreatePartnerForm />}
         {activeTab === "manage" && (
 
-          <div className="bg-white rounded-lg shadow overflow-hidden w-full">
+          <div className="bg-white rounded-lg shadow overflow-hidden w-full max-h-[70vh]">
             <SimpleTable />
           </div>
         )}
