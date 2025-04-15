@@ -6,3 +6,4 @@ test/
 lora_model/
 qwen2.5-coder-0.5B-sql/
 dataset/
+*.ipynb

@@ -1,26 +1,39 @@
-from unsloth import FastLanguageModel
 from langchain_core.prompts import ChatPromptTemplate
 from typing_extensions import TypedDict, Literal
-from pydantic import BaseModel, Field
-from langchain_openai import ChatOpenAI
 from mysql_database import MySQLDatabase
+from langgraph.types import Command
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import StateGraph, START, END
-from prompts import sql_prompt, transform_question_prompt, validate_question_prompt
+from prompts import (
+    sql_prompt,
+    validate_question_prompt,
+    correcting_semantic_prompt,
+    correcting_syntax_prompt,
+)
+from load_model import model, tokenizer
+import re
 
 
-class ValidateResult(BaseModel):
-    """The validation result if the question is relevant to the provided schema"""
+def extract_select_sql(text: str) -> str:
+    """
+    Extract the first complete SELECT SQL statement from the text.
+    A complete SQL statement ends with a semicolon.
+    """
+    # Remove leading/trailing whitespace
+    text = text.strip()
 
-    result: Literal["yes", "no"] = Field(
-        description="Whether the question is relevant to the schema, yes or no only"
-    )
+    # Match any SQL SELECT statement that ends with a semicolon
+    match = re.search(r"\bSELECT\b.*?;", text, re.IGNORECASE)
+
+    return match.group(0).strip()  # Return the matched SELECT statement
 
 
 class State(TypedDict):
     question: str
     received_data: dict
-    sql_statement: str
+    sql_query: str
     max_retries: int
+    error_message: str
 
 
 class SQLGenerator:
@@ -35,50 +48,30 @@ class SQLGenerator:
         Returns:
             None
         """
-        model, tokenizer = FastLanguageModel.from_pretrained(
-            model_name="gianghp/Qwen2.5Coder-0.5B-Instruct-T2SQL-ttcs",
-            max_seq_length=2048,
-            dtype=None,
-            load_in_4bit=False,
-        )
-        FastLanguageModel.for_inference(model)
         self.model = model
         self.tokenizer = tokenizer
-        self.llm = ChatOpenAI(**llm_config)
-        self.database = MySQLDatabase(**database_config)
+        self.llm = ChatGoogleGenerativeAI(**llm_config)
+        self.database = MySQLDatabase(database_config)
 
-    def validate_question(self, state: State):
+    def validate_question(self, state: State) -> Command[Literal[END, "generate_sql"]]:  # type: ignore
         question = state["question"]
-        examples = f"""Example 1: 
-        Human: List all employees who made a transaction.
-        Your response: {ValidateResult(result='yes').model_dump_json()}
-        
-        Example 2:
-        Human: List all products whose export price has increased compared to last month, and include the percentage increase for each product.
-        Your response: {ValidateResult(result='yes').model_dump_json()}
-        
-        Example 3:
-        Human: What's the weather today?
-        Your response: {ValidateResult(result='no').model_dump_json()}
-        
-        Example 4:
-        Human: What is best seller product at market ABC?
-        Your response: {ValidateResult(result='no').model_dump_json()}
-        """
 
         prompt = ChatPromptTemplate.from_messages(
             {
                 ("human", validate_question_prompt),
             }
         )
-        chain = prompt | self.llm.with_structured_output(
-            ValidateResult, method="json_mode"
-        )
-        result = chain.invoke({"examples": examples, "question": question})
-        if "yes" in result.result:
-            return "Continue"
+        chain = prompt | self.llm
+        result = chain.invoke({"question": question})
+        if "yes" in result.content:
+            return Command(goto="generate_sql")
         else:
-            return "Early stopping"
+            return Command(
+                update={
+                    "received_data": "Please rewrite your question to be clearer and improve clarity. Also check again if your question is related to the database."
+                },
+                goto=END,
+            )
 
     def generate_sql(self, state: State):
         question = state["question"]
@@ -98,81 +91,106 @@ class SQLGenerator:
         # Giải mã phần response thành text
         sql_text = self.tokenizer.decode(response_ids[0], skip_special_tokens=True)
         sql_text = sql_text.replace("<|im_end|>", "").strip()
-        return {"sql_statement": sql_text}
+        return {"sql_query": sql_text}
 
-    def execute_sql(self, state: State):
-        sql_statement = state["sql_statement"]
-        result = self.database.execute_query(sql_statement)
-        if result["detail"] == "success":
-            return "Execution successful"
-        elif state["max_retries"] <= 0:
-            return "Exceed max retries"
-        else:
-            return "Execution failed"
+    def execute_sql(self, state: State) -> Command[Literal[END, "correcting_syntax"]]:  # type: ignore
+        sql_query = state["sql_query"]
+        if state["max_retries"] <= 0:
+            print(1)
+            return Command(
+                update={
+                    "sql_query": "",
+                    "received_data": "Please rewrite your question to be clearer and improve clarity. Also check again if your question is related to the database.",
+                },
+                goto=END,
+            )
+        try:
+            data = self.database.execute_query(sql_query)
+            print(2)
+            return Command(update={"received_data": data}, goto=END)
+        except Exception as e:
+            print(3)
+            return Command(update={"error_message": str(e)}, goto="correcting_syntax")
 
-    def get_result(self, state: State):
-        return {"received_data": self.database.get_query_result()}
-
-    def failed(self, state: State):
-        return {
-            "received_data": "Please rewrite your question to be clearer and improve clarity. Also check again if your question is related to the database.",
-            'sql_statement': 'None'
-        }
-
-    def transform_question(self, state: State):
+    def correcting_semantic(self, state: State) -> Command[Literal[END, "execute_sql"]]:  # type: ignore
+        sql_query = state["sql_query"]
         question = state["question"]
         prompt = ChatPromptTemplate.from_messages(
             {
-                ("human", transform_question_prompt),
+                (
+                    "human",
+                    correcting_semantic_prompt,
+                ),
             }
         )
         chain = prompt | self.llm
-        result = chain.invoke({"question": question})
-        return {"question": result.content, "max_retries": state["max_retries"] - 1}
+        max_retries = 3
+        while max_retries > 0:
+            result = chain.invoke({"sql_query": sql_query, "question": question})
+            if "yes" in result.content.lower():
+                return Command(update={"sql_query": sql_query}, goto="execute_sql")
+            sql_query = extract_select_sql(result.content)
+            max_retries -= 1
+        return Command(
+            update={
+                "received_data": "Please rewrite your question to be clearer and improve clarity. Also check again if your question is related to the database."
+            },
+            goto=END,
+        )
+
+    def correcting_syntax(self, state: State):
+        sql_query = state["sql_query"]
+        error_message = state["error_message"]
+        prompt = ChatPromptTemplate.from_messages(
+            {
+                (
+                    "human",
+                    correcting_syntax_prompt,
+                ),
+            }
+        )
+        chain = prompt | self.llm
+        result = chain.invoke({"sql_query": sql_query, "error_message": error_message})
+        return {
+            "sql_query": extract_select_sql(result.content),
+            "max_retries": state["max_retries"] - 1,
+        }
 
     def build(self):
         """
-        Build the workflow for generating SQL from natural language input.
+        Build a Text2SQL workflow.
 
-        The workflow consists of the following nodes:
+        The workflow is defined by the following nodes and edges:
 
-        - `generate_sql`: Generate a SQL statement from the input question.
-        - `transform_question`: Transform the question into a clearer form.
-        - `get_result`: Execute the SQL statement and return the result.
-        - `failed`: Return an error message if the SQL statement fails to execute.
+        - validate_question: Validate the user's question and filter out unsupported queries.
+        - generate_sql: Generate an SQL query from the user's question.
+        - execute_sql: Execute the SQL query and return the result to the user.
+        - correcting_syntax: Correct the syntax errors in the SQL query.
+        - correcting_semantic: Correct the semantic errors in the SQL query.
 
-        The edges between the nodes are:
+        The edges are:
 
-        - `START` -> `validate_question` -> `generate_sql` or `failed`
-        - `generate_sql` -> `execute_sql` -> `get_result` or `transform_question` or `failed`
-        - `transform_question` -> `generate_sql`
-        - `get_result` -> `END`
-        - `failed` -> `END`
+        - START -> validate_question
+        - validate_question -> generate_sql
+        - generate_sql -> correcting_semantic
+        - correcting_semantic -> execute_sql
+        - correcting_syntax -> execute_sql
 
-        Returns:
-            The compiled workflow app.
+        Returns a tuple of (app, database), where app is the compiled workflow and database is the MySQL database connection.
         """
         workflow = StateGraph(state_schema=State)
+        workflow.add_node("validate_question", self.validate_question)
         workflow.add_node("generate_sql", self.generate_sql)
-        workflow.add_node("transform_question", self.transform_question)
-        workflow.add_node("get_result", self.get_result)
-        workflow.add_node("failed", self.failed)
-        workflow.add_conditional_edges(
-            START,
-            self.validate_question,
-            {"Continue": "generate_sql", "Early stopping": "failed"},
-        )
-        workflow.add_conditional_edges(
+        workflow.add_node("execute_sql", self.execute_sql)
+        workflow.add_node("correcting_syntax", self.correcting_syntax)
+        workflow.add_node("correcting_semantic", self.correcting_semantic)
+        workflow.add_edge(START, "validate_question")
+        workflow.add_edge(
             "generate_sql",
-            self.execute_sql,
-            {
-                "Execution successful": "get_result",
-                "Exceed max retries": "failed",
-                "Execution failed": "transform_question",
-            },
+            "correcting_semantic",
         )
-        workflow.add_edge("transform_question", "generate_sql")
-        workflow.add_edge("get_result", END)
-        workflow.add_edge("failed", END)
+        workflow.add_edge("correcting_semantic", "execute_sql")
+        workflow.add_edge("correcting_syntax", "execute_sql")
+
         app = workflow.compile()
-        return app
+        return app, self.database

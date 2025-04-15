@@ -4,9 +4,8 @@ import dotenv
 dotenv.load_dotenv()
 
 llm_config = {
-    "model": "google/gemini-2.0-flash-lite-preview-02-05:free",
-    "api_key": os.environ.get("LLM_API_KEY"),
-    "base_url": os.environ.get("LLM_BASE_URL"),
+    "model": "gemini-2.0-flash",
+    "api_key": os.environ.get("GOOGLE_API_KEY"),
 }
 
 database_config = {
@@ -14,5 +13,5 @@ database_config = {
     "user": os.environ.get("DB_USER"),
     "database": os.environ.get("DB_NAME"),
     "password": os.environ.get("DB_PASSWORD"),
-    "port": os.environ.get("DB_PORT"),
+    "port": os.environ.get("DB_PORT") or 3306,
 }
