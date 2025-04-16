@@ -2,14 +2,14 @@
 
 
 import React from "react";
-import KpiCard from "./KpiCard.jsx";
+import KpiCard from "../../components/home/KpiCard.jsx";
 import {
   FaBoxes,
   FaExclamationTriangle,
   FaExchangeAlt,
   FaUsers,
 } from "react-icons/fa";
-import ImportExportChart from "./ImportExportChart";
+import ImportExportChart from "../../components/home/ImportExportChart.jsx";
 
 const kpiData = {
   totalProducts: { value: "150", change: +2.5, text: "so với hôm qua" },

@@ -8,11 +8,9 @@ export default function MainLayout({ children }) {
   return (
     <div className="flex h-screen flex-col bg-[#f5f6fa]">
       <Topbar />
-      <div className="flex flex-grow w-full overflow-hidden">
-        {" "}
+      <div className="flex flex-grow overflow-hidden">
         <Sidebar />
         <main className="flex-1 overflow-y-auto">
-          {" "}
           {children}
         </main>
       </div>

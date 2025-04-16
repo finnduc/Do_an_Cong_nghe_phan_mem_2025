@@ -153,7 +153,6 @@ export default function AIWorkspace() {
           <ReuseTable
             columns={currentData.columns}
             rows={currentData.rows}
-            rowsPerPage={7}
           />
         )
       )}

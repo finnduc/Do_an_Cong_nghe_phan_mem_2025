@@ -1,30 +1,20 @@
+"use client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 
-function paginateData(data, rowsPerPage = 8) {
-  if (!Array.isArray(data) || data.length === 0) {
-    return { totalPage: 1, paginatedData: [[]] };
-  }
 
-  const totalPage = Math.max(1, Math.ceil(data.length / rowsPerPage));
-  const paginatedData = [];
-
-  for (let i = 0; i < totalPage; i++) {
-    paginatedData.push(data.slice(i * rowsPerPage, (i + 1) * rowsPerPage));
-  }
-
-  return { totalPage, paginatedData };
-}
-
-const TruncatedCell = ({ text, maxLength = 15 }) => {
+// Hàm TruncatedCell
+const TruncatedCell = ({ text, maxLength = 25 }) => {
   const isTruncated = text.length > maxLength;
-  const displayText = isTruncated ? text.slice(0, maxLength) + "..." : text;
+  const displayText = isTruncated ? `${text.slice(0, maxLength)}...` : text;
 
   return (
     <div className="relative p-2 min-h-[50px] flex items-center group">
-      <span className="overflow-hidden text-ellipsis whitespace-nowrap">{displayText}</span>
+      <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+        {displayText}
+      </span>
       {isTruncated && (
-        <div className="absolute left-1/2 transform -translate-x-1/2 top-full mt-1 bg-black text-white text-sm rounded p-2 shadow-lg w-max z-50 hidden group-hover:block">
+        <div className="absolute left-0 top-full mt-1 bg-black text-white text-sm rounded p-2 shadow-lg w-max max-w-[200px] z-50 hidden group-hover:block">
           {text}
         </div>
       )}
@@ -32,89 +22,114 @@ const TruncatedCell = ({ text, maxLength = 15 }) => {
   );
 };
 
-export default function FixedHeaderTable({ columns, rows, rowsPerPage = 8 }) {
-  // Thêm cột ID vào đầu danh sách
-  const updatedColumns = ["ID", ...columns];
+// Component ReuseTable
+const ReuseTable = ({
+  columns = [],
+  rows = [],
+  currentPage = 1,
+  totalPages = 1,
+  onPageChange = () => {},
+}) => {
+  const [page, setPage] = useState(currentPage);
 
-  const { totalPage, paginatedData } = useMemo(() => {
-    return paginateData(rows, rowsPerPage);
-  }, [rows, rowsPerPage]);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [currentData, setCurrentData] = useState(paginatedData[0]);
-
-  useEffect(() => {
-    setCurrentData(paginatedData[currentPage - 1]);
-  }, [currentPage, paginatedData]);
-
-  const startIndex = (currentPage - 1) * rowsPerPage + 1;
-  const endIndex = Math.min(currentPage * rowsPerPage, rows.length);
-
-  // Định nghĩa gridTemplateColumns với độ rộng tự nhiên
-  const gridTemplateColumns = `60px repeat(${columns.length}, minmax(0, 1fr))`; // Cột ID rộng 80px, các cột khác chia đều không gian còn lại
+  const handleChange = (e) => {
+    const input = e.target.value;
+    // Cho phép chuỗi rỗng hoặc chuỗi toàn số
+    if (input === '' || /^[0-9]+$/.test(input)) {
+      const newPage = input === '' ? 1 : parseInt(input, 10);
+      if (newPage >= 1 && newPage <= totalPages) {
+        setPage(newPage);
+        onPageChange(newPage);
+      }
+    }
+  };
 
   return (
-    <div className="w-full">
-      {/* Header Table */}
-      <div
-        className="grid border-[1px] bg-slate-50 border-input rounded-t-xl"
-        style={{ gridTemplateColumns }}
-      >
-        {updatedColumns.map((column, index) => (
-          <div key={index} className="p-2 text-left capitalize font-semibold">
-            {column}
-          </div>
-        ))}
+    <div>
+      <div className="relative overflow-y-auto border border-gray-300 shadow-md sm:rounded-lg max-h-[70vh]">
+        <table className="w-full text-sm text-left">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-10">
+            <tr>
+              {columns.map((column, index) => (
+                <th
+                  key={`header-${index}`}
+                  scope="col"
+                  className='py-3 px-4 border-b text-left'
+                >
+                  {column}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {rows.length > 0 ? (
+              rows.map((row, rowIndex) => (
+                <tr key={`row-${rowIndex}`} className="hover:bg-gray-50">
+                  {row.map((cell, cellIndex) => (
+                    <td
+                      key={`cell-${rowIndex}-${cellIndex}`}
+                      className="px-4 border-b  text-left"
+                    >
+                      {/* Sử dụng TruncatedCell để hiển thị nội dung ô */}
+                      <TruncatedCell text={String(cell)} maxLength={25} />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  className="py-4 px-4 text-center text-gray-500"
+                >
+                  No Data
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
-
-      {/* Body Table */}
-      <div className="w-full">
-        <div className="divide-y text-gray-700 bg-white rounded-b-xl border-[1px] border-input border-t-0">
-          {currentData.length !== 0 ? (
-            currentData.map((row, rowIndex) => (
-              <div
-                key={rowIndex}
-                className="grid"
-                style={{ gridTemplateColumns }}
-              >
-                <div className="p-2 min-h-[50px] flex items-center justify-start font-semibold">
-                  {startIndex + rowIndex}
-                </div>
-                {row.map((cell, cellIndex) => (
-                  <TruncatedCell key={cellIndex} text={cell} />
-                ))}
-              </div>
-            ))
-          ) : (
-            <div className="p-2 text-center text-slate-500 border-r last:border-r-0">
-              No Data
-            </div>
-          )}
-        </div>
-
-        {/* Pagination */}
-        <div className="w-full flex justify-between items-center text-gray-500 text-sm px-4 font-medium">
-          <div>
-            Showing {startIndex}-{endIndex} of {rows.length} - Total page: {totalPage}
-          </div>
-          <div className="flex gap-1 pt-2">
-            <button
-              className="bg-white border-[1px] border-input rounded-md p-1 hover:bg-slate-100 disabled:bg-gray-200"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((prev) => prev - 1)}
-            >
-              <ChevronLeft />
-            </button>
-            <button
-              className="bg-white border-[1px] border-input rounded-md p-1 hover:bg-slate-100 disabled:bg-gray-200"
-              disabled={currentPage === totalPage}
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-            >
-              <ChevronRight />
-            </button>
-          </div>
+      {/* Pagination */}
+      <div className="w-full flex justify-between items-center text-sm px-4 py-2 font-medium">
+        <span className="text-gray-500">
+          Showing page {currentPage} of {totalPages}
+        </span>
+        <div className="flex gap-2">
+          <button
+            className="bg-white border border-gray-200 rounded-md p-1 hover:bg-slate-100 disabled:bg-gray-200 disabled:cursor-not-allowed"
+            disabled={currentPage === 1}
+            onClick={() => {
+              const newPage = currentPage - 1;
+              setPage(newPage);
+              onPageChange(newPage);
+            }}
+            aria-label="Previous page"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <input
+            className="w-10 text-center"
+            value={page}
+            onChange={handleChange}
+            inputMode="numeric"
+            pattern="[0-9]*"
+          />
+          <button
+            className="bg-white border border-gray-200 rounded-md p-1 hover:bg-slate-100 disabled:bg-gray-200 disabled:cursor-not-allowed"
+            disabled={currentPage === totalPages}
+            onClick={() => {
+              const newPage = currentPage + 1;
+              setPage(newPage);
+              onPageChange(newPage);
+            }}
+            aria-label="Next page"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default ReuseTable;
