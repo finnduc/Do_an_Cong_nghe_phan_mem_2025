@@ -28,7 +28,7 @@ const main = {
   "Xuất kho": [<ArrowRightFromLine size={20} />, "/exports"],
   "Nhập kho": [<Import size={20} />, "/imports"],
   "Lịch sử": [<History size={20} />, "/history"],
-  "AI": [<Bot size={20} />, "/helper"],
+  "AI": [<Bot size={20} />, "/ai"],
 }
 
 const other = {

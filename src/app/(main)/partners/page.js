@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import { jsonToTableFormat } from "@/lib/utils";
 import ReuseTable from "@/components/ReuseTable.jsx";
@@ -147,7 +146,7 @@ export default function PartnerPage() {
   const [activeTab, setActiveTab] = useState("create");
   const tableData = jsonToTableFormat(data.slice(0, 5));
   return (
-    <div className="flex flex-col min-h-screen p-4 md:p-6 bg-gray-100">
+    <div className="flex flex-col bg-gray-100">
       <h1 className="text-2xl font-semibold text-gray-800 mb-4">
         Quản lý Đối Tác
       </h1>

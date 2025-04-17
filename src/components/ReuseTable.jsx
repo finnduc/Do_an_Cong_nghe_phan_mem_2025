@@ -1,6 +1,6 @@
 "use client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState} from "react";
 
 
 // Hàm TruncatedCell
@@ -9,7 +9,7 @@ const TruncatedCell = ({ text, maxLength = 25 }) => {
   const displayText = isTruncated ? `${text.slice(0, maxLength)}...` : text;
 
   return (
-    <div className="relative p-2 min-h-[50px] flex items-center group">
+    <div className="relative min-h-[50px] flex items-center group">
       <span className="overflow-hidden text-ellipsis whitespace-nowrap">
         {displayText}
       </span>
@@ -29,6 +29,7 @@ const ReuseTable = ({
   currentPage = 1,
   totalPages = 1,
   onPageChange = () => {},
+  totalRecords = 0
 }) => {
   const [page, setPage] = useState(currentPage);
 
@@ -46,7 +47,7 @@ const ReuseTable = ({
 
   return (
     <div>
-      <div className="relative overflow-y-auto border border-gray-300 shadow-md sm:rounded-lg max-h-[70vh]">
+      <div className="border border-gray-300 shadow-md rounded-lg">
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-10">
             <tr>
@@ -54,7 +55,7 @@ const ReuseTable = ({
                 <th
                   key={`header-${index}`}
                   scope="col"
-                  className='py-3 px-4 border-b text-left'
+                  className={`py-3 px-4 border-b text-left ${index === 0 && 'rounded-l-lg'} ${index === columns.length - 1 && 'rounded-r-lg'}`}
                 >
                   {column}
                 </th>
@@ -64,11 +65,11 @@ const ReuseTable = ({
           <tbody className="bg-white divide-y divide-gray-200">
             {rows.length > 0 ? (
               rows.map((row, rowIndex) => (
-                <tr key={`row-${rowIndex}`} className="hover:bg-gray-50">
+                <tr key={`row-${rowIndex}`} className={`hover:bg-gray-50 ${rowIndex === rows.length - 1 && 'rounded-b-lg'}`}>
                   {row.map((cell, cellIndex) => (
                     <td
                       key={`cell-${rowIndex}-${cellIndex}`}
-                      className="px-4 border-b  text-left"
+                      className={`px-4 border-b  text-left ${rowIndex === rows.length - 1 && cellIndex === 0 && 'rounded-bl-lg'} ${rowIndex === rows.length - 1 && cellIndex === row.length - 1 && 'rounded-br-lg'}`}
                     >
                       {/* Sử dụng TruncatedCell để hiển thị nội dung ô */}
                       <TruncatedCell text={String(cell)} maxLength={25} />
@@ -92,7 +93,7 @@ const ReuseTable = ({
       {/* Pagination */}
       <div className="w-full flex justify-between items-center text-sm px-4 py-2 font-medium">
         <span className="text-gray-500">
-          Showing page {currentPage} of {totalPages}
+          Đang hiện trang {currentPage} - Tổng {totalPages} trang - Số lượng bản ghi: {totalRecords}
         </span>
         <div className="flex gap-2">
           <button

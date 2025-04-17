@@ -15,24 +15,40 @@ import ReuseTable from "../ReuseTable";
 import { toast } from "sonner";
 import { Toaster } from "../ui/sonner";
 import { EditorState } from "@codemirror/state";
+import { generateSQL, executeSQL } from "@/lib/api/ai";
 
 function formatSQL(text) {
   return format(text, { language: "mysql" });
 }
 
+function applyPaginationToSQL(sql, currentPage, pageSize = 8) {
+  const offset = (currentPage - 1) * pageSize;
+  // Loại bỏ LIMIT và OFFSET cũ nếu có
+  let cleanSQL = sql.replace(/\s+LIMIT\s+\d+(\s+OFFSET\s+\d+)?;?/i, '');
+  // Đảm bảo không có dấu ; ở cuối để dễ nối LIMIT
+  cleanSQL = cleanSQL.trim().replace(/;$/, '');
+  // Thêm LIMIT và OFFSET mới
+  const paginatedSQL = `${cleanSQL} LIMIT ${pageSize} OFFSET ${offset};`;
+
+  return paginatedSQL;
+}
+
 export default function AIWorkspace() {
-  const [sqlQuery, setSqlQuery] = useState("");
-  const [openSQL, setOpenSQL] = useState(false);
+  const [sqlQuery, setSqlQuery] = useState(""); // Giá trị SQL hiện tại
+  const [openSQL, setOpenSQL] = useState(false); 
   const [question, setQuestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isExecuting, setIsExecuting] = useState(false);
-  const [currentData, setCurrentData] = useState(null);
+  const [isExecuting, setIsExecuting] = useState(false); 
+  const [currentData, setCurrentData] = useState(null); // Dữ liệu hiện tại tương ứng với câu lệnh SQL
+  const [totalRecords, setTotalRecords] = useState(0); // Tổng số lượng dữ liệu khi chưa limit
   const [isEditing, setIsEditing] = useState(false);
-  const [forceUpdate, setForceUpdate] = useState(0);
-  const [errorMessage, setErrorMessage] = useState("");
-
+  const [forceUpdate, setForceUpdate] = useState(0); // Trigger rerender khi lưu thay đổi sau khi chỉnh sửa câu lệnh SQL
+  const [errorMessage, setErrorMessage] = useState(""); // Thông báo lỗi nếu có
+  const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại của dữ liệu - trang 1 tương ứng LIMIT 8 OFFSET 0
   const originalQueryRef = useRef(""); // Lưu giá trị SQL gốc
   const tempQueryRef = useRef(""); // Lưu giá trị SQL tạm thời khi chỉnh sửa
+  const pageSize = 9
+  const totalPages = Math.ceil(totalRecords / pageSize);
 
   const updateHeight = (event) => {
     const textarea = event.target;
@@ -46,21 +62,14 @@ export default function AIWorkspace() {
       toast.error("Vui lòng nhập yêu cầu.");
       return;
     }
-
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      const response = await fetch("http://localhost:8000/question", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        toast.error(data.detail);
-      }
-      setSqlQuery(formatSQL(data.sql_statement));
+      const data = await generateSQL(question)
+      setSqlQuery(formatSQL(data.sql_query));
       setCurrentData(data.data);
-    } catch {
+      setTotalRecords(data.total_records);
+    } catch (e) {
+      setErrorMessage(e.message || "Đã xảy ra lỗi không xác định.");
       toast.error(
         "Có lỗi xảy ra khi tạo truy vấn SQL. Vui lòng thử lại hoặc liên hệ với người quản trị."
       );
@@ -75,28 +84,33 @@ export default function AIWorkspace() {
       toast.error("Truy vấn SQL chưa được nhập.");
       return;
     }
-
+    setIsExecuting(true);
     try {
-      setIsExecuting(true);
-      const response = await fetch("http://localhost:8000/execute", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sql: sqlQuery }),
-      });
-
-      const data = await response.json();
-      console.log(data);
-      if (!response.ok) {
-        setErrorMessage(data.detail);
-      }
+      const data = await executeSQL(sqlQuery);
       setCurrentData(data.data);
+      setTotalRecords(data.total_records);
     } catch (e) {
-      console.log(e);
+      setErrorMessage(e.message || "Đã xảy ra lỗi không xác định.");
       toast.error(
         "Có lỗi xảy ra khi tạo truy vấn SQL. Vui lòng thử lại hoặc liên hệ với người quản trị."
       );
     } finally {
       setIsExecuting(false);
+    }
+  };
+
+  const getNextPage = async (page) => {
+    const paginatedSQL = applyPaginationToSQL(sqlQuery, page);
+    try {
+      const data = await executeSQL(paginatedSQL);
+      setCurrentData(data.data);
+      setCurrentPage(page);
+      setSqlQuery(paginatedSQL);
+    } catch (e) {
+      setErrorMessage(e.message || "Đã xảy ra lỗi không xác định.");
+      toast.error(
+        "Có lỗi xảy ra khi tạo truy vấn SQL. Vui lòng thử lại hoặc liên hệ với người quản trị."
+      );
     }
   };
 
@@ -153,12 +167,16 @@ export default function AIWorkspace() {
           <ReuseTable
             columns={currentData.columns}
             rows={currentData.rows}
+            totalPages={totalPages}
+            totalRecords={totalRecords}
+            onPageChange={getNextPage}
+            currentPage={currentPage}
           />
         )
       )}
 
       {openSQL && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
           <div className="bg-stone-50 rounded-2xl p-[20px] flex flex-col items-center gap-2">
             <CodeMirror
               key={forceUpdate}

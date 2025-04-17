@@ -1,6 +1,4 @@
 "use client";
-
-
 import React from "react";
 import KpiCard from "../../components/home/KpiCard.jsx";
 import {
@@ -101,7 +99,7 @@ const formatTime = (dateString) => {
 
 export default function DashboardHomePage() {
   return (
-    <div className="p-6 md:p-10 bg-gray-100 min-h-screen">
+    <div className="bg-gray-100 mb-6">
       <h1 className="text-2xl font-semibold text-gray-800 mb-6">
         Tổng Quan Kho Hàng
       </h1>

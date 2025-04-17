@@ -1,6 +1,3 @@
-// employees/page.js
-"use client";
-import React from "react";
 import CreateEmployeeForm from "../../../components/employees/CreateEmployee.jsx";
 import { jsonToTableFormat } from "@/lib/utils";
 import ReuseTable from "@/components/ReuseTable.jsx";
@@ -114,9 +111,9 @@ const data = [
 ];
 
 export default function EmployeePage() {
-  const tableData = jsonToTableFormat(data.slice(0, 5));
+  const tableData = jsonToTableFormat(data.slice(0, 9));
   return (
-    <div className="flex flex-col min-h-screen p-4 md:p-6 bg-gray-100">
+    <div className="flex flex-col bg-gray-100">
       <h1 className="text-2xl font-semibold text-gray-800 mb-4">
         Quản lý nhân viên
       </h1>
@@ -127,7 +124,6 @@ export default function EmployeePage() {
         <div className="flex-grow overflow-hidden">
           <ReuseTable columns={tableData.columns} rows={tableData.rows} currentPage={1} gridTemplateColumns="60px 200px 300px 200px 200px"/>
         </div>
-
       </div>
     </div>
   );
