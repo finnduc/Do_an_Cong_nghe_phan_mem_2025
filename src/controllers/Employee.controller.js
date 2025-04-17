@@ -5,13 +5,21 @@ class EmployeeController {
     createEmployees = async (req, res) => {
         const responces = await EmployeeService.createEmployee(req.body);
         return new OK({
-            message: 'Create  success',
+            message: 'Create success',
+            metadata: responces
+        }).send(res);
+    }
+
+    updateEmployees = async (req, res) => {
+        const responces = await EmployeeService.updateEmployees(req.body);
+        return new OK({
+            message: 'Update success',
             metadata: responces
         }).send(res);
     }
 
     getAllEmployees = async (req, res) => {
-        const responces = await EmployeeService.getAllEmployees();
+        const responces = await EmployeeService.getAllEmployees(req.query);
         return new OK({
             message: 'Get all Employee',
             metadata: responces
@@ -19,7 +27,7 @@ class EmployeeController {
     }
 
     getEmployeesById = async (req, res) => {
-        const responces = await EmployeeService.getEmployeerById(req.body);
+        const responces = await EmployeeService.getEmployeerById(req.query);
         return new OK({
             message: 'Get employee by id',
             metadata: responces
@@ -30,6 +38,22 @@ class EmployeeController {
         const responces = await EmployeeService.getEmployeeName();
         return new OK({
             message: 'Get employee name',
+            metadata: responces
+        }).send(res);
+    }
+
+    deleteEmployee = async (req, res) => {
+        const responces = await EmployeeService.deleteEmployee(req.query);
+        return new OK({
+            message: 'Delete employee success',
+            metadata: responces
+        }).send(res);
+    }
+
+    searchEmployee = async (req, res) => {
+        const responces = await EmployeeService.searchEmployee(req.body, req.query);
+        return new OK({
+            message: 'Search employee success',
             metadata: responces
         }).send(res);
     }

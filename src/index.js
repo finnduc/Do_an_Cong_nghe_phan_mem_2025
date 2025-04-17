@@ -16,7 +16,10 @@ const app = express();
 createAllTables();
 
 // Middleware cơ bản
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*', credentials: true })); // Cấu hình CORS
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:4000', // Chỉ định origin của frontend
+    credentials: true // Cho phép gửi cookie hoặc thông tin xác thực
+}));
 app.use(bodyParser.json()); // Parse JSON body
 app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded body
 app.use(cookieParser()); // Xử lý cookie
@@ -26,6 +29,7 @@ app.use(compression()); // Nén dữ liệu trả về
 
 // Cấu hình Routes
 const apiRouter = require('./routers'); // Giả sử bạn có file routes
+const errorHandler = require('./helpers/errorHandler');
 app.use('/v1/api', apiRouter);
 
 // Xử lý lỗi 404
@@ -44,5 +48,7 @@ app.use((err, req, res, next) => {
     res.status(500).json({ status: 500 , message: 'Internal Server Error', error: err.message });
 });
 
+// xử lý lỗi từ các middleware khác
+app.use(errorHandler);
 module.exports = app;
 

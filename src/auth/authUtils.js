@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const  asyncHandler  = require('../helpers/asyncHandle');
 const keyTokenService = require('../services/ApiKey.service');
+const { BadRequestError, NotFoundError, ForbiddenError } = require('../core/error');
 
 
 const HEADERS = {
@@ -10,7 +11,7 @@ const HEADERS = {
 };
 
 const creatTokenPair = async ( payload , publicKey , privateKey) => {
-    console.log(`creatTokenPair::`, payload);
+
     try {
         const accessToken = await jwt.sign(
             payload,
@@ -62,28 +63,25 @@ const authentication = asyncHandler ( async (req, res, next) => {
         const user_id = req.headers[HEADERS.CLIENT_ID];
       
         if(!user_id) {
-            return res.status(401).json({
-                message: 'Who are you?'
-            });
+            throw new BadRequestError('Missing userName!');
         }
 
         const keyStore = await keyTokenService.findByUserId(user_id);
 
-        if(!keyStore) {
-            return res.status(401).json({
-                message: 'The keyStore is not found'
-            });
+        if(!keyStore[0]) {
+            throw new NotFoundError('KeyStore not found!');
         }
 
         const accessToken = req.headers[HEADERS.AUTHORIZATION];
 
         if(!accessToken) {
-            return res.status(401).json({
-                message: 'You are not authorized'
-            });
+            throw new ForbiddenError('Missing access token!');
         }
 
-        const decodeUser = jwt.verify( accessToken, keyStore.public_key, (err, decode) => {
+        console.log(`accessToken::`, accessToken);
+        console.log(`keyStore::`, keyStore[0].public_key);
+
+        const decodeUser = jwt.verify( accessToken, keyStore[0].public_key, (err, decode) => {
             if(err) {
                 console.log(`Error verify::`, err);
             } else {
@@ -94,12 +92,11 @@ const authentication = asyncHandler ( async (req, res, next) => {
 
         req.user_id = decodeUser.ID;
         if(decodeUser.ID !== user_id ) {
-            return res.status(401).json({
-                message: 'The userName is not valid'
-            });
+            throw new ForbiddenError('Invalid user!');
         }
     
         req.keyStore = keyStore;
+        
         console.log(`keyStore::`, keyStore);
 
         return next();

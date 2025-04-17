@@ -9,6 +9,23 @@ class AccessController {
       metadata: responces
     }).send(res);
   }
+
+  logout = async (req, res) => {
+    console.log('req.keyStore', req.keyStore);
+    const responces = await AccessService.logout(req.keyStore);
+    return new OK({
+      message: 'Logout success',
+      metadata: responces
+    }).send(res);
+  }
+
+refeshToken = async (req, res) => {
+    const responces = await AccessService.refreshToken(req.body, req.keyStore);
+    return new OK({
+      message: 'Refresh token success',
+      metadata: responces
+    }).send(res);
+  }
 }
 
 module.exports = new AccessController();
