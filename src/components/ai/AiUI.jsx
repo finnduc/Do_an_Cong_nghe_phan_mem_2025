@@ -33,7 +33,7 @@ function applyPaginationToSQL(sql, currentPage, pageSize = 8) {
   return paginatedSQL;
 }
 
-export default function AIWorkspace() {
+export default function AiUI() {
   const [sqlQuery, setSqlQuery] = useState(""); // Giá trị SQL hiện tại
   const [openSQL, setOpenSQL] = useState(false); 
   const [question, setQuestion] = useState("");

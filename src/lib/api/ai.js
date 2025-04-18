@@ -1,4 +1,3 @@
-
 export async function generateSQL(question) {
     const response = await fetch("http://localhost:8000/question", {
         method: "POST",
