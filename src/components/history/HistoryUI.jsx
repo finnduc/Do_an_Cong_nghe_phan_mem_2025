@@ -1,12 +1,12 @@
 "use client";
 import { Button } from "../ui/button";
 import HistoryCard from "./HistoryCard";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Toaster } from "../ui/sonner";
 import { fetchHistories } from "@/lib/api/history";
-import { set } from "zod";
 import { RotateCcw } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 
 export default function HistoryUI({ dataList }) {
   const [currentDataList, setCurrentDataList] = useState(dataList);
@@ -17,7 +17,7 @@ export default function HistoryUI({ dataList }) {
     endTime: null,
   });
   const [isFiltering, setIsFiltering] = useState(false);
-  const [filterError, setFilterError] = useState('');
+  const [filterError, setFilterError] = useState("");
   const handleOnExpand = async () => {
     setIsLoading(true);
     try {
@@ -39,25 +39,21 @@ export default function HistoryUI({ dataList }) {
   };
 
   const handleStartDateChange = (value) => {
-    const date = new Date(value);
-    // Format thành YYYY-MM-DD
-    const formatted = date.toISOString().split("T")[0];
+    const formatted = formatDate(value);
     setDateFilter((prev) => ({ ...prev, startTime: formatted }));
   };
 
   const handleEndDateChange = (value) => {
-    const date = new Date(value);
-    // Format thành YYYY-MM-DD
-    const formatted = date.toISOString().split("T")[0];
+    const formatted = formatDate(value);
     setDateFilter((prev) => ({ ...prev, endTime: formatted }));
   };
 
   const handleOnFilter = async () => {
     if (!dateFilter.startTime && !dateFilter.endTime) {
-      setFilterError('Vui lòng nhập ngày bắt đầu hoặc ngày kết thúc');
+      setFilterError("Vui lòng nhập ngày bắt đầu hoặc ngày kết thúc");
       return;
     }
-    setFilterError('');
+    setFilterError("");
     setIsFiltering(true);
     try {
       const newData = await fetchHistories(1, 6, dateFilter);
@@ -94,17 +90,19 @@ export default function HistoryUI({ dataList }) {
         <input
           type="date"
           className="p-2 shadow-sm border-[1px] rounded-md"
-          value={dateFilter.startTime || ''}
+          value={dateFilter.startTime || ""}
           onChange={(e) => handleStartDateChange(e.target.value)}
         />
         <div className="text-sm">Ngày cuối: </div>
         <input
           type="date"
           className="p-2 shadow-sm border-[1px] rounded-md"
-          value={dateFilter.endTime || ''}
+          value={dateFilter.endTime || ""}
           onChange={(e) => handleEndDateChange(e.target.value)}
         />
-        {filterError && <div className="text-red-500 text-sm">{filterError}</div>}
+        {filterError && (
+          <div className="text-red-500 text-sm">{filterError}</div>
+        )}
         <Button
           className="mt-4 bg-blue-500 hover:bg-blue-700"
           onClick={handleOnFilter}
@@ -113,18 +111,24 @@ export default function HistoryUI({ dataList }) {
           Lọc
         </Button>
       </div>
-      {currentDataList.length > 0 ? <div className="flex flex-col overflow-auto gap-2 h-[550px] pl-4 w-full py-2">
-        {currentDataList.map((item, index) => (
-          <HistoryCard key={index} data={item} />
-        ))}
-        <Button
-          className="self-center"
-          onClick={handleOnExpand}
-          disabled={isLoading}
-        >
-          {isLoading ? "Đang tải" : "Xem thêm"}
-        </Button>
-      </div> : <div className="text-center w-full text-gray-600">Không có dữ liệu lịch sử</div>}
+      {currentDataList.length > 0 ? (
+        <div className="flex flex-col overflow-auto gap-2 h-[550px] pl-4 w-full py-2">
+          {currentDataList.map((item, index) => (
+            <HistoryCard key={index} data={item} />
+          ))}
+          <Button
+            className="self-center"
+            onClick={handleOnExpand}
+            disabled={isLoading}
+          >
+            {isLoading ? "Đang tải" : "Xem thêm"}
+          </Button>
+        </div>
+      ) : (
+        <div className="text-center w-full text-gray-600">
+          Không có dữ liệu lịch sử
+        </div>
+      )}
     </div>
   );
 }

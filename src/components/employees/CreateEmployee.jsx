@@ -1,5 +1,4 @@
-
-'use client';
+"use client";
 import React, { useState } from "react";
 
 function CreateEmployeeForm() {
@@ -15,9 +14,7 @@ function CreateEmployeeForm() {
   };
 
   return (
-
     <div className="font-sans">
-
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 md:p-8 max-w-md flex flex-col">
         <h2 className="text-center text-xl md:text-2xl font-semibold text-gray-800 mb-1">
           Tạo nhân viên
@@ -26,9 +23,7 @@ function CreateEmployeeForm() {
           Tạo nhân viên ở đây, nếu đã có tài khoản thì click nhân viên.
         </p>
 
-
         <form onSubmit={handleSubmit} className="flex flex-col">
-
           <div className="mb-4">
             <label
               htmlFor="name"
@@ -45,7 +40,6 @@ function CreateEmployeeForm() {
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
-
 
           <div className="mb-4">
             <label
@@ -64,7 +58,6 @@ function CreateEmployeeForm() {
             />
           </div>
 
-
           <div className="mb-4">
             <label
               htmlFor="phone"
@@ -81,8 +74,7 @@ function CreateEmployeeForm() {
             />
           </div>
 
-
-          <div className="flex items-center mb-4"> 
+          <div className="flex items-center mb-4">
             <input
               id="hasAccount"
               name="hasAccount"
@@ -98,7 +90,6 @@ function CreateEmployeeForm() {
               Nhân viên đã có tài khoản
             </label>
           </div>
-
 
           <button
             type="submit"

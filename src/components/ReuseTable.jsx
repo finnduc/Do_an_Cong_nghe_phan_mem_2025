@@ -1,7 +1,6 @@
 "use client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState} from "react";
-
+import { useState } from "react";
 
 // Hàm TruncatedCell
 const TruncatedCell = ({ text, maxLength = 25 }) => {
@@ -29,19 +28,27 @@ const ReuseTable = ({
   currentPage = 1,
   totalPages = 1,
   onPageChange = () => {},
-  totalRecords = 0
+  totalRecords = 0,
 }) => {
-  const [page, setPage] = useState(currentPage);
+  const [inputValue, setInputValue] = useState(currentPage); // Sync với page hiện tại
 
   const handleChange = (e) => {
-    const input = e.target.value;
-    // Cho phép chuỗi rỗng hoặc chuỗi toàn số
-    if (input === '' || /^[0-9]+$/.test(input)) {
-      const newPage = input === '' ? 1 : parseInt(input, 10);
-      if (newPage >= 1 && newPage <= totalPages) {
-        setPage(newPage);
-        onPageChange(newPage);
-      }
+    const value = e.target.value;
+
+    // Chỉ cho phép chuỗi rỗng hoặc số
+    if (value === "" || /^[0-9]+$/.test(value)) {
+      setInputValue(value); // Cập nhật input khi đang gõ
+    }
+  };
+
+  const handleCommit = () => {
+    const newPage = parseInt(inputValue, 10);
+    if (!isNaN(newPage) && newPage >= 1 && newPage <= totalPages) {
+      setInputValue(newPage);
+      onPageChange(newPage);
+    } else {
+      // Nếu nhập không hợp lệ → reset về page hiện tại
+      setInputValue(page);
     }
   };
 
@@ -55,7 +62,9 @@ const ReuseTable = ({
                 <th
                   key={`header-${index}`}
                   scope="col"
-                  className={`py-3 px-4 border-b text-left ${index === 0 && 'rounded-l-lg'} ${index === columns.length - 1 && 'rounded-r-lg'}`}
+                  className={`py-3 px-4 border-b text-left ${
+                    index === 0 && "rounded-l-lg"
+                  } ${index === columns.length - 1 && "rounded-r-lg"}`}
                 >
                   {column}
                 </th>
@@ -65,11 +74,24 @@ const ReuseTable = ({
           <tbody className="bg-white divide-y divide-gray-200">
             {rows.length > 0 ? (
               rows.map((row, rowIndex) => (
-                <tr key={`row-${rowIndex}`} className={`hover:bg-gray-50 ${rowIndex === rows.length - 1 && 'rounded-b-lg'}`}>
+                <tr
+                  key={`row-${rowIndex}`}
+                  className={`hover:bg-gray-50 ${
+                    rowIndex === rows.length - 1 && "rounded-b-lg"
+                  }`}
+                >
                   {row.map((cell, cellIndex) => (
                     <td
                       key={`cell-${rowIndex}-${cellIndex}`}
-                      className={`px-4 border-b  text-left ${rowIndex === rows.length - 1 && cellIndex === 0 && 'rounded-bl-lg'} ${rowIndex === rows.length - 1 && cellIndex === row.length - 1 && 'rounded-br-lg'}`}
+                      className={`px-4 border-b  text-left ${
+                        rowIndex === rows.length - 1 &&
+                        cellIndex === 0 &&
+                        "rounded-bl-lg"
+                      } ${
+                        rowIndex === rows.length - 1 &&
+                        cellIndex === row.length - 1 &&
+                        "rounded-br-lg"
+                      }`}
                     >
                       {/* Sử dụng TruncatedCell để hiển thị nội dung ô */}
                       <TruncatedCell text={String(cell)} maxLength={25} />
@@ -93,7 +115,8 @@ const ReuseTable = ({
       {/* Pagination */}
       <div className="w-full flex justify-between items-center text-sm px-4 py-2 font-medium">
         <span className="text-gray-500">
-          Đang hiện trang {currentPage} - Tổng {totalPages} trang - Số lượng bản ghi: {totalRecords}
+          Đang hiện trang {currentPage} - Tổng {totalPages} trang - Số lượng bản
+          ghi: {totalRecords}
         </span>
         <div className="flex gap-2">
           <button
@@ -101,7 +124,7 @@ const ReuseTable = ({
             disabled={currentPage === 1}
             onClick={() => {
               const newPage = currentPage - 1;
-              setPage(newPage);
+              setInputValue(newPage);
               onPageChange(newPage);
             }}
             aria-label="Previous page"
@@ -109,18 +132,22 @@ const ReuseTable = ({
             <ChevronLeft className="w-5 h-5" />
           </button>
           <input
-            className="w-10 text-center"
-            value={page}
+            value={inputValue}
             onChange={handleChange}
-            inputMode="numeric"
-            pattern="[0-9]*"
+            onBlur={handleCommit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleCommit();
+              }
+            }}
+            className="w-12 text-center"
           />
           <button
             className="bg-white border border-gray-200 rounded-md p-1 hover:bg-slate-100 disabled:bg-gray-200 disabled:cursor-not-allowed"
             disabled={currentPage === totalPages}
             onClick={() => {
               const newPage = currentPage + 1;
-              setPage(newPage);
+              setInputValue(newPage);
               onPageChange(newPage);
             }}
             aria-label="Next page"

@@ -34,7 +34,6 @@ export default function LoginForm() {
     },
   });
 
-  // Handle form submission
   function onSubmit(values) {
     console.log(values);
   }
