@@ -1,5 +1,9 @@
-export default function ImportPage(){
-    return (<div className="w-full text-black mt-[40px] mx-[50px] bg-white">
-        ImportPage
-    </div>)
+import Import from '@/components/import/Import'
+
+export default function ImportPage() {
+  return (
+    <div className="p-6">
+      <Import />
+    </div>
+  );
 }

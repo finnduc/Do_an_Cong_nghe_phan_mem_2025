@@ -1,7 +1,9 @@
-export default function ExportPage() {
+import Stock from "@/components/stock/Stock";
+
+export default function StockPage() {
   return (
-    <div className="mt-5 mx-[10px] bg-white shadow rounded-lg inline-block">
-      Stock
+    <div className="p-6">
+      <Stock />
     </div>
   );
 }
