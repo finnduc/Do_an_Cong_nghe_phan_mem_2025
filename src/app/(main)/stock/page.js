@@ -1,9 +1,12 @@
 import Stock from "@/components/stock/Stock";
+import { fetchStock } from "@/lib/api/stock";
 
-export default function StockPage() {
+
+export default async function StockPage() {
+  const initialData = await fetchStock(1);
   return (
     <div>
-      <Stock />
+      <Stock data={initialData?.metadata}/>
     </div>
   );
 }

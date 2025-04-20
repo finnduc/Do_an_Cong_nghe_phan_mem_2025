@@ -5,7 +5,8 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-export function jsonToTableFormat(jsonData, offset = 0) {
+export function jsonToTableFormat(jsonData, page = 1, limit = 8) {
+  const offset = (page - 1) * limit;
   if (!Array.isArray(jsonData) || jsonData.length === 0) {
     return { columns: [], rows: [] };
   }

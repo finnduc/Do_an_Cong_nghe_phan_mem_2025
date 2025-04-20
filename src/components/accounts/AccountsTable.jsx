@@ -8,11 +8,11 @@ import { useState } from "react";
 export default function AccountsTable({ data, totalPages, totalRecords }) {
   const [currentData, setCurrentData] = useState(data);
   const [currentPage, setCurrentPage] = useState(1);
-  const formattedData = jsonToTableFormat(currentData, (currentPage - 1) * 8);
+  const formattedData = jsonToTableFormat(currentData, currentPage, 9);
   console.log(totalRecords);
   const getNextPage = async (page) => {
     try {
-      const data = await fetchAccounts(page);
+      const data = await fetchAccounts(page, 9);
       setCurrentData(data?.metadata?.data);
       setCurrentPage(page);
     } catch (e) {
