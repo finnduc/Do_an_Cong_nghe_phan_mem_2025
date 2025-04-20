@@ -48,7 +48,7 @@ const ReuseTable = ({
       onPageChange(newPage);
     } else {
       // Nếu nhập không hợp lệ → reset về page hiện tại
-      setInputValue(page);
+      setInputValue(currentPage);
     }
   };
 
@@ -115,8 +115,7 @@ const ReuseTable = ({
       {/* Pagination */}
       <div className="w-full flex justify-between items-center text-sm px-4 py-2 font-medium">
         <span className="text-gray-500">
-          Đang hiện trang {currentPage} - Tổng {totalPages} trang - Số lượng bản
-          ghi: {totalRecords}
+          Showing {currentPage} of {totalPages} pages - Total records: {totalRecords}
         </span>
         <div className="flex gap-2">
           <button

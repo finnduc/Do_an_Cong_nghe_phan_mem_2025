@@ -43,7 +43,7 @@ export default function CreateUser() {
     defaultValues: {
       username: "",
       password: "",
-      role: "Nhân viên",
+      role: "employee",
     },
   });
 
@@ -70,7 +70,7 @@ export default function CreateUser() {
     <div className="font-sans bg-white p-8 w-[400px] h-fit rounded-lg border-[1px] shadow-md flex flex-col gap-4">
       <Toaster />
       <div className="text-center text-2xl font-semibold text-gray-800 mb-1">
-        Tạo tài khoản
+        Create Account
       </div>
       <Form {...form}>
         <form
@@ -82,7 +82,7 @@ export default function CreateUser() {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tên tài khoản</FormLabel>
+                <FormLabel>Username</FormLabel>
                 <FormControl>
                   <Input placeholder="ExampleAccount" {...field} />
                 </FormControl>
@@ -95,7 +95,7 @@ export default function CreateUser() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Mật khẩu</FormLabel>
+                <FormLabel>Password</FormLabel>
                 <FormControl>
                   <Input placeholder="********" {...field} type="password" />
                 </FormControl>
@@ -108,7 +108,7 @@ export default function CreateUser() {
             name="role"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Vai trò</FormLabel>
+                <FormLabel>Role</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -119,8 +119,8 @@ export default function CreateUser() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="Nhân viên">Nhân viên</SelectItem>
-                    <SelectItem value="Quản lí">Quản lí</SelectItem>
+                    <SelectItem value="employee">Employee</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

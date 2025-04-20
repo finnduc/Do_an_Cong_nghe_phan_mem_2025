@@ -132,7 +132,7 @@ export default function Stock() {
   const maxPriceInputRef = useRef(null);
   const minPriceInputRef = useRef(null);
   const [searchText, setSearchText] = useState("");
-
+  const [priceTypeFilter, setPriceTypeFilter] = useState("import");
   const { columns, rows } = jsonToTableFormat(
     mockProductsData.data,
     (currentPage - 1) * mockProductsData.limit
@@ -150,12 +150,13 @@ export default function Stock() {
     minQuantityInputRef.current.value = "";
     maxPriceInputRef.current.value = "";
     minPriceInputRef.current.value = "";
+    setPriceTypeFilter("import");
   };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Tồn kho</h1>
+        <h1 className="text-2xl font-bold">Stock Management</h1>
       </div>
       <div className="bg-white p-4 rounded-lg shadow">
         {/* Bộ lọc */}
@@ -165,7 +166,7 @@ export default function Stock() {
             value={manufacturerFilter}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Nhà sản xuất" />
+              <SelectValue placeholder="Manufacturer" />
             </SelectTrigger>
             <SelectContent>
               {mockManufacturers.map((man) => (
@@ -183,7 +184,7 @@ export default function Stock() {
             value={categoryFilter}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Danh mục" />
+              <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
               {mockCategories.map((cat) => (
@@ -196,14 +197,14 @@ export default function Stock() {
           <input
             type="text"
             className="flex-1 border border-input rounded-md px-2 shadow-sm focus:outline-none font-light text-sm"
-            placeholder="Lọc tên sản phẩm"
+            placeholder="Product name"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
           />
           <input
             type="number"
             className="w-36 flex-none border border-input rounded-md px-2 shadow-sm focus:outline-none font-light text-sm"
-            placeholder="Số lượng bé nhất"
+            placeholder="Min quantity"
             min={0}
             max={maxQuantity}
             ref={minQuantityInputRef}
@@ -217,7 +218,7 @@ export default function Stock() {
           <input
             type="number"
             className="w-36 border border-input rounded-md px-2 shadow-sm focus:outline-none font-light text-sm"
-            placeholder="Số lượng lớn nhất"
+            placeholder="Max quantity"
             min={minQuantity}
             max={Infinity}
             ref={maxQuantityInputRef}
@@ -231,7 +232,7 @@ export default function Stock() {
           <input
             type="number"
             className="w-36 flex-none border border-input rounded-md px-2 shadow-sm focus:outline-none font-light text-sm"
-            placeholder="Giá bé nhất"
+            placeholder="Min price"
             min={0}
             max={maxPrice}
             ref={minPriceInputRef}
@@ -245,7 +246,7 @@ export default function Stock() {
           <input
             type="number"
             className="w-36 border border-input rounded-md px-2 shadow-sm focus:outline-none font-light text-sm"
-            placeholder="Giá lớn nhất"
+            placeholder="Max price"
             min={minPrice}
             max={Infinity}
             ref={maxPriceInputRef}
@@ -256,6 +257,19 @@ export default function Stock() {
               if (e.target.value === "") setMaxPrice(Infinity);
             }}
           />
+          <Select
+            onValueChange={(value) => setPriceTypeFilter(value)}
+            value={priceTypeFilter}
+            className='focus:outline-none'
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Price type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="import">import price</SelectItem>
+              <SelectItem value="export">export price</SelectItem>
+            </SelectContent>
+          </Select>
           <Button variant="ghost" onClick={handleResetFilter}>
             Reset Filter
           </Button>

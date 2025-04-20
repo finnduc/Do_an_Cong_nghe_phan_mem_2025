@@ -10,14 +10,20 @@ export function jsonToTableFormat(jsonData, offset = 0) {
     return { columns: [], rows: [] };
   }
 
-  let columns = Object.keys(jsonData[0]);
+  let rawColumns = Object.keys(jsonData[0]);
   let skipIdColumn = false;
 
+  // Hàm format tên cột: snake_case => Snake Case hoặc giữ nguyên tùy ý
+  const formatColumnName = (col) => col.replace(/_/g, " "); // chuyển _ thành khoảng trắng
+
   // Nếu cột đầu tiên chứa "id"
-  if (columns[0].toLowerCase().includes("id")) {
-    columns = ["No", ...columns.slice(1)];
+  if (rawColumns[0].toLowerCase().includes("id")) {
     skipIdColumn = true;
   }
+
+  const columns = skipIdColumn
+    ? ["No", ...rawColumns.slice(1).map(formatColumnName)]
+    : rawColumns.map(formatColumnName);
 
   const isDate = (val) => {
     const date = new Date(val);
@@ -42,14 +48,14 @@ export function jsonToTableFormat(jsonData, offset = 0) {
     const values = skipIdColumn
       ? [
           index + offset + 1,
-          ...columns.slice(1).map((col) => {
+          ...rawColumns.slice(1).map((col) => {
             const value = row[col];
-            return isDate(value) ? formatDate(value) : (value ? value : "N/A");
+            return isDate(value) ? formatDate(value) : value ?? "N/A";
           }),
         ]
-      : columns.map((col) => {
+      : rawColumns.map((col) => {
           const value = row[col];
-          return isDate(value) ? formatDate(value) : value;
+          return isDate(value) ? formatDate(value) : value ?? "N/A";
         });
 
     return values;

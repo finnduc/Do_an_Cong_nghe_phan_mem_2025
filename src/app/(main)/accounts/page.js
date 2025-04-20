@@ -2,16 +2,16 @@ import ReuseTable from "@/components/ReuseTable";
 
 import { fetchAccounts } from "@/lib/api/accounts";
 import AccountsTable from "@/components/accounts/AccountsTable";
-import CreateUser from "@/components/accounts/CreateUser";
+import CreateAccount from "@/components/accounts/CreateAccount";
 export default async function AccountsPage() {
   const data = await fetchAccounts(1);
   return (
     <div className="text-black h-full">
       <h1 className="text-2xl font-semibold text-gray-800 mb-4">
-        Quản lí tài khoản
+        Account Management
       </h1>
       <div className="flex gap-6">
-        <CreateUser />
+        <CreateAccount />
         <AccountsTable
           data={data?.metadata?.data}
           totalPages={data?.metadata?.totalPage}

@@ -16,23 +16,23 @@ import {
 } from "lucide-react";
 
 const management = {
-  "Trang chủ": [<House size={20} />, "/"],
-  "Nhân viên": [<UserRoundSearch size={20} />, "/employees"],
-  "Đối tác": [<Building2 size={20} />, "/partners"],
-  "Danh mục": [<ChartBarStacked size={20} />, "/categories"],
-  "Tài khoản": [<UserRoundPen size={20}/>, "/accounts"],
+  "Home": [<House size={20} />, "/"],
+  "Employees": [<UserRoundSearch size={20} />, "/employees"],
+  "Partners": [<Building2 size={20} />, "/partners"],
+  "Categories": [<ChartBarStacked size={20} />, "/categories"],
+  "Accounts": [<UserRoundPen size={20}/>, "/accounts"],
 };
 
 const main = {
-  "Tồn kho": [<PackageSearch size={20} />, "/stock"],
-  "Xuất kho": [<ArrowRightFromLine size={20} />, "/exports"],
-  "Nhập kho": [<Import size={20} />, "/imports"],
-  "Lịch sử": [<History size={20} />, "/history"],
+  "Stock": [<PackageSearch size={20} />, "/stock"],
+  "Exports": [<ArrowRightFromLine size={20} />, "/exports"],
+  "Imports": [<Import size={20} />, "/imports"],
+  "History": [<History size={20} />, "/history"],
   "AI": [<Bot size={20} />, "/ai"],
 }
 
 const other = {
-  "Cài đặt": [<Settings size={20} />, "/setting"],
+  "Setting": [<Settings size={20} />, "/setting"],
 };
 
 const logout = ["Logout", <LogOut size={20} />];
