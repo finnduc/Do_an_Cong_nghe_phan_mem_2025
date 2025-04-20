@@ -16,7 +16,7 @@ function CreateEmployeeForm() {
   return (
     <div className="font-sans">
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 md:p-8 max-w-md flex flex-col">
-        <h2 className="text-center text-xl md:text-2xl font-semibold text-gray-800 mb-1">
+        <h2 className="text-center text-xl md:text-2xl font-semibold text-gray-800 mb-8">
           Tạo nhân viên
         </h2>
         <p className="text-sm text-gray-600 mb-6">

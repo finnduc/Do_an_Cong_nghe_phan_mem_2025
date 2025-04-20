@@ -1,38 +1,38 @@
-
 "use client";
-
 
 import React, { useState } from "react";
 
 function CreatePartnerForm() {
-
-  const [name, setName] = useState(""); 
-  const [partnerType, setPartnerType] = useState("supplier"); 
+  const [name, setName] = useState("");
+  const [partnerType, setPartnerType] = useState("supplier");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [address, setAddress] = useState(""); 
+  const [address, setAddress] = useState("");
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    console.log("Partner Form submitted:", { name, partnerType, phone, email, address });
-    alert("Đã thêm đối tác!"); 
+    console.log("Partner Form submitted:", {
+      name,
+      partnerType,
+      phone,
+      email,
+      address,
+    });
+    alert("Đã thêm đối tác!");
   };
 
   return (
-
     <div className="font-sans h-full">
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 md:p-8 max-w-md h-full flex flex-col">
-
         <h2 className="text-center text-xl md:text-2xl font-semibold text-gray-800 mb-1">
           Tạo Đối Tác Mới
         </h2>
 
-        <p className="text-sm text-gray-600 mb-6">
+        <p className="text-sm text-gray-600 mb-4">
           Nhập thông tin để thêm đối tác mới vào hệ thống.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col flex-grow">
-
           <div className="mb-4">
             <label
               htmlFor="name"
@@ -45,12 +45,11 @@ function CreatePartnerForm() {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              required 
+              required
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
 
- 
           <div className="mb-4">
             <label
               htmlFor="partnerType"
@@ -62,7 +61,7 @@ function CreatePartnerForm() {
               id="partnerType"
               value={partnerType}
               onChange={(e) => setPartnerType(e.target.value)}
-              required 
+              required
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white" // Thêm bg-white để đảm bảo nền trắng
             >
               <option value="supplier">Nhà cung cấp</option>
@@ -82,11 +81,10 @@ function CreatePartnerForm() {
               id="phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              required 
+              required
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
-
 
           <div className="mb-4">
             <label
@@ -100,12 +98,10 @@ function CreatePartnerForm() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
 
-  
           <div className="mb-4">
             <label
               htmlFor="address"
@@ -115,7 +111,7 @@ function CreatePartnerForm() {
             </label>
             <textarea
               id="address"
-              rows="3" 
+              rows="3"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
