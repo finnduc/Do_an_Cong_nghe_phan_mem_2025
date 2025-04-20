@@ -6,7 +6,7 @@ const findProductByName = async (name) => {
         FROM products
         WHERE name = ?
     `;
-    return executeQuery(query, [name]);
+    return await executeQuery(query, [name]);
 }
 
 const findManufacturer = async (name) => {
@@ -15,7 +15,7 @@ const findManufacturer = async (name) => {
         FROM manufacturers
         WHERE name = ?
     `;
-    return executeQuery(query, [name]);
+    return await executeQuery(query, [name]);
 }
 
 const findCategory = async (name) => {
@@ -24,7 +24,7 @@ const findCategory = async (name) => {
         FROM categories
         WHERE name = ?
     `;
-    return executeQuery(query, [name]);
+    return await executeQuery(query, [name]);
 }
 
 const findIdAndCategory = async (name) => {
@@ -33,7 +33,7 @@ const findIdAndCategory = async (name) => {
         FROM categories
         WHERE name = ?
     `;
-    return executeQuery(query, [name]);
+    return await executeQuery(query, [name]);
 }
 
 const findParametersEx = async (product_id, manufacturer_id, category_id) => {
@@ -42,14 +42,14 @@ const findParametersEx = async (product_id, manufacturer_id, category_id) => {
         FROM parameters
         WHERE product_id = ? AND manufacturer_id = ? AND category_id = ?
     `;
-    return executeQuery(query, [product_id, manufacturer_id, category_id]);
+    return await executeQuery(query, [product_id, manufacturer_id, category_id]);
 };  
 
 const findParameterById = async (id) => {
     const query = `
         SELECT * FROM parameters WHERE parameter_id = ?;
     `;
-    return executeQuery(query, [id]);
+    return await executeQuery(query, [id]);
 }
 
 const foundManufactuner = async ( manufacturer ) => {
@@ -59,7 +59,7 @@ const foundManufactuner = async ( manufacturer ) => {
         WHERE name = ?
     `;
 
-    return executeQuery(query, [manufacturer]);
+    return await executeQuery(query, [manufacturer]);
 }
 
 module.exports = {

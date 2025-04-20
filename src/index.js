@@ -32,23 +32,14 @@ const apiRouter = require('./routers'); // Giả sử bạn có file routes
 const errorHandler = require('./helpers/errorHandler');
 app.use('/v1/api', apiRouter);
 
-// Xử lý lỗi 404
 app.use((req, res, next) => {
     res.status(404).json({ status: 404 , message: 'Endpoint not found' });
 });
 
-// Xử lý lỗi 401
 app.use((res, req, next) => {
     res.status(401).json({ status: 401 , message: 'Unauthorized' });
 });
 
-// Xử lý lỗi server
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ status: 500 , message: 'Internal Server Error', error: err.message });
-});
-
-// xử lý lỗi từ các middleware khác
 app.use(errorHandler);
 module.exports = app;
 

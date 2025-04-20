@@ -1,56 +1,55 @@
-const { BadRequestError } = require('../core/error');
+const { BadRequestError, InternalServerError } = require('../core/error');
 const { executeQuery } = require('../database/executeQuery');
 
 class TransactionService {
     getTransaction = async (payload) => {
         const { limit, page, employee, partner, startTime, endTime, product_name, manufacturer, category_name, action } = payload;
-        try {
-            const parsedLimit = parseInt(limit, 10);
-            const parsedPage = parseInt(page, 10);
-            if (isNaN(parsedLimit) || isNaN(parsedPage) || parsedLimit <= 0 || parsedPage <= 0) {
-                throw new BadRequestError("Limit và page phải là số nguyên dương!");
-            }
-            const offset = (parsedPage - 1) * parsedLimit;
-            let addQuery = '';
-            const params = [];
+        const parsedLimit = parseInt(limit, 10);
+        const parsedPage = parseInt(page, 10);
+        if (isNaN(parsedLimit) || isNaN(parsedPage) || parsedLimit <= 0 || parsedPage <= 0) {
+            throw new BadRequestError("Limit và page phải là số nguyên dương!");
+        }
+        const offset = (parsedPage - 1) * parsedLimit;
+        let addQuery = '';
+        const params = [];
 
-            // Xử lý các tham số LIKE
-            if (employee) {
-                addQuery += ' AND e.name LIKE ?';
-                params.push(`%${employee}%`);
-            }
-            if (partner) {
-                addQuery += ' AND pr.name LIKE ?';
-                params.push(`%${partner}%`);
-            }
-            if (product_name) {
-                addQuery += ' AND p.name LIKE ?';
-                params.push(`%${product_name}%`);
-            }
-            if (manufacturer) {
-                addQuery += ' AND m.name LIKE ?';
-                params.push(`%${manufacturer}%`);
-            }
-            if (category_name) {
-                addQuery += ' AND c.name LIKE ?';
-                params.push(`%${category_name}%`);
-            }
+        // Xử lý các tham số LIKE
+        if (employee) {
+            addQuery += ' AND e.name LIKE ?';
+            params.push(`%${employee}%`);
+        }
+        if (partner) {
+            addQuery += ' AND pr.name LIKE ?';
+            params.push(`%${partner}%`);
+        }
+        if (product_name) {
+            addQuery += ' AND p.name LIKE ?';
+            params.push(`%${product_name}%`);
+        }
+        if (manufacturer) {
+            addQuery += ' AND m.name LIKE ?';
+            params.push(`%${manufacturer}%`);
+        }
+        if (category_name) {
+            addQuery += ' AND c.name LIKE ?';
+            params.push(`%${category_name}%`);
+        }
 
-            if (action && ['import', 'export'].includes(action)) {
-                addQuery += ' AND t.action = ?';
-                params.push(action);
-            }
+        if (action && ['import', 'export'].includes(action)) {
+            addQuery += ' AND t.action = ?';
+            params.push(action);
+        }
 
-            if (startTime && isValidDateTime(startTime)) {
-                addQuery += ' AND t.created_at >= ?';
-                params.push(startTime);
-            }
-            if (endTime && isValidDateTime(endTime)) {
-                addQuery += ' AND t.created_at <= ?';
-                params.push(endTime);
-            }
+        if (startTime) {
+            addQuery += ' AND t.created_at >= ?';
+            params.push(startTime);
+        }
+        if (endTime) {
+            addQuery += ' AND t.created_at <= ?';
+            params.push(endTime);
+        }
 
-            let query = `
+        let query = `
                 SELECT 
                     t.transaction_id,
                     t.action,
@@ -75,7 +74,7 @@ class TransactionService {
                 LIMIT ${parsedLimit} OFFSET ${offset}
             `;
 
-            let countQuery = `
+        let countQuery = `
                 SELECT COUNT(*) AS total
                 FROM transactions t
                     LEFT JOIN stock s ON t.stock_id = s.stock_id
@@ -87,45 +86,29 @@ class TransactionService {
                 WHERE 1=1
                     ${addQuery}
             `;
-            const countResult = await executeQuery(countQuery, params);
-            const total = countResult[0].total;
-            const results = await executeQuery(query, params);
+        const countResult = await executeQuery(countQuery, params);
+        const total = countResult[0].total;
+        const results = await executeQuery(query, params);
 
-            return {
-                total: total,
-                totalPage: Math.ceil(total / parsedLimit),
-                page: parsedPage,
-                limit: parsedLimit,
-                data: results
-            };
-        } catch (error) {
-            throw new BadRequestError(error.message);
-        }
+        return {
+            total: total,
+            totalPage: Math.ceil(total / parsedLimit),
+            page: parsedPage,
+            limit: parsedLimit,
+            data: results
+        };
     }
 
     searchTransaction = async (payload, query) => {
         const { limit, page } = payload;
         const { search } = query;
-        try {
-            const parsedLimit = parseInt(limit, 10);
-            const parsedPage = parseInt(page, 10);
+        const parsedLimit = parseInt(limit, 10);
+        const parsedPage = parseInt(page, 10);
 
-            if (isNaN(parsedLimit) || isNaN(parsedPage) || parsedLimit <= 0 || parsedPage <= 0) {
-                throw new BadRequestError("Limit và page phải là số nguyên dương!");
-            }
-            const offset = (parsedPage - 1) * parsedLimit;
-
-        } catch (error) {
-            throw new BadRequestError(error.message);
+        if (isNaN(parsedLimit) || isNaN(parsedPage) || parsedLimit <= 0 || parsedPage <= 0) {
+            throw new BadRequestError("Limit và page phải là số nguyên dương!");
         }
-    }
-
-    searchByTime = async (payload, query) => {
-        try {
-
-        } catch (error) {
-            throw new BadRequestError(error.message);
-        }
+        const offset = (parsedPage - 1) * parsedLimit;
     }
 }
 

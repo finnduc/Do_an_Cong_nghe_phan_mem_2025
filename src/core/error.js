@@ -3,10 +3,9 @@ class ApiError extends Error {
         super(message);
         this.statusCode = statusCode;
         
-        // Đảm bảo message luôn nằm trong metadata
         this.metadata = {
-            error: message,  // Đưa message vào metadata
-            ...metadata,     // Giữ lại các metadata khác (nếu có)
+            error: message,
+            ...metadata,
         };
         
         this.name = this.constructor.name;
@@ -14,7 +13,6 @@ class ApiError extends Error {
     }
 }
 
-// ✅ **LỖI PHÍA CLIENT (4XX)**
 class BadRequestError extends ApiError {
     constructor(message = "Bad Request", metadata = {}) {
         super(400, message, metadata);

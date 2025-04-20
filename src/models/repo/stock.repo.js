@@ -1,14 +1,14 @@
 const { executeQuery } = require('../../database/executeQuery')
 
-const getStockId = ( product_id, manufacturer_id, category_id ) => {
+const getStockId = async ( product_id, manufacturer_id, category_id ) => {
     const query = `
         SELECT stock_id FROM stock WHERE product_id = ? AND manufacturer_id = ? AND category_id = ?
     `;
 
-    return executeQuery(query, [product_id, manufacturer_id, category_id]);
+    return await executeQuery(query, [product_id, manufacturer_id, category_id]);
 }
 
-const checkProduct = ( name_product, name_category, manufacturer ) => {
+const checkProduct = async ( name_product, name_category, manufacturer ) => {
     const query = `
         SELECT p.name, c.name, m.name
         FROM stock s
@@ -18,15 +18,15 @@ const checkProduct = ( name_product, name_category, manufacturer ) => {
         WHERE p.name = ? AND c.name = ? AND m.name = ?
     `;
         
-    return executeQuery(query, [name_product, name_category, manufacturer]);
+    return await executeQuery(query, [name_product, name_category, manufacturer]);
 }
 
-const totalProduct = ( ) => {
+const totalProduct = async ( ) => {
     const query = `
         SELECT COUNT(*) AS total FROM stock;
     `;
         
-    return executeQuery(query);
+    return await executeQuery(query);
 }
 
 module.exports = {

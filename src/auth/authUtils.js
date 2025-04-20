@@ -78,9 +78,6 @@ const authentication = asyncHandler ( async (req, res, next) => {
             throw new ForbiddenError('Missing access token!');
         }
 
-        console.log(`accessToken::`, accessToken);
-        console.log(`keyStore::`, keyStore[0].public_key);
-
         const decodeUser = jwt.verify( accessToken, keyStore[0].public_key, (err, decode) => {
             if(err) {
                 console.log(`Error verify::`, err);
@@ -96,13 +93,11 @@ const authentication = asyncHandler ( async (req, res, next) => {
         }
     
         req.keyStore = keyStore;
-        
-        console.log(`keyStore::`, keyStore);
 
         return next();
-
     } catch (error) {
         return res.status(400).json({
+            status: 400,
             message: "Error. Please try again"
         });
     }
