@@ -10,8 +10,8 @@ class StockService {
      * Xử lý giao dịch nhập hoặc xuất kho.
      * @param {Object} payload - Dữ liệu giao dịch.
      * @param {'import' | 'export'} payload.action - Loại giao dịch.
-     * @param {string} payload.name_product - iphone 14 pro max.
-     * @param {string} payload.name_category - Điện thoại.
+     * @param {string} payload.product_name - iphone 14 pro max.
+     * @param {string} payload.category_name - Điện thoại.
      * @param {string} payload.manufacturer - Apple.
      * @param {string} payload.partner_id - ID đối tác (chỉ bắt buộc khi nhập).
      * @param {string} payload.employee_id - ID nhân viên (chỉ bắt buộc khi xuất).
@@ -20,10 +20,10 @@ class StockService {
      * @returns {Promise<Object>} Kết quả giao dịch đã được lưu.
      */
     ImportItems = async (payload) => {
-        const { name_product, name_category, manufacturer, partner_id, employee_id, price_per_unit, quantity, action, time } = payload;
+        const { product_name, category_name, manufacturer, partner_id, employee_id, price_per_unit, quantity, action, time } = payload;
 
         try {
-            const foundProduct = await checkProduct(name_product, name_category, manufacturer);
+            const foundProduct = await checkProduct(product_name, category_name, manufacturer);
 
             const foundPartner = await findPartnerByID(partner_id);
             const foundEmployee = await findEmployeeByID(employee_id);
@@ -36,9 +36,9 @@ class StockService {
                 throw new NotFoundError("Nhân viên không tồn tại!");
             }
 
-            const Id_product = await findProductByName(name_product);
+            const Id_product = await findProductByName(product_name);
             const Id_manufacturer = await findManufacturer(manufacturer);
-            const Id_category = await findCategory(name_category);
+            const Id_category = await findCategory(category_name);
 
             if (!foundProduct[0]) {
 
@@ -72,7 +72,7 @@ class StockService {
             const insertPrice = await executeQuery(insertPriceQuery, [stock_id[0].stock_id, action, price_per_unit, time]);
 
             return {
-                product: await checkProduct(name_product, name_category, manufacturer),
+                product: await checkProduct(product_name, category_name, manufacturer),
                 transaction: insertTransaction,
                 price: insertPrice
             }
@@ -83,10 +83,10 @@ class StockService {
     }
 
     ExportItems = async (payload) => {
-        const { name_product, name_category, manufacturer, partner_id, employee_id, price_per_unit, quantity, action, time } = payload;
+        const { product_name, category_name, manufacturer, partner_id, employee_id, price_per_unit, quantity, action, time } = payload;
 
         try {
-            const foundProduct = await checkProduct(name_product, name_category, manufacturer);
+            const foundProduct = await checkProduct(product_name, category_name, manufacturer);
 
             const foundEmployee = await findEmployeeByID(employee_id);
             const foundPartner = await findPartnerByID(partner_id);
@@ -97,9 +97,9 @@ class StockService {
             if (!foundPartner[0]) {
                 throw new NotFoundError("Đối tác không tồn tại!");
             }
-            const Id_product = await findProductByName(name_product);
+            const Id_product = await findProductByName(product_name);
             const Id_manufacturer = await findManufacturer(manufacturer);
-            const Id_category = await findCategory(name_category);
+            const Id_category = await findCategory(category_name);
 
             if (!foundProduct[0]) {
                 throw new ConflictError("Sản phẩm không tồn tại trong kho!");
@@ -131,7 +131,7 @@ class StockService {
             const insertPrice = await executeQuery(insertPriceQuery, [stock_id[0].stock_id, action, price_per_unit, time]);
 
             return {
-                product: await checkProduct(name_product, name_category, manufacturer),
+                product: await checkProduct(product_name, category_name, manufacturer),
                 transaction: insertTransaction,
                 price: insertPrice
             }
@@ -142,29 +142,52 @@ class StockService {
     }
 
     getStock = async (payload) => {
-        const { limit, page, name_category, name_product, manufacturer } = payload;
+        const { limit, page, name_category, name_product, manufacturer, priceMax, priceMin, quantityMax, quantityMin, action } = payload;
         const parsedLimit = parseInt(limit, 10);
         const parsedPage = parseInt(page, 10);
+        
         if (isNaN(parsedLimit) || isNaN(parsedPage) || parsedLimit <= 0 || parsedPage <= 0) {
             throw new BadRequestError("Limit và page phải là số nguyên dương!");
         }
+        
         const offset = (parsedPage - 1) * parsedLimit;
-
-        let addQuery = '';
+    
+        let whereQuery = '';
+        let havingQuery = '';
         let param = [];
+        
+        // WHERE clause conditions
         if (name_product) {
-            addQuery += ' AND p.name LIKE ?';
-            param.push(`${name_product}`);
+            whereQuery += ' AND p.name LIKE ?';
+            param.push(`%${name_product}%`);
         }
         if (name_category) {
-            addQuery += ' AND c.name LIKE ?';
-            param.push(`${name_category}`);
+            whereQuery += ' AND c.name LIKE ?';
+            param.push(`%${name_category}%`);
         }
         if (manufacturer) {
-            addQuery += ' AND m.name LIKE ?';
-            param.push(`${manufacturer}`);
+            whereQuery += ' AND m.name LIKE ?';
+            param.push(`%${manufacturer}%`);
         }
-
+        if (quantityMax) {
+            whereQuery += ' AND s.stock_quantity <= ?';
+            param.push(quantityMax);
+        }
+        if (quantityMin) {
+            whereQuery += ' AND s.stock_quantity >= ?';
+            param.push(quantityMin);
+        }
+    
+        // HAVING clause conditions for price
+        if (priceMax) {
+            havingQuery += ' AND COALESCE(MAX(CASE WHEN pp.price_type = ? THEN pp.price END), 0) <= ?';
+            param.push(action === 'import' ? 'import' : 'export', priceMax);
+        }
+        if (priceMin) {
+            havingQuery += ' AND COALESCE(MAX(CASE WHEN pp.price_type = ? THEN pp.price END), 0) >= ?';
+            param.push(action === 'import' ? 'import' : 'export', priceMin);
+        }
+    
         const query = `SELECT 
                         s.stock_id,
                         p.name AS product_name,
@@ -179,7 +202,6 @@ class StockService {
                             MAX(CASE WHEN pp.price_type = 'export' THEN pp.price END),
                             'N/A'
                         ) AS product_price_export
-                        
                     FROM 
                         stock s
                         INNER JOIN products p ON s.product_id = p.product_id
@@ -188,48 +210,56 @@ class StockService {
                         LEFT JOIN product_prices pp ON s.stock_id = pp.stock_id
                     WHERE
                         1=1
-                        ${addQuery}
+                        ${whereQuery}
                     GROUP BY 
                         s.stock_id,
                         p.name,
                         m.name,
                         c.name,
                         s.stock_quantity
+                    HAVING
+                        1=1
+                        ${havingQuery}
                     ORDER BY 
                         category_name ASC,
                         manufacturer ASC,
                         product_name ASC
                     LIMIT ${parsedLimit} OFFSET ${offset};`;
+    
         const countQuery = `SELECT COUNT(*) AS total
-                FROM (
-                    SELECT s.stock_id
-                    FROM 
-                        stock s
-                        INNER JOIN products p ON s.product_id = p.product_id
-                        INNER JOIN manufacturers m ON s.manufacturer_id = m.manufacturer_id
-                        LEFT JOIN categories c ON s.category_id = c.category_id
-                        LEFT JOIN product_prices pp ON s.stock_id = pp.stock_id
-                    WHERE
-                        1=1
-                        ${addQuery}
-                    GROUP BY 
-                        s.stock_id,
-                        p.name,
-                        m.name,
-                        c.name,
-                        s.stock_quantity
-                ) AS subquery;`;
+                    FROM (
+                        SELECT s.stock_id
+                        FROM 
+                            stock s
+                            INNER JOIN products p ON s.product_id = p.product_id
+                            INNER JOIN manufacturers m ON s.manufacturer_id = m.manufacturer_id
+                            LEFT JOIN categories c ON s.category_id = c.category_id
+                            LEFT JOIN product_prices pp ON s.stock_id = pp.stock_id
+                        WHERE
+                            1=1
+                            ${whereQuery}
+                        GROUP BY 
+                            s.stock_id,
+                            p.name,
+                            m.name,
+                            c.name,
+                            s.stock_quantity
+                        HAVING
+                            1=1
+                            ${havingQuery}
+                    ) AS subquery;`;
+    
         const countResult = await executeQuery(countQuery, param);
         const totalItem = countResult[0].total;
         const data = await executeQuery(query, param);
-
+    
         return {
             data: data,
             page: parsedPage,
             limit: parsedLimit,
             totalPage: Math.ceil(totalItem / parsedLimit),
             totalItem: totalItem
-        }
+        };
     };
 
     searchStock = async (payload, query) => {
