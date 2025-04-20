@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 // Hàm TruncatedCell
-const TruncatedCell = ({ text, maxLength = 25 }) => {
+const TruncatedCell = ({ text, maxLength = 15 }) => {
   const isTruncated = text.length > maxLength;
   const displayText = isTruncated ? `${text.slice(0, maxLength)}...` : text;
 
@@ -94,7 +94,7 @@ const ReuseTable = ({
                       }`}
                     >
                       {/* Sử dụng TruncatedCell để hiển thị nội dung ô */}
-                      <TruncatedCell text={String(cell)} maxLength={25} />
+                      {typeof cell === 'string' ? <TruncatedCell text={cell} maxLength={25} /> : cell}
                     </td>
                   ))}
                 </tr>
