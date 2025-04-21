@@ -15,12 +15,13 @@ function CreateEmployeeForm() {
 
   return (
     <div className="font-sans">
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 md:p-8 max-w-md flex flex-col">
-        <h2 className="text-center text-xl md:text-2xl font-semibold text-gray-800 mb-8">
-          Tạo nhân viên
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 md:p-8 max-w-md flex flex-col ">
+        <h2 className="text-center text-xl md:text-2xl font-semibold text-gray-800 mb-3">
+          Create employee
         </h2>
         <p className="text-sm text-gray-600 mb-6">
-          Tạo nhân viên ở đây, nếu đã có tài khoản thì click nhân viên.
+          Create employee here. If the employee already has an account, click on
+          'Employee already has an account'.
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col">
@@ -29,7 +30,7 @@ function CreateEmployeeForm() {
               htmlFor="name"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Tên :
+              Name :
             </label>
             <input
               type="text"
@@ -63,7 +64,7 @@ function CreateEmployeeForm() {
               htmlFor="phone"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Nhập số điện thoại :
+              Phone :
             </label>
             <input
               type="tel"
@@ -87,7 +88,7 @@ function CreateEmployeeForm() {
               htmlFor="hasAccount"
               className="ml-2 block text-sm text-gray-700 cursor-pointer"
             >
-              Nhân viên đã có tài khoản
+              Employee already has an account
             </label>
           </div>
 
@@ -95,7 +96,7 @@ function CreateEmployeeForm() {
             type="submit"
             className="mt-4 px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-black hover:bg-blue-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
           >
-            Thêm
+            Create
           </button>
         </form>
       </div>

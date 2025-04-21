@@ -4,7 +4,7 @@ import { useState } from "react";
 
 // Hàm TruncatedCell
 const TruncatedCell = ({ text, maxLength = 15 }) => {
-  const isTruncated = text && typeof text === 'string' && text.length > maxLength;
+  const isTruncated = text.length > maxLength;
   const displayText = isTruncated ? `${text.slice(0, maxLength)}...` : text;
 
   return (
@@ -57,118 +57,106 @@ const ReuseTable = ({
   return (
     <div className={scrollMode ? "" : "min-h-[510px]"}>
       <div className="border border-gray-300 shadow-md rounded-lg">
-        <div className={scrollMode ? `h-[478px] overflow-y-auto rounded-lg` : ""} style={{ maxHeight: scrollMode ? maxHeight : "none" }}>
-          <table className="w-full text-sm text-left">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-10">
-              <tr>
-                {columns.map((column, index) => (
-                  <th
-                    key={`header-${index}`}
-                    scope="col"
-                    className={`py-3 px-4 border-b text-left ${
-                      index === 0 && "rounded-tl-lg"
-                    } ${index === columns.length - 1 && "rounded-tr-lg"}`}
-                  >
-                    {column}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {rows.length > 0 ? (
-                rows.map((row, rowIndex) => (
-                  <tr
-                    key={`row-${rowIndex}`}
-                    className={`hover:bg-gray-50 ${
-                      rowIndex === rows.length - 1 && "rounded-b-lg"
-                    }`}
-                  >
-                    {row.map((cell, cellIndex) => (
-                      <td
-                        key={`cell-${rowIndex}-${cellIndex}`}
-                        className={`px-4 border-b text-left ${
-                          rowIndex === rows.length - 1 &&
-                          cellIndex === 0 &&
-                          "rounded-bl-lg"
-                        } ${
-                          rowIndex === rows.length - 1 &&
-                          cellIndex === row.length - 1 &&
-                          "rounded-br-lg"
-                        }`}
-                      >
-                        {/* Sử dụng TruncatedCell để hiển thị nội dung ô */}
-                        {typeof cell === 'string' ? <TruncatedCell text={cell} maxLength={25} /> : cell}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="py-4 px-4 text-center text-gray-500"
-                  >
-                    No Data
-                  </td>
+        <table className="w-full text-sm text-left">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-10">
+            <tr>
+              {columns.map((column, index) => (
+                <th
+                  key={`header-${index}`}
+                  scope="col"
+                  className={`py-3 px-4 border-b text-left ${
+                    index === 0 && "rounded-l-lg"
+                  } ${index === columns.length - 1 && "rounded-r-lg"}`}
+                >
+                  {column}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {rows.length > 0 ? (
+              rows.map((row, rowIndex) => (
+                <tr
+                  key={`row-${rowIndex}`}
+                  className={`hover:bg-gray-50 ${
+                    rowIndex === rows.length - 1 && "rounded-b-lg"
+                  }`}
+                >
+                  {row.map((cell, cellIndex) => (
+                    <td
+                      key={`cell-${rowIndex}-${cellIndex}`}
+                      className={`px-4 border-b  text-left ${
+                        rowIndex === rows.length - 1 &&
+                        cellIndex === 0 &&
+                        "rounded-bl-lg"
+                      } ${
+                        rowIndex === rows.length - 1 &&
+                        cellIndex === row.length - 1 &&
+                        "rounded-br-lg"
+                      }`}
+                    >
+                      {/* Sử dụng TruncatedCell để hiển thị nội dung ô */}
+                      {typeof cell === 'string' ? <TruncatedCell text={cell} maxLength={25} /> : cell}
+                    </td>
+                  ))}
                 </tr>
-              )}
-            </tbody>
-          </table>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  className="py-4 px-4 text-center text-gray-500"
+                >
+                  No Data
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      {/* Pagination */}
+      <div className="w-full flex justify-between items-center text-sm px-4 py-2 font-medium">
+        <span className="text-gray-500">
+          Showing {currentPage} of {totalPages} pages - Total records: {totalRecords}
+        </span>
+        <div className="flex gap-2">
+          <button
+            className="bg-white border border-gray-200 rounded-md p-1 hover:bg-slate-100 disabled:bg-gray-200 disabled:cursor-not-allowed"
+            disabled={currentPage === 1}
+            onClick={() => {
+              const newPage = currentPage - 1;
+              setInputValue(newPage);
+              onPageChange(newPage);
+            }}
+            aria-label="Previous page"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <input
+            value={inputValue}
+            onChange={handleChange}
+            onBlur={handleCommit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleCommit();
+              }
+            }}
+            className="w-12 text-center"
+          />
+          <button
+            className="bg-white border border-gray-200 rounded-md p-1 hover:bg-slate-100 disabled:bg-gray-200 disabled:cursor-not-allowed"
+            disabled={currentPage === totalPages}
+            onClick={() => {
+              const newPage = currentPage + 1;
+              setInputValue(newPage);
+              onPageChange(newPage);
+            }}
+            aria-label="Next page"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
       </div>
-      {/* Pagination - only show when not in scroll mode */}
-      {!scrollMode && (
-        <div className="w-full flex justify-between items-center text-sm px-4 py-2 font-medium">
-          <span className="text-gray-500">
-            Showing {currentPage} of {totalPages} pages - Total records: {totalRecords}
-          </span>
-          <div className="flex gap-2">
-            <button
-              className="bg-white border border-gray-200 rounded-md p-1 hover:bg-slate-100 disabled:bg-gray-200 disabled:cursor-not-allowed"
-              disabled={currentPage === 1}
-              onClick={() => {
-                const newPage = currentPage - 1;
-                setInputValue(newPage);
-                onPageChange(newPage);
-              }}
-              aria-label="Previous page"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <input
-              value={inputValue}
-              onChange={handleChange}
-              onBlur={handleCommit}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleCommit();
-                }
-              }}
-              className="w-12 text-center"
-            />
-            <button
-              className="bg-white border border-gray-200 rounded-md p-1 hover:bg-slate-100 disabled:bg-gray-200 disabled:cursor-not-allowed"
-              disabled={currentPage === totalPages}
-              onClick={() => {
-                const newPage = currentPage + 1;
-                setInputValue(newPage);
-                onPageChange(newPage);
-              }}
-              aria-label="Next page"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
-      {/* Display record count when in scroll mode */}
-      {scrollMode && (
-        <div className="w-full text-sm px-4 py-2 font-medium">
-          <span className="text-gray-500">
-            Total records: {rows.length}
-          </span>
-        </div>
-      )}
     </div>
   );
 };

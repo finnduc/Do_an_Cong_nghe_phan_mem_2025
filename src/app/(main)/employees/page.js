@@ -1,133 +1,148 @@
-import CreateEmployeeForm from "../../../components/employees/CreateEmployee.jsx";
-import { jsonToTableFormat } from "@/lib/utils";
-import ReuseTable from "@/components/ReuseTable.jsx";
+"use client";
 
-const data = [
-  {
-    id: 1,
-    name: "Đỗ Quang Hùng",
-    email: "hunghq@gmail.com",
-    phone: "0869983819",
-    created_At: "15/01/2024",
-  },
-  {
-    id: 2,
-    name: "Phạm Việt Giang",
-    email: "phamvietgiang@gmail.com",
-    phone: "0898645259",
-    created_At: "20/02/2024",
-  },
-  {
-    id: 3,
-    name: "Nguyễn Văn Đức",
-    email: "nguyenvanduc@gmail.com",
-    phone: "0312264587",
-    created_At: "10/03/2024",
-  },
-  {
-    id: 4,
-    name: "Đỗ Đức An",
-    email: "doducan@gmail.com",
-    phone: "0339467262",
-    created_At: "05/04/2024",
-  },
-  {
-    id: 5,
-    name: "Lê Minh Tuấn",
-    email: "leminhtuan@example.com",
-    phone: "0905111222",
-    created_At: "22/05/2024",
-  },
-  {
-    id: 6,
-    name: "Trần Thị Lan Anh",
-    email: "lananh.tran@example.com",
-    phone: "0988333444",
-    created_At: "30/06/2024",
-  },
-  {
-    id: 7,
-    name: "Hoàng Văn Hải",
-    email: "hai.hoangv@example.com",
-    phone: "0367555666",
-    created_At: "14/07/2024",
-  },
-  {
-    id: 8,
-    name: "Vũ Ngọc Mai",
-    email: "mai.vungoc@example.com",
-    phone: "0779777888",
-    created_At: "19/08/2024",
-  },
-  {
-    id: 9,
-    name: "Bùi Thanh Sơn",
-    email: "son.buithanh@example.com",
-    phone: "0834999000",
-    created_At: "25/09/2024",
-  },
-  {
-    id: 10,
-    name: "Nguyễn Thị Hoa",
-    email: "hoa.nguyen@example.com",
-    phone: "0911223344",
-    created_At: "01/11/2024",
-  },
-  {
-    id: 11,
-    name: "Lý Văn Dũng",
-    email: "dung.lyvan@example.com",
-    phone: "0922334455",
-    created_At: "15/12/2024",
-  },
-  {
-    id: 12,
-    name: "Đặng Bảo Châu",
-    email: "chau.dangbao@example.com",
-    phone: "0933445566",
-    created_At: "10/01/2025",
-  },
-  {
-    id: 13,
-    name: "Hồ Minh Khang",
-    email: "khang.homin@example.com",
-    phone: "0944556677",
-    created_At: "05/02/2025",
-  },
-  {
-    id: 14,
-    name: "Phan Thu Thảo",
-    email: "thao.phanthu@example.com",
-    phone: "0955667788",
-    created_At: "20/03/2025",
-  },
-  {
-    id: 15,
-    name: "Võ Hoàng Phúc",
-    email: "phuc.vohoang@example.com",
-    phone: "0966778899",
-    created_At: "01/04/2025",
-  },
-];
+import React, { useState, useEffect, useCallback } from "react";
+import CreateEmployeeForm from "../../../components/employees/CreateEmployee.jsx";
+import ReuseTable from "@/components/ReuseTable.jsx";
+import { fetchEmployees } from "@/lib/api/employee";
+
+const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch (e) {
+    console.error("Error formatting date:", e);
+    return "Ngày không hợp lệ";
+  }
+};
 
 export default function EmployeePage() {
-  const tableData = jsonToTableFormat(data.slice(0, 9));
+  const [employees, setEmployees] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [limit] = useState(9);
+
+  const loadEmployees = useCallback(
+    async (page) => {
+      setIsLoading(true);
+      setError(null);
+      console.log(`Đang tải nhân viên trang: ${page}`);
+      try {
+        const response = await fetchEmployees(page, limit);
+        console.log("Phản hồi API:", response);
+
+        if (response && response.metadata) {
+          setEmployees(response.metadata.data || []);
+          setTotalPages(response.metadata.totalPage || 1);
+          setTotalRecords(response.metadata.total || 0);
+        } else {
+          console.error("Cấu trúc phản hồi API không đúng:", response);
+          setEmployees([]);
+          setTotalPages(1);
+          setTotalRecords(0);
+          setError("Không thể phân tích dữ liệu nhân viên.");
+        }
+      } catch (err) {
+        console.error("Lỗi khi tải nhân viên:", err);
+        setError(err.message || "Đã xảy ra lỗi khi tải dữ liệu.");
+        setEmployees([]);
+        setTotalPages(1);
+        setTotalRecords(0);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [limit]
+  );
+
+  useEffect(() => {
+    loadEmployees(currentPage);
+  }, [currentPage, loadEmployees]);
+
+  const handlePageChange = (newPage) => {
+    if (
+      !isLoading &&
+      newPage >= 1 &&
+      newPage <= totalPages &&
+      newPage !== currentPage
+    ) {
+      console.log(`Chuyển đến trang: ${newPage}`);
+      setCurrentPage(newPage);
+    }
+  };
+
+  const columns = [
+    "No",
+    "Name",
+    "Email",
+    "Phone",
+    "Created_At",
+    "Account",
+  ];
+
+  const rows = employees.map((emp, index) => {
+    const sequentialNumber = (currentPage - 1) * limit + index + 1;
+  
+    return [
+      sequentialNumber, 
+      emp.name,
+      emp.email,
+      emp.phone || 'N/A',
+      formatDate(emp.created_at),
+      emp.username || 'Chưa có'
+    ];
+  });
+
+  const refreshEmployeeList = () => {
+    setCurrentPage(1);
+    loadEmployees(1);
+  };
+
   return (
     <div className="flex flex-col bg-gray-100">
       <h1 className="text-2xl font-semibold text-gray-800 mb-4">
-        Quản lý nhân viên
+      Employee Management
       </h1>
+
       <div className="flex flex-col md:flex-row flex-grow gap-4 md:gap-2 md:items-start">
-        <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
-          <CreateEmployeeForm />
+        <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 shadow-lg">
+          <CreateEmployeeForm onEmployeeCreated={refreshEmployeeList} />
         </div>
+
         <div className="flex-grow overflow-hidden">
-          <ReuseTable
-            columns={tableData.columns}
-            rows={tableData.rows}
-            currentPage={1}
-            gridTemplateColumns="60px 200px 300px 200px 200px"
-          />
+          {isLoading && (
+            <div className="flex justify-center items-center h-64">
+              <p className="text-gray-500">Đang tải dữ liệu...</p>
+            </div>
+          )}
+
+          {error && !isLoading && (
+            <div
+              className="flex justify-center items-center h-64 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+              role="alert"
+            >
+              <strong className="font-bold">Lỗi!</strong>
+              <span className="block sm:inline"> {error}</span>
+            </div>
+          )}
+
+          {!isLoading && !error && (
+            <ReuseTable
+              columns={columns}
+              rows={rows}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalRecords={totalRecords}
+              onPageChange={handlePageChange}
+            />
+          )}
         </div>
       </div>
     </div>
