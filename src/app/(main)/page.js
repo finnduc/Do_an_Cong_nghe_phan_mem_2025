@@ -15,87 +15,6 @@ const kpiData = {
   transactionsToday: { value: "25", change: +10, text: "so với hôm qua" },
   totalPartners: { value: "5", change: +1.1, text: "so với tháng trước" },
 };
-const dummyRecentTransactions = [
-  {
-    id: "tx1",
-    type: "Nhập",
-    productName: "Laptop Model X",
-    quantity: 10,
-    time: "2025-04-12T10:30:00Z",
-  },
-  {
-    id: "tx2",
-    type: "Xuất",
-    productName: "Bàn phím cơ Z",
-    quantity: 5,
-    time: "2025-04-12T09:15:00Z",
-  },
-  {
-    id: "tx3",
-    type: "Nhập",
-    productName: "Chuột không dây Y",
-    quantity: 20,
-    time: "2025-04-11T16:00:00Z",
-  },
-  {
-    id: "tx4",
-    type: "Xuất",
-    productName: "Màn hình 24 inch",
-    quantity: 2,
-    time: "2025-04-11T11:45:00Z",
-  },
-  {
-    id: "tx5",
-    type: "Nhập",
-    productName: "Laptop Model X",
-    quantity: 5,
-    time: "2025-04-10T14:20:00Z",
-  },
-  {
-    id: "tx6",
-    type: "Nhập",
-    productName: "Ổ cứng SSD 1TB",
-    quantity: 15,
-    time: "2025-04-10T10:00:00Z",
-  },
-  {
-    id: "tx7",
-    type: "Xuất",
-    productName: "Chuột không dây Y",
-    quantity: 8,
-    time: "2025-04-09T17:30:00Z",
-  },
-];
-const formatTime = (dateString) => {
-  if (!dateString) return "";
-  try {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffSeconds = Math.round((now.getTime() - date.getTime()) / 1000);
-    const diffDays = Math.floor(diffSeconds / (60 * 60 * 24));
-
-    if (diffDays === 0 && now.getDate() === date.getDate()) {
-      return date.toLocaleTimeString("vi-VN", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } else if (
-      diffDays === 0 ||
-      (diffDays === 1 && now.getDate() !== date.getDate())
-    ) {
-      return "Hôm qua";
-    } else {
-      return date.toLocaleDateString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-    }
-  } catch (error) {
-    console.error("Error formatting time:", error);
-    return "Invalid Date";
-  }
-};
 
 export default function DashboardHomePage() {
   return (
@@ -105,7 +24,7 @@ export default function DashboardHomePage() {
       </h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard
-          title="Tổng Sản Phẩm"
+          title="Product Total"
           value={kpiData.totalProducts.value}
           icon={FaBoxes}
           iconBgColor="bg-blue-100" 
@@ -125,7 +44,7 @@ export default function DashboardHomePage() {
           isPositiveChange={kpiData.lowStockProducts.change >= 0}
         />
         <KpiCard
-          title="Giao dịch Hôm Nay"
+          title="Transaction Today"
           value={kpiData.transactionsToday.value}
           icon={FaExchangeAlt}
           iconBgColor="bg-green-100" // Nền nhạt

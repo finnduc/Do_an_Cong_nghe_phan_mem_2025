@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 // Hàm TruncatedCell
-const TruncatedCell = ({ text, maxLength = 25 }) => {
+const TruncatedCell = ({ text, maxLength = 5 }) => {
   const isTruncated = text.length > maxLength;
   const displayText = isTruncated ? `${text.slice(0, maxLength)}...` : text;
 
@@ -94,7 +94,7 @@ const ReuseTable = ({
                       }`}
                     >
                       {/* Sử dụng TruncatedCell để hiển thị nội dung ô */}
-                      <TruncatedCell text={String(cell)} maxLength={25} />
+                      <TruncatedCell text={String(cell)} maxLength={15} />
                     </td>
                   ))}
                 </tr>
@@ -115,7 +115,8 @@ const ReuseTable = ({
       {/* Pagination */}
       <div className="w-full flex justify-between items-center text-sm px-4 py-2 font-medium">
         <span className="text-gray-500">
-          Showing {currentPage} of {totalPages} pages - Total records: {totalRecords}
+          Showing {currentPage} of {totalPages} pages - Total records:{" "}
+          {totalRecords}
         </span>
         <div className="flex gap-2">
           <button

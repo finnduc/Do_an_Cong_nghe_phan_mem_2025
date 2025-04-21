@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { jsonToTableFormat } from "@/lib/utils";
-import ReuseTable from "@/components/ReuseTable.jsx";
+import ReuseTable from "../../../components/ReuseTable.jsx";
 import CreatePartnerForm from "../../../components/partners/CreatePartner.jsx";
 
 const data = [
@@ -120,7 +120,7 @@ const data = [
     address: "111 Hùng Vương, TP. Huế",
     phone: "0399111222",
     email: "binhtran.customer@email.com",
-    created_at: "2024-11-11",
+    created_at: "2024-04-07",
   },
   {
     partner_id: 14,
@@ -151,7 +151,7 @@ export default function PartnerPage() {
         Quản lý nhân viên
       </h1>
       <div className="flex flex-col md:flex-row flex-grow gap-4 md:gap-2 md:items-start">
-        <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0">
+        <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 shadow-md">
           <CreatePartnerForm />
         </div>
         <div className="flex-grow overflow-hidden">
