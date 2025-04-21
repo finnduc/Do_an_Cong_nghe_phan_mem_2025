@@ -52,7 +52,7 @@ class PartnerController {
 
   getPartnerName = async (req, res, next) => {
     try {
-      const responces = await PartnerService.getPartnerName();
+      const responces = await PartnerService.getPartnerName(req.query);
       return new OK({
         message: 'Get partner name',
         metadata: responces,

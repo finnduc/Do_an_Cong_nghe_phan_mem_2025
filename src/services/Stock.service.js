@@ -142,7 +142,7 @@ class StockService {
     }
 
     getStock = async (payload) => {
-        const { limit, page, name_category, name_product, manufacturer, priceMax, priceMin, quantityMax, quantityMin, action } = payload;
+        const { limit, page, category_name, product_name, manufacturer, priceMax, priceMin, quantityMax, quantityMin, action } = payload;
         const parsedLimit = parseInt(limit, 10);
         const parsedPage = parseInt(page, 10);
         
@@ -157,13 +157,13 @@ class StockService {
         let param = [];
         
         // WHERE clause conditions
-        if (name_product) {
+        if (product_name) {
             whereQuery += ' AND p.name LIKE ?';
-            param.push(`%${name_product}%`);
+            param.push(`%${product_name}%`);
         }
-        if (name_category) {
+        if (category_name) {
             whereQuery += ' AND c.name LIKE ?';
-            param.push(`%${name_category}%`);
+            param.push(`%${category_name}%`);
         }
         if (manufacturer) {
             whereQuery += ' AND m.name LIKE ?';
@@ -351,6 +351,29 @@ class StockService {
             totalPage: totalPage,
             totalItem: totalItem
         };
+    };
+
+    totalItemInStock = async () => {
+        const query = `
+            SELECT SUM(stock_quantity) AS total_items
+            FROM stock;
+        `;
+        const result = await executeQuery(query);
+        return result[0].total_items;
+    };
+
+    totalUnsoldItemsInStock3Months = async () => {
+        const query = `
+            SELECT COALESCE(SUM(s.stock_quantity), 0) AS total_items
+            FROM stock s
+            LEFT JOIN transactions t 
+                ON s.stock_id = t.stock_id 
+                AND t.action = 'export' 
+                AND t.created_at >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
+            WHERE t.transaction_id IS NULL;
+        `;
+        const result = await executeQuery(query);
+        return result[0].total_items;
     };
 }
 

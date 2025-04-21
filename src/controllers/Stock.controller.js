@@ -61,6 +61,30 @@ class StockController {
       next(error);
     }
   };
+
+  totalItemInStock = async (req, res, next) => {
+    try {
+      const respone = await StockService.totalItemInStock();
+      return new OK({
+        message: 'Get total item in stock successfully',
+        metadata: respone,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  totalItemInStock3Month = async (req, res, next) => {
+    try {
+      const respone = await StockService.totalUnsoldItemsInStock3Months();
+      return new OK({
+        message: 'Get total item in stock in 3 month successfully',
+        metadata: respone,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new StockController();

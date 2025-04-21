@@ -5,7 +5,7 @@ const PartnerController = require('../../controllers/Partner.controller');
 const { authentication } = require('../../auth/authUtils');
 
 // Middleware to authenticate routes
-Router.use(authentication);
+// Router.use(authentication);
 
 // create partner
 Router.post('/create', asyncHandler(PartnerController.createPartner));

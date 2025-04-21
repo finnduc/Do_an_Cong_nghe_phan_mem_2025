@@ -67,9 +67,10 @@ class PartnerService {
     }
 
     // get Name of partner
-    getPartnerName = async () => {
-        const query = `SELECT name, partner_id FROM partners`;
-        return await executeQuery(query);
+    getPartnerName = async ( payload ) => {
+        const { action } = payload;
+        const query = `SELECT name, partner_id FROM partners WHERE partner_type = ?`;
+        return await executeQuery(query, [action]);
     }
 
     deletePartner = async (payload) => {

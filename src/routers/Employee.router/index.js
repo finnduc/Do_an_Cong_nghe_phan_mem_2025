@@ -5,7 +5,7 @@ const EmployeeController = require('../../controllers/Employee.controller');
 const { authentication } = require('../../auth/authUtils');
 
 // Middleware to authenticate routes
-Router.use(authentication);
+// Router.use(authentication);
 // create employee
 Router.post('/create', asyncHandler(EmployeeController.createEmployees));
 

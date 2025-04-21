@@ -45,9 +45,9 @@ const createAllTables = async () => {
         stock_quantity INT NOT NULL CHECK (stock_quantity >= 0),
         manufacturer_id CHAR(36) NOT NULL,
         category_id CHAR(36) NULL,
-        FOREIGN KEY (product_id) REFERENCES products (product_id) ON DELETE CASCADE ON UPDATE CASCADE,
-        FOREIGN KEY (manufacturer_id) REFERENCES manufacturers (manufacturer_id) ON DELETE CASCADE ON UPDATE CASCADE,
-        FOREIGN KEY (category_id) REFERENCES categories (category_id) ON DELETE SET NULL ON UPDATE CASCADE
+        FOREIGN KEY (product_id) REFERENCES products (product_id) ON UPDATE CASCADE,
+        FOREIGN KEY (manufacturer_id) REFERENCES manufacturers (manufacturer_id) ON UPDATE CASCADE,
+        FOREIGN KEY (category_id) REFERENCES categories (category_id) ON UPDATE CASCADE
     )`,
 
     `CREATE TABLE IF NOT EXISTS product_prices (
@@ -88,19 +88,19 @@ const createAllTables = async () => {
         price_per_unit DECIMAL(10, 2) NOT NULL,
         quantity INT NOT NULL CHECK (quantity > 0),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (stock_id) REFERENCES stock (stock_id) ON DELETE CASCADE ON UPDATE CASCADE,
-        FOREIGN KEY (partner_id) REFERENCES partners (partner_id) ON DELETE CASCADE ON UPDATE CASCADE,
-        FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE ON UPDATE CASCADE
+        FOREIGN KEY (stock_id) REFERENCES stock (stock_id) ON UPDATE CASCADE,
+        FOREIGN KEY (partner_id) REFERENCES partners (partner_id) ON UPDATE CASCADE,
+        FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON UPDATE CASCADE
     )`,
 
     `CREATE TABLE IF NOT EXISTS parameters (
         parameter_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-        product_id CHAR(36) NOT NULL,
-        manufacturer_id CHAR(36) NOT NULL,
-        category_id CHAR(36) NULL,
+        product_id CHAR(36),
+        manufacturer_id CHAR(36),
+        category_id CHAR(36),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (product_id) REFERENCES products (product_id) ON DELETE CASCADE ON UPDATE CASCADE,
-        FOREIGN KEY (manufacturer_id) REFERENCES manufacturers (manufacturer_id) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products (product_id) ON DELETE SET NULL ON UPDATE CASCADE,
+        FOREIGN KEY (manufacturer_id) REFERENCES manufacturers (manufacturer_id) ON DELETE SET NULL ON UPDATE CASCADE,
         FOREIGN KEY (category_id) REFERENCES categories (category_id) ON DELETE SET NULL ON UPDATE CASCADE
     )`,
     ``

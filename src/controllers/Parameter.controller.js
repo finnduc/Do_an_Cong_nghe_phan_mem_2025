@@ -1,11 +1,107 @@
 const ParameterService = require('../services/Parameter.service');
-const { OK } = require('../core/respone');
+const { OK, CREATED } = require('../core/respone');
 
 class ParameterController {
+
+  createManu = async (req, res, next) => {
+    try {
+      const responces = await ParameterService.createManu(req.body);
+      return new OK({
+        message: 'Create parameter success',
+        metadata: responces,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateManu = async (req, res, next) => {
+    try {
+      const responces = await ParameterService.updateManu(req.body);
+      return new OK({
+        message: 'Update parameter success',
+        metadata: responces,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  deleteManu = async (req, res, next) => {
+    try {
+      const responces = await ParameterService.deleteManu(req.body);
+      return new OK({
+        message: 'Delete parameter success',
+        metadata: responces,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  getManu = async (req, res, next) => {
+    try {
+      const responces = await ParameterService.getManu();
+      return new OK({
+        message: 'Get parameter success',
+        metadata: responces,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  createCate = async (req, res, next) => {
+    try {
+      const responces = await ParameterService.createCategory(req.body);
+      return new OK({
+        message: 'Create parameter success',
+        metadata: responces,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  updateCate = async (req, res, next) => {
+    try {
+      const responces = await ParameterService.updateCategory(req.body);
+      return new OK({
+        message: 'Update parameter success',
+        metadata: responces,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  deleteCate = async (req, res, next) => {
+    try {
+      const responces = await ParameterService.deleteCategory(req.body);
+      return new OK({
+        message: 'Delete parameter success',
+        metadata: responces,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  getCategory = async (req, res, next) => {
+    try {
+      const responces = await ParameterService.getCategory();
+      return new OK({
+        message: 'Get parameter success',
+        metadata: responces,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
   createParameter = async (req, res, next) => {
     try {
       const responces = await ParameterService.createParameter(req.body);
-      return new OK({
+      return new CREATED({
         message: 'Create parameter success',
         metadata: responces,
       }).send(res);

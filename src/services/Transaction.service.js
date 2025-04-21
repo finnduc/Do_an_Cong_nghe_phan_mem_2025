@@ -13,7 +13,6 @@ class TransactionService {
         let addQuery = '';
         const params = [];
 
-        // Xử lý các tham số LIKE
         if (employee) {
             addQuery += ' AND e.name LIKE ?';
             params.push(`%${employee}%`);
@@ -110,6 +109,31 @@ class TransactionService {
         }
         const offset = (parsedPage - 1) * parsedLimit;
     }
+
+    totalTransactionsToday = async () => {
+        const query = `
+            SELECT COUNT(*) AS total_transactions
+            FROM transactions
+            WHERE DATE(created_at) = CURDATE();
+        `;
+        const result = await executeQuery(query);
+        return result[0].total_transactions;
+    };
+
+    getTransactionQuantityStatsLast12Months = async () => {
+        const query = `
+            SELECT 
+                DATE_FORMAT(created_at, '%Y-%m') AS month,
+                COALESCE(SUM(CASE WHEN action = 'import' THEN quantity END), 0) AS import_quantity,
+                COALESCE(SUM(CASE WHEN action = 'export' THEN quantity END), 0) AS export_quantity
+            FROM transactions
+            WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+            ORDER BY month DESC;
+        `;
+        const result = await executeQuery(query);
+        return result;
+    };
 }
 
 module.exports = new TransactionService();
