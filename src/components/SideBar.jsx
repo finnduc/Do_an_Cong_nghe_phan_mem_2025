@@ -19,7 +19,7 @@ const management = {
   "Home": [<House size={20} />, "/"],
   "Employees": [<UserRoundSearch size={20} />, "/employees"],
   "Partners": [<Building2 size={20} />, "/partners"],
-  "Categories": [<ChartBarStacked size={20} />, "/categories"],
+  "Parameters": [<ChartBarStacked size={20} />, "/parameters"],
   "Accounts": [<UserRoundPen size={20}/>, "/accounts"],
 };
 
