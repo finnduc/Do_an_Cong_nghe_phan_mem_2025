@@ -13,25 +13,10 @@ import { jsonToTableFormat } from "@/lib/utils";
 import { fetchStock } from "@/lib/api/stock";
 import { toast } from "sonner";
 import { Toaster } from "../ui/sonner";
+import DualRangeSlider from "../ui/slider";
+import { Search, ListFilterPlus } from "lucide-react";
 
-const mockManufacturers = [
-  { manufacturer_id: "1", name: "Apple" },
-  { manufacturer_id: "2", name: "Samsung" },
-  { manufacturer_id: "3", name: "Dell" },
-  { manufacturer_id: "4", name: "HP" },
-  { manufacturer_id: "5", name: "Oppo" },
-  { manufacturer_id: "6", name: "Xiaomi" },
-];
-
-const mockCategories = [
-  { category_id: "1", name: "Dụng cụ điện tử" },
-  { category_id: "2", name: "Điện thoại" },
-  { category_id: "3", name: "Laptop" },
-  { category_id: "4", name: "Tai nghe" },
-  { category_id: "5", name: "Máy in" },
-];
-
-export default function Stock({ data }) {
+export default function Stock({ data, manufacturers, categories }) {
   const [currentData, setCurrentData] = useState(data.data);
   const [totalPages, setTotalPages] = useState(data.totalPage);
   const [totalRecords, setTotalRecords] = useState(data.totalItem);
@@ -51,11 +36,11 @@ export default function Stock({ data }) {
   const formattedData = jsonToTableFormat(currentData, currentPage);
   const currentFilter = {
     manufacturer: manufacturerFilter,
-    category: categoryFilter,
-    minQuantity: minQuantity,
-    maxQuantity: maxQuantity,
-    minPrice: minPrice,
-    maxPrice: maxPrice,
+    category_name: categoryFilter,
+    quantityMin: minQuantity,
+    quantityMax: maxQuantity,
+    priceMin: minPrice,
+    priceMax: maxPrice,
     action: priceTypeFilter,
   };
 
@@ -91,108 +76,58 @@ export default function Stock({ data }) {
   return (
     <div>
       <Toaster />
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Stock Management</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold mb-2">Stock Management</h1>
       </div>
-      <div className="bg-white p-4 rounded-lg shadow">
+      <div className="px-4 pt-4 flex gap-10 bg-white rounded-lg border shadow-lg">
         {/* Bộ lọc */}
-        <div className="flex gap-4 mb-4">
-          <Select
-            onValueChange={(value) => setManufacturerFilter(value)}
-            value={manufacturerFilter}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Manufacturer" />
-            </SelectTrigger>
-            <SelectContent>
-              {mockManufacturers.map((man) => (
-                <SelectItem
-                  key={man.manufacturer_id}
-                  value={man.manufacturer_id}
-                >
-                  {man.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            onValueChange={(value) => setCategoryFilter(value)}
-            value={categoryFilter}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              {mockCategories.map((cat) => (
-                <SelectItem key={cat.category_id} value={cat.category_id}>
-                  {cat.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <input
-            type="text"
-            className="flex-1 border border-input rounded-md px-2 shadow-sm focus:outline-none font-light text-sm"
-            placeholder="Product name"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-          <input
-            type="number"
-            className="w-36 flex-none border border-input rounded-md px-2 shadow-sm focus:outline-none font-light text-sm"
-            placeholder="Min quantity"
-            min={0}
-            max={maxQuantity}
-            ref={minQuantityInputRef}
-            onChange={(e) => {
-              if (e.target.value > maxQuantity || e.target.value < 0)
-                e.target.value = maxQuantity;
-              else setMinQuantity(e.target.value);
-              if (e.target.value === "") setMinQuantity(0);
-            }}
-          />
-          <input
-            type="number"
-            className="w-36 border border-input rounded-md px-2 shadow-sm focus:outline-none font-light text-sm"
-            placeholder="Max quantity"
-            min={minQuantity}
-            max={Infinity}
-            ref={maxQuantityInputRef}
-            onChange={(e) => {
-              if (e.target.value < minQuantity) {
-                e.target.value = minQuantity;
-              } else setMaxQuantity(e.target.value);
-              if (e.target.value === "") setMaxQuantity(Infinity);
-            }}
-          />
-          <input
-            type="number"
-            className="w-36 flex-none border border-input rounded-md px-2 shadow-sm focus:outline-none font-light text-sm"
-            placeholder="Min price"
-            min={0}
-            max={maxPrice}
-            ref={minPriceInputRef}
-            onChange={(e) => {
-              if (e.target.value > maxPrice || e.target.value < 0)
-                e.target.value = maxPrice;
-              else setMinPrice(e.target.value);
-              if (e.target.value === "") setMinPrice(0);
-            }}
-          />
-          <input
-            type="number"
-            className="w-36 border border-input rounded-md px-2 shadow-sm focus:outline-none font-light text-sm"
-            placeholder="Max price"
-            min={minPrice}
-            max={Infinity}
-            ref={maxPriceInputRef}
-            onChange={(e) => {
-              if (e.target.value < minPrice) {
-                e.target.value = minPrice;
-              } else setMaxPrice(e.target.value);
-              if (e.target.value === "") setMaxPrice(Infinity);
-            }}
-          />
+        <div className="flex flex-col gap-6 h-fit max-w-[300px]">
+          <div className="flex items-center gap-2 text-xl font-semibold font-sans">
+            <ListFilterPlus size={25} /> <div>Filter</div>
+          </div>
+          <div className="flex gap-2">
+            <Select
+              onValueChange={(value) => setCategoryFilter(value)}
+              value={categoryFilter}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.category_id} value={cat.category_id}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              onValueChange={(value) => setManufacturerFilter(value)}
+              value={manufacturerFilter}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Manufacturer" />
+              </SelectTrigger>
+              <SelectContent>
+                {manufacturers.map((man) => (
+                  <SelectItem
+                    key={man.manufacturer_id}
+                    value={man.manufacturer_id}
+                  >
+                    {man.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="text-sm text-gray-600">
+            <div>Quantity range:</div>
+            <DualRangeSlider />
+          </div>
+          <div className="text-sm text-gray-600">
+            <div>Price range:</div>
+            <DualRangeSlider />
+          </div>
           <Select
             onValueChange={(value) => setPriceTypeFilter(value)}
             value={priceTypeFilter}
@@ -206,19 +141,40 @@ export default function Stock({ data }) {
               <SelectItem value="export">export price</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="ghost" onClick={handleResetFilter}>
-            Reset Filter
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button className="text-white bg-blue-500 hover:bg-blue-700">
+              Apply
+            </Button>
+            <Button
+              variant="ghost"
+              className="border"
+              onClick={handleResetFilter}
+            >
+              Reset Filter
+            </Button>
+          </div>
         </div>
         {/* Bảng */}
-        <ReuseTable
-          columns={formattedData.columns}
-          rows={formattedData.rows}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalRecords={totalRecords}
-          onPageChange={getNextPage}
-        />
+        <div>
+          <div className="flex items-center bg-blue-500 w-fit rounded-sm mb-2 shadow-sm">
+            <Search className="py-1 px-2 text-white" size={30} />
+            <input
+              type="text"
+              className="border-input border rounded-r-sm p-2 focus:outline-none font-light text-sm"
+              placeholder="Product name"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
+          </div>
+          <ReuseTable
+            columns={formattedData.columns}
+            rows={formattedData.rows}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalRecords={totalRecords}
+            onPageChange={getNextPage}
+          />
+        </div>
       </div>
     </div>
   );

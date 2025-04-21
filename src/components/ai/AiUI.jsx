@@ -59,7 +59,7 @@ export default function AiUI() {
 
   const handleQuestion = async () => {
     if (!question.trim()) {
-      toast.error("Vui lòng nhập yêu cầu.");
+      toast.error("Please enter your question.");
       return;
     }
     setIsLoading(true);
@@ -69,9 +69,9 @@ export default function AiUI() {
       setCurrentData(data.data);
       setTotalRecords(data.total_records);
     } catch (e) {
-      setErrorMessage(e.message || "Đã xảy ra lỗi không xác định.");
+      setErrorMessage(e.message || "Internal sever error");
       toast.error(
-        "Có lỗi xảy ra khi tạo truy vấn SQL. Vui lòng thử lại hoặc liên hệ với người quản trị."
+        "An error occurred while creating the SQL query. Please try again or contact the administrator."
       );
     } finally {
       setIsLoading(false);
@@ -81,7 +81,7 @@ export default function AiUI() {
   const handleExecution = async () => {
     setErrorMessage("");
     if (!sqlQuery.trim()) {
-      toast.error("Truy vấn SQL chưa được nhập.");
+      toast.error("Please enter your SQL query.");
       return;
     }
     setIsExecuting(true);
@@ -90,9 +90,9 @@ export default function AiUI() {
       setCurrentData(data.data);
       setTotalRecords(data.total_records);
     } catch (e) {
-      setErrorMessage(e.message || "Đã xảy ra lỗi không xác định.");
+      setErrorMessage(e.message || "Internal sever error");
       toast.error(
-        "Có lỗi xảy ra khi tạo truy vấn SQL. Vui lòng thử lại hoặc liên hệ với người quản trị."
+        "An error occurred while creating the SQL query. Please try again or contact the administrator."
       );
     } finally {
       setIsExecuting(false);
@@ -107,9 +107,9 @@ export default function AiUI() {
       setCurrentPage(page);
       setSqlQuery(paginatedSQL);
     } catch (e) {
-      setErrorMessage(e.message || "Đã xảy ra lỗi không xác định.");
+      setErrorMessage(e.message || "Internal sever error");
       toast.error(
-        "Có lỗi xảy ra khi tạo truy vấn SQL. Vui lòng thử lại hoặc liên hệ với người quản trị."
+        "An error occurred while creating the SQL query. Please try again or contact the administrator."
       );
     }
   };
@@ -120,7 +120,7 @@ export default function AiUI() {
       <div className="border border-input rounded-xl shadow-sm flex p-3 w-full bg-white">
         <Textarea
           className="min-h-[40px] resize-none overflow-hidden border-0 shadow-none focus-visible:ring-0 px-0 py-0"
-          placeholder="Nhập yêu cầu của bạn để tạo truy vấn SQL."
+          placeholder="Enter your question..."
           onChange={updateHeight}
         />
         <button
@@ -140,7 +140,7 @@ export default function AiUI() {
         </button>
       </div>
       <div className="w-full flex">
-        <div className="text-xs text-gray-600 text-center grow">AI có thể mắc sai lầm khi tạo truy vấn SQL. Hãy kiểm tra lại truy vấn để tránh sai sót.</div>
+        <div className="text-xs text-gray-600 text-center grow">AI can make mistake when generating SQL query, please double check the generated SQL query for better result.</div>
         <HoverCard openDelay={1}>
           <HoverCardTrigger className="ml-auto border-2 border-blue-500 rounded-lg text-blue-500 hover:text-white hover:bg-blue-500">
             <button
@@ -156,7 +156,7 @@ export default function AiUI() {
             </button>
           </HoverCardTrigger>
           <HoverCardContent className="size-fit text-sm">
-            Chỉnh sửa truy vấn SQL
+            Edit the SQL query
           </HoverCardContent>
         </HoverCard>
       </div>
@@ -204,7 +204,7 @@ export default function AiUI() {
                     setIsEditing(!isEditing);
                   }}
                 >
-                  {isEditing ? "Hủy" : "Chỉnh sửa"}
+                  {isEditing ? "Cancel" : "Edit"}
                 </Button>
                 {isEditing && (
                   <Button
@@ -215,7 +215,7 @@ export default function AiUI() {
                       setSqlQuery(tempQueryRef.current);
                     }}
                   >
-                    Lưu
+                    Save
                   </Button>
                 )}
               </div>
@@ -228,14 +228,14 @@ export default function AiUI() {
                     tempQueryRef.current = originalQueryRef.current;
                   }}
                 >
-                  Đóng
+                  Close
                 </Button>
                 <Button
                   className="bg-blue-500 text-white hover:bg-blue-700"
                   onClick={handleExecution}
                   disabled={isExecuting || isEditing}
                 >
-                  {isExecuting ? "Đang chạy" : "Chạy lệnh"}
+                  {isExecuting ? "Executing..." : "Execute"}
                 </Button>
               </div>
             </div>
