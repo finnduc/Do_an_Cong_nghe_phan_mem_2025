@@ -61,6 +61,18 @@ class UserController {
       next(error);
     }
   };
+
+  getUserName = async (req, res, next) => {
+    try {
+      const responces = await UserService.getNameUser();
+      return new OK({
+        message: 'Get user name success',
+        metadata: responces,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new UserController();

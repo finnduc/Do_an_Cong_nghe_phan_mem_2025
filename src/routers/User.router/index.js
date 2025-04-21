@@ -8,5 +8,6 @@ Router.post('/update', asyncHandler(UserController.UpdateUser));
 Router.get('/delete', asyncHandler(UserController.DeleteUser));
 Router.get('/getAll', asyncHandler(UserController.GetAllUser));
 Router.post('/search', asyncHandler(UserController.SearchUser));
+Router.get('/getName', asyncHandler(UserController.getUserName));
 
 module.exports = Router;

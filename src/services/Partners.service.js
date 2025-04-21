@@ -128,7 +128,6 @@ class PartnerService {
 
         return results;
     }
-
 }
 
 module.exports = new PartnerService();

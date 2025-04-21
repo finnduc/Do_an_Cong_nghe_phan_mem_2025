@@ -120,5 +120,12 @@ class UserService {
         return await executeQuery(searchQuery, [`%${userName}%`], [`%${userName}%`]);
     }
 
+    getNameUser = async () => {
+        const query = `
+                SELECT username, user_id FROM users;
+            `;
+        return await executeQuery(query);
+    }
+
 }
 module.exports = new UserService();

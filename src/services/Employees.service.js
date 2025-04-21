@@ -84,13 +84,10 @@ class EmployeeService {
         return employee[0];
     }
 
-    // get Name of partner
+    // 
     getEmployeeName = async () => {
         const query = `SELECT employee_id, name FROM employees`;
         const employeeNames = await executeQuery(query);
-        if (!employeeNames[0]) {
-            throw new NotFoundError("Không có tên nhân viên nào!");
-        }
 
         return employeeNames;
     }
