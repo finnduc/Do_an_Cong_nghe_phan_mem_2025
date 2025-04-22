@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/lib/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,14 +19,17 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    // Thêm suppressHydrationWarning={true} vào thẻ html
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable}`}
-      suppressHydrationWarning={true} // <--- Thêm dòng này
+      suppressHydrationWarning={true}
     >
       <body className="antialiased h-screen">
-        <main>{children}</main>
+        <main>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </main>
       </body>
     </html>
   );
