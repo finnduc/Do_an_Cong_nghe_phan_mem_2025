@@ -1,20 +1,21 @@
-'use client';
+"use client";
 
-import * as Slider from '@radix-ui/react-slider';
-import { useState } from 'react';
+import * as Slider from "@radix-ui/react-slider";
 
 export default function DualRangeSlider({
-  defaultValue = [0, 100000],
+  value,
+  onValueChange,
   min = 0,
   max = 100000,
   step = 1,
 }) {
-  const [range, setRange] = useState(defaultValue);
   return (
     <div>
       <Slider.Root
-        value={range}
-        onValueChange={(val) => setRange(val)}
+        // Sử dụng giá trị từ prop 'value'
+        value={value}
+        // Gọi hàm từ prop 'onValueChange' khi giá trị thay đổi
+        onValueChange={onValueChange}
         min={min}
         max={max}
         step={step}
@@ -32,11 +33,9 @@ export default function DualRangeSlider({
           aria-label="Maximum"
         />
       </Slider.Root>
-
-      {/* Hiển thị giá trị ngay bên dưới */}
       <div className="flex justify-between text-xs text-gray-600">
-        <span>Min: {range[0]}</span>
-        <span>Max: {range[1]}</span>
+        <span>Min: {value[0]}</span>
+        <span>Max: {value[1]}</span>
       </div>
     </div>
   );

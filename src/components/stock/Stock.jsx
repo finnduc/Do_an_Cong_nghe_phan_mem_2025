@@ -14,7 +14,8 @@ import { fetchStock } from "@/lib/api/stock";
 import { toast } from "sonner";
 import { Toaster } from "../ui/sonner";
 import DualRangeSlider from "../ui/slider";
-import { Search, ListFilterPlus } from "lucide-react";
+import { ListFilterPlus } from "lucide-react";
+import SearchBar from "../SearchBar";
 
 export default function Stock({ data, manufacturers, categories }) {
   const [currentData, setCurrentData] = useState(data.data);
@@ -23,24 +24,18 @@ export default function Stock({ data, manufacturers, categories }) {
   const [manufacturerFilter, setManufacturerFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(data.page);
-  const [minQuantity, setMinQuantity] = useState(0);
-  const [maxQuantity, setMaxQuantity] = useState(Infinity);
-  const maxQuantityInputRef = useRef(null);
-  const minQuantityInputRef = useRef(null);
-  const [maxPrice, setMaxPrice] = useState(Infinity);
-  const [minPrice, setMinPrice] = useState(0);
-  const maxPriceInputRef = useRef(null);
-  const minPriceInputRef = useRef(null);
+  const [priceRange, setPriceRange] = useState([0, 100000]);
+  const [quantityRange, setQuantityRange] = useState([0, 100000]);
   const [searchText, setSearchText] = useState("");
   const [priceTypeFilter, setPriceTypeFilter] = useState("import");
   const formattedData = jsonToTableFormat(currentData, currentPage);
   const currentFilter = {
     manufacturer: manufacturerFilter,
     category_name: categoryFilter,
-    quantityMin: minQuantity,
-    quantityMax: maxQuantity,
-    priceMin: minPrice,
-    priceMax: maxPrice,
+    priceMin: priceRange[0],
+    priceMax: priceRange[1],
+    quatityMin: quantityRange[0],
+    quatityMax: quantityRange[1],
     action: priceTypeFilter,
   };
 
@@ -48,15 +43,9 @@ export default function Stock({ data, manufacturers, categories }) {
     setSearchText("");
     setManufacturerFilter("");
     setCategoryFilter("");
-    setMinQuantity(0);
-    setMaxQuantity(Infinity);
-    setMinPrice(0);
-    setMaxPrice(Infinity);
-    maxQuantityInputRef.current.value = "";
-    minQuantityInputRef.current.value = "";
-    maxPriceInputRef.current.value = "";
-    minPriceInputRef.current.value = "";
     setPriceTypeFilter("import");
+    setPriceRange([0, 100000]);
+    setQuantityRange([0, 100000]);
   };
 
   const getNextPage = async (page) => {
@@ -122,11 +111,11 @@ export default function Stock({ data, manufacturers, categories }) {
           </div>
           <div className="text-sm text-gray-600">
             <div>Quantity range:</div>
-            <DualRangeSlider />
+            <DualRangeSlider value={quantityRange} onValueChange={(value) => setQuantityRange(value)}/>
           </div>
           <div className="text-sm text-gray-600">
             <div>Price range:</div>
-            <DualRangeSlider />
+            <DualRangeSlider value={priceRange} onValueChange={(value) => setPriceRange(value)}/>
           </div>
           <Select
             onValueChange={(value) => setPriceTypeFilter(value)}
@@ -156,16 +145,7 @@ export default function Stock({ data, manufacturers, categories }) {
         </div>
         {/* Bảng */}
         <div>
-          <div className="flex items-center bg-blue-500 w-fit rounded-sm mb-2 shadow-sm">
-            <Search className="py-1 px-2 text-white" size={30} />
-            <input
-              type="text"
-              className="border-input border rounded-r-sm p-2 focus:outline-none font-light text-sm"
-              placeholder="Product name"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-            />
-          </div>
+          <SearchBar value={searchText} onValueChange={(value) => setSearchText(value)} />
           <ReuseTable
             columns={formattedData.columns}
             rows={formattedData.rows}
