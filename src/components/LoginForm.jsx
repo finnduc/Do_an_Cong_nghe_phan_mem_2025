@@ -22,8 +22,7 @@ const formSchema = z.object({
   userName: z.string().min(1, "Username is required"),
   password: z
     .string()
-    .regex(/[a-zA-Z]/, "Password must contain at least one letter")
-    .regex(/\d/, "Password must contain at least one number"),
+    .regex(/[a-zA-Z]/, "Password must contain at least one letter"),
   remember: z.boolean().optional(),
 });
 
