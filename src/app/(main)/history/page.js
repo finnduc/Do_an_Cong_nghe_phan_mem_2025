@@ -5,8 +5,8 @@ export default async function HistoryPage() {
   const initialData = await fetchHistories(1)
   return <div className="text-black h-full">
     <h1 className="text-2xl font-semibold text-gray-800 mb-4">
-        Lịch sử
+        History
       </h1>
-    <HistoryUI dataList={initialData.metadata.data} />
+    <HistoryUI dataList={initialData?.metadata?.data} total={initialData?.metadata?.total} />
   </div>;
 }

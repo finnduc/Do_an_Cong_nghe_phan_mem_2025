@@ -64,6 +64,29 @@ export function jsonToTableFormat(jsonData, page = 1, limit = 8) {
 
   return { columns, rows };
 }
+
+export function filterIdColumns(data) {
+  if (!data || !data.columns || !data.rows) {
+    return data;
+  }
+  const { columns, rows } = data;
+
+  // Tìm index các cột KHÔNG chứa 'id' (không phân biệt hoa thường)
+  const filteredIndices = columns
+    .map((col, idx) => ({ col, idx }))
+    .filter(({ col }) => !col.toLowerCase().includes("id"))
+    .map(({ idx }) => idx);
+
+  // Lọc lại columns và rows theo các chỉ số giữ lại
+  const filteredColumns = filteredIndices.map(idx => columns[idx]);
+  const filteredRows = rows.map(row => filteredIndices.map(idx => row[idx]));
+
+  return {
+    columns: filteredColumns,
+    rows: filteredRows,
+  };
+}
+
 export function formatDate(value) {
   const date = new Date(value);
   // Format thành YYYY-MM-DD

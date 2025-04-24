@@ -8,8 +8,9 @@ import { fetchHistories } from "@/lib/api/history";
 import { RotateCcw } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
-export default function HistoryUI({ dataList }) {
+export default function HistoryUI({ dataList, total }) {
   const [currentDataList, setCurrentDataList] = useState(dataList);
+  const [totalRecords, setTotalRecords] = useState(total);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [dateFilter, setDateFilter] = useState({
@@ -26,12 +27,13 @@ export default function HistoryUI({ dataList }) {
         6,
         dateFilter.startTime && dateFilter.endTime ? dateFilter : {}
       );
-      setCurrentDataList((prev) => [...prev, ...newData.metadata.data]);
+      setCurrentDataList((prev) => [...prev, ...newData?.metadata?.data]);
       setCurrentPage(currentPage + 1);
+      setTotalRecords(newData?.metadata?.total);
     } catch (e) {
       console.log(e);
       toast.error(
-        "Đã có lỗi xảy ra khi lấy dữ liệu lịch sử, vui lòng thử lại hoặc liên hệ với nhân viên kĩ thuật."
+        "Error fetching more data. Please try again or contact the administrator."
       );
     } finally {
       setIsLoading(false);
@@ -50,7 +52,7 @@ export default function HistoryUI({ dataList }) {
 
   const handleOnFilter = async () => {
     if (!dateFilter.startTime && !dateFilter.endTime) {
-      setFilterError("Vui lòng nhập ngày bắt đầu hoặc ngày kết thúc");
+      setFilterError("Please select start date or end date.");
       return;
     }
     setFilterError("");
@@ -61,7 +63,7 @@ export default function HistoryUI({ dataList }) {
     } catch (e) {
       console.log(e);
       toast.error(
-        "Đã có lỗi xảy ra khi lấy dữ liệu lịch sử, vui lòng thử lại hoặc liên hệ với nhân viên kĩ thuật."
+        "Error filtering data. Please try again or contact the administrator."
       );
     } finally {
       setIsFiltering(false);
@@ -82,7 +84,7 @@ export default function HistoryUI({ dataList }) {
       <Toaster />
       <div className="w-[300px] flex flex-col gap-4 pr-4">
         <div className="flex justify-between items-center">
-          <div className="text-sm">Ngày bắt đầu: </div>
+          <div className="text-sm">Start date: </div>
           <button className="hover:text-red-500" onClick={handleResetFilter}>
             <RotateCcw size={15} />
           </button>
@@ -93,7 +95,7 @@ export default function HistoryUI({ dataList }) {
           value={dateFilter.startTime || ""}
           onChange={(e) => handleStartDateChange(e.target.value)}
         />
-        <div className="text-sm">Ngày cuối: </div>
+        <div className="text-sm">End date: </div>
         <input
           type="date"
           className="p-2 shadow-sm border-[1px] rounded-md"
@@ -108,7 +110,7 @@ export default function HistoryUI({ dataList }) {
           onClick={handleOnFilter}
           disabled={isFiltering}
         >
-          Lọc
+          Filter
         </Button>
       </div>
       {currentDataList.length > 0 ? (
@@ -116,17 +118,19 @@ export default function HistoryUI({ dataList }) {
           {currentDataList.map((item, index) => (
             <HistoryCard key={index} data={item} />
           ))}
-          <Button
-            className="self-center"
-            onClick={handleOnExpand}
-            disabled={isLoading}
-          >
-            {isLoading ? "Đang tải" : "Xem thêm"}
-          </Button>
+          {totalRecords !== currentDataList.length && (
+            <Button
+              className="self-center"
+              onClick={handleOnExpand}
+              disabled={isLoading}
+            >
+              {isLoading ? "Loading..." : "Load more"}
+            </Button>
+          )}
         </div>
       ) : (
         <div className="text-center w-full text-gray-600">
-          Không có dữ liệu lịch sử
+          No history data found
         </div>
       )}
     </div>

@@ -16,29 +16,18 @@ import { toast } from "sonner";
 import { Toaster } from "../ui/sonner";
 import { EditorState } from "@codemirror/state";
 import { generateSQL, executeSQL } from "@/lib/api/ai";
+import { filterIdColumns } from "@/lib/utils";
 
 function formatSQL(text) {
   return format(text, { language: "mysql" });
 }
 
-function applyPaginationToSQL(sql, currentPage, pageSize = 8) {
-  const offset = (currentPage - 1) * pageSize;
-  // Loại bỏ LIMIT và OFFSET cũ nếu có
-  let cleanSQL = sql.replace(/\s+LIMIT\s+\d+(\s+OFFSET\s+\d+)?;?/i, '');
-  // Đảm bảo không có dấu ; ở cuối để dễ nối LIMIT
-  cleanSQL = cleanSQL.trim().replace(/;$/, '');
-  // Thêm LIMIT và OFFSET mới
-  const paginatedSQL = `${cleanSQL} LIMIT ${pageSize} OFFSET ${offset};`;
-
-  return paginatedSQL;
-}
-
 export default function AiUI() {
   const [sqlQuery, setSqlQuery] = useState(""); // Giá trị SQL hiện tại
-  const [openSQL, setOpenSQL] = useState(false); 
+  const [openSQL, setOpenSQL] = useState(false);
   const [question, setQuestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isExecuting, setIsExecuting] = useState(false); 
+  const [isExecuting, setIsExecuting] = useState(false);
   const [currentData, setCurrentData] = useState(null); // Dữ liệu hiện tại tương ứng với câu lệnh SQL
   const [totalRecords, setTotalRecords] = useState(0); // Tổng số lượng dữ liệu khi chưa limit
   const [isEditing, setIsEditing] = useState(false);
@@ -47,9 +36,10 @@ export default function AiUI() {
   const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại của dữ liệu - trang 1 tương ứng LIMIT 8 OFFSET 0
   const originalQueryRef = useRef(""); // Lưu giá trị SQL gốc
   const tempQueryRef = useRef(""); // Lưu giá trị SQL tạm thời khi chỉnh sửa
-  const pageSize = 9
+  const pageSize = 9;
   const totalPages = Math.ceil(totalRecords / pageSize);
-
+  const filteredData = filterIdColumns(currentData);
+  
   const updateHeight = (event) => {
     const textarea = event.target;
     textarea.style.height = "auto";
@@ -59,19 +49,19 @@ export default function AiUI() {
 
   const handleQuestion = async () => {
     if (!question.trim()) {
-      toast.error("Vui lòng nhập yêu cầu.");
+      toast.error("Please enter your question.");
       return;
     }
     setIsLoading(true);
     try {
-      const data = await generateSQL(question)
-      setSqlQuery(formatSQL(data.sql_query));
-      setCurrentData(data.data);
-      setTotalRecords(data.total_records);
+      const data = await generateSQL(question);
+      setSqlQuery(formatSQL(data.data.limited_sql_query));
+      setCurrentData(data.data.result);
+      setTotalRecords(data.data.total_count);
     } catch (e) {
-      setErrorMessage(e.message || "Đã xảy ra lỗi không xác định.");
+      setErrorMessage(e.message || "Internal sever error");
       toast.error(
-        "Có lỗi xảy ra khi tạo truy vấn SQL. Vui lòng thử lại hoặc liên hệ với người quản trị."
+        "An error occurred while creating the SQL query. Please try again or contact the administrator."
       );
     } finally {
       setIsLoading(false);
@@ -81,18 +71,20 @@ export default function AiUI() {
   const handleExecution = async () => {
     setErrorMessage("");
     if (!sqlQuery.trim()) {
-      toast.error("Truy vấn SQL chưa được nhập.");
+      toast.error("Please enter your SQL query.");
       return;
     }
     setIsExecuting(true);
     try {
-      const data = await executeSQL(sqlQuery);
-      setCurrentData(data.data);
-      setTotalRecords(data.total_records);
+      const data = await executeSQL(sqlQuery, 0, false);
+      setCurrentData(data.data.result);
+      setTotalRecords(data.data.total_count);
+      setSqlQuery(data.data.limited_sql_query);
+      setOpenSQL(false);
     } catch (e) {
-      setErrorMessage(e.message || "Đã xảy ra lỗi không xác định.");
+      setErrorMessage(e.message || "Internal sever error");
       toast.error(
-        "Có lỗi xảy ra khi tạo truy vấn SQL. Vui lòng thử lại hoặc liên hệ với người quản trị."
+        "An error occurred while creating the SQL query. Please try again or contact the administrator."
       );
     } finally {
       setIsExecuting(false);
@@ -100,27 +92,27 @@ export default function AiUI() {
   };
 
   const getNextPage = async (page) => {
-    const paginatedSQL = applyPaginationToSQL(sqlQuery, page);
+    const offset = (page - 1) * 8;
     try {
-      const data = await executeSQL(paginatedSQL);
-      setCurrentData(data.data);
+      const data = await executeSQL(sqlQuery, offset, true);
+      setCurrentData(data.data.result);
       setCurrentPage(page);
-      setSqlQuery(paginatedSQL);
+      setSqlQuery(data.data.limited_sql_query);
     } catch (e) {
-      setErrorMessage(e.message || "Đã xảy ra lỗi không xác định.");
+      setErrorMessage(e.message || "Internal sever error");
       toast.error(
-        "Có lỗi xảy ra khi tạo truy vấn SQL. Vui lòng thử lại hoặc liên hệ với người quản trị."
+        "An error occurred while creating the SQL query. Please try again or contact the administrator."
       );
     }
   };
 
   return (
-    <div className="w-full flex flex-col gap-2 h-[550px]">
+    <div className="w-full flex flex-col gap-2 min-h-[550px] bg-white px-4 py-2 rounded-xl border shadow-sm">
       <Toaster />
       <div className="border border-input rounded-xl shadow-sm flex p-3 w-full bg-white">
         <Textarea
           className="min-h-[40px] resize-none overflow-hidden border-0 shadow-none focus-visible:ring-0 px-0 py-0"
-          placeholder="Nhập yêu cầu của bạn để tạo truy vấn SQL."
+          placeholder="Enter your question..."
           onChange={updateHeight}
         />
         <button
@@ -140,7 +132,10 @@ export default function AiUI() {
         </button>
       </div>
       <div className="w-full flex">
-        <div className="text-xs text-gray-600 text-center grow">AI có thể mắc sai lầm khi tạo truy vấn SQL. Hãy kiểm tra lại truy vấn để tránh sai sót.</div>
+        <div className="text-xs text-gray-600 text-center grow">
+          AI can make mistake when generating SQL query, please double check the
+          generated SQL query for better result.
+        </div>
         <HoverCard openDelay={1}>
           <HoverCardTrigger className="ml-auto border-2 border-blue-500 rounded-lg text-blue-500 hover:text-white hover:bg-blue-500">
             <button
@@ -156,7 +151,7 @@ export default function AiUI() {
             </button>
           </HoverCardTrigger>
           <HoverCardContent className="size-fit text-sm">
-            Chỉnh sửa truy vấn SQL
+            Edit the SQL query
           </HoverCardContent>
         </HoverCard>
       </div>
@@ -165,8 +160,8 @@ export default function AiUI() {
       ) : (
         currentData && (
           <ReuseTable
-            columns={currentData.columns}
-            rows={currentData.rows}
+            columns={filteredData.columns}
+            rows={filteredData.rows}
             totalPages={totalPages}
             totalRecords={totalRecords}
             onPageChange={getNextPage}
@@ -190,7 +185,7 @@ export default function AiUI() {
               onChange={(value) => (tempQueryRef.current = value)}
             />
             {errorMessage && (
-              <div className="text-red-500 text-sm w-full">{errorMessage}</div>
+              <div className="text-red-500 text-sm w-[500px]">{errorMessage}</div>
             )}
             <div className="w-full flex justify-between">
               <div className="flex self-end gap-2">
@@ -204,7 +199,7 @@ export default function AiUI() {
                     setIsEditing(!isEditing);
                   }}
                 >
-                  {isEditing ? "Hủy" : "Chỉnh sửa"}
+                  {isEditing ? "Cancel" : "Edit"}
                 </Button>
                 {isEditing && (
                   <Button
@@ -215,7 +210,7 @@ export default function AiUI() {
                       setSqlQuery(tempQueryRef.current);
                     }}
                   >
-                    Lưu
+                    Save
                   </Button>
                 )}
               </div>
@@ -228,14 +223,14 @@ export default function AiUI() {
                     tempQueryRef.current = originalQueryRef.current;
                   }}
                 >
-                  Đóng
+                  Close
                 </Button>
                 <Button
                   className="bg-blue-500 text-white hover:bg-blue-700"
                   onClick={handleExecution}
                   disabled={isExecuting || isEditing}
                 >
-                  {isExecuting ? "Đang chạy" : "Chạy lệnh"}
+                  {isExecuting ? "Executing..." : "Execute"}
                 </Button>
               </div>
             </div>
