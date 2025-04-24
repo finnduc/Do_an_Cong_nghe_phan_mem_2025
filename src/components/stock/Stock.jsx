@@ -16,6 +16,7 @@ import { Toaster } from "../ui/sonner";
 import DualRangeSlider from "../ui/slider";
 import { ListFilterPlus } from "lucide-react";
 import SearchBar from "../SearchBar";
+import { set } from "zod";
 
 export default function Stock({ data, manufacturers, categories }) {
   const [currentData, setCurrentData] = useState(data.data);
@@ -46,6 +47,10 @@ export default function Stock({ data, manufacturers, categories }) {
     setPriceTypeFilter("import");
     setPriceRange([0, 100000]);
     setQuantityRange([0, 100000]);
+    setCurrentPage(1);
+    setCurrentData(data.data);
+    setTotalPages(data.totalPage);
+    setTotalRecords(data.totalItem);
   };
 
   const getNextPage = async (page) => {
@@ -58,6 +63,21 @@ export default function Stock({ data, manufacturers, categories }) {
       setErrorMessage(e.message || "Đã xảy ra lỗi không xác định.");
       toast.error(
         "Có lỗi xảy ra khi tạo truy vấn SQL. Vui lòng thử lại hoặc liên hệ với người quản trị."
+      );
+    }
+  };
+
+  const handleApplyFilter = async () => {
+    try {
+      const data = await fetchStock(1, 8, currentFilter);
+      setCurrentData(data?.metadata?.data);
+      setCurrentPage(1);
+      setTotalPages(data?.totalPage);
+      setTotalRecords(data?.totalItem);
+    } catch (e) {
+      setErrorMessage(e.message || "Đã xảy ra lỗi não xác định.");
+      toast.error(
+        "Có lỗi xảy ra khi tạo truy vấn SQL. Vui lòng thử lagi hoặc liên hệ với người quản trị."
       );
     }
   };
@@ -84,7 +104,7 @@ export default function Stock({ data, manufacturers, categories }) {
               </SelectTrigger>
               <SelectContent>
                 {categories.map((cat) => (
-                  <SelectItem key={cat.category_id} value={cat.category_id}>
+                  <SelectItem key={cat.category_id} value={cat.name}>
                     {cat.name}
                   </SelectItem>
                 ))}
@@ -101,7 +121,7 @@ export default function Stock({ data, manufacturers, categories }) {
                 {manufacturers.map((man) => (
                   <SelectItem
                     key={man.manufacturer_id}
-                    value={man.manufacturer_id}
+                    value={man.name}
                   >
                     {man.name}
                   </SelectItem>
@@ -111,11 +131,17 @@ export default function Stock({ data, manufacturers, categories }) {
           </div>
           <div className="text-sm text-gray-600">
             <div>Quantity range:</div>
-            <DualRangeSlider value={quantityRange} onValueChange={(value) => setQuantityRange(value)}/>
+            <DualRangeSlider
+              value={quantityRange}
+              onValueChange={(value) => setQuantityRange(value)}
+            />
           </div>
           <div className="text-sm text-gray-600">
             <div>Price range:</div>
-            <DualRangeSlider value={priceRange} onValueChange={(value) => setPriceRange(value)}/>
+            <DualRangeSlider
+              value={priceRange}
+              onValueChange={(value) => setPriceRange(value)}
+            />
           </div>
           <Select
             onValueChange={(value) => setPriceTypeFilter(value)}
@@ -131,7 +157,10 @@ export default function Stock({ data, manufacturers, categories }) {
             </SelectContent>
           </Select>
           <div className="flex flex-col gap-2">
-            <Button className="text-white bg-blue-500 hover:bg-blue-700">
+            <Button
+              className="text-white bg-blue-500 hover:bg-blue-700"
+              onClick={handleApplyFilter}
+            >
               Apply
             </Button>
             <Button
@@ -145,7 +174,10 @@ export default function Stock({ data, manufacturers, categories }) {
         </div>
         {/* Bảng */}
         <div>
-          <SearchBar value={searchText} onValueChange={(value) => setSearchText(value)} />
+          <SearchBar
+            value={searchText}
+            onValueChange={(value) => setSearchText(value)}
+          />
           <ReuseTable
             columns={formattedData.columns}
             rows={formattedData.rows}

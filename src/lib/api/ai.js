@@ -9,11 +9,11 @@ export async function generateSQL(question) {
       return data;
 }
 
-export async function executeSQL(sqlQuery) {
+export async function executeSQL(sqlQuery, offset = 0, forceOffset = false) {
     const response = await fetch("http://localhost:8000/execute", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sql: sqlQuery }),
+    body: JSON.stringify({ sql: sqlQuery, offset, force_offset: forceOffset }),
   });
 
   const data = await response.json();

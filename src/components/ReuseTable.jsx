@@ -2,7 +2,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
-// Hàm TruncatedCell
+// TruncatedCell Component
 const TruncatedCell = ({ text, maxLength = 15 }) => {
   const isTruncated = text.length > maxLength;
   const displayText = isTruncated ? `${text.slice(0, maxLength)}...` : text;
@@ -21,25 +21,25 @@ const TruncatedCell = ({ text, maxLength = 15 }) => {
   );
 };
 
-// Component ReuseTable
+// ReuseTable Component
 const ReuseTable = ({
   columns = [],
   rows = [],
   currentPage = 1,
   totalPages = 1,
+  maxLength = 15,
   onPageChange = () => {},
   totalRecords = 0,
-  scrollMode = false, // New prop to toggle between pagination and scroll mode
-  maxHeight = "510px", // Max height for scroll mode
+  scrollMode = false, // Toggle between pagination and scroll mode
+  maxHeight = "480px", // Max height for scroll mode
 }) => {
   const [inputValue, setInputValue] = useState(currentPage);
 
   const handleChange = (e) => {
     const value = e.target.value;
-
-    // Chỉ cho phép chuỗi rỗng hoặc số
+    // Allow empty string or numbers only
     if (value === "" || /^[0-9]+$/.test(value)) {
-      setInputValue(value); // Cập nhật input khi đang gõ
+      setInputValue(value);
     }
   };
 
@@ -49,14 +49,19 @@ const ReuseTable = ({
       setInputValue(newPage);
       onPageChange(newPage);
     } else {
-      // Nếu nhập không hợp lệ → reset về page hiện tại
+      // Reset to current page if input is invalid
       setInputValue(currentPage);
     }
   };
 
   return (
-    <div className={scrollMode ? "" : "min-h-[510px]"}>
-      <div className="border border-gray-300 shadow-md rounded-lg">
+    <div className={scrollMode ? "flex flex-col" : "min-h-[510px] flex flex-col"}>
+      <div
+        className={`border border-gray-300 shadow-md rounded-lg ${
+          scrollMode ? "overflow-y-auto" : ""
+        }`}
+        style={scrollMode ? { maxHeight, overflowY: "auto" } : {}}
+      >
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-10">
             <tr>
@@ -65,8 +70,8 @@ const ReuseTable = ({
                   key={`header-${index}`}
                   scope="col"
                   className={`py-3 px-4 border-b text-left ${
-                    index === 0 && "rounded-l-lg"
-                  } ${index === columns.length - 1 && "rounded-r-lg"}`}
+                    index === 0 ? "rounded-tl-lg" : ""
+                  } ${index === columns.length - 1 ? "rounded-tr-lg" : ""}`}
                 >
                   {column}
                 </th>
@@ -79,24 +84,29 @@ const ReuseTable = ({
                 <tr
                   key={`row-${rowIndex}`}
                   className={`hover:bg-gray-50 ${
-                    rowIndex === rows.length - 1 && "rounded-b-lg"
+                    !scrollMode && rowIndex === rows.length - 1
+                      ? "rounded-b-lg"
+                      : ""
                   }`}
                 >
                   {row.map((cell, cellIndex) => (
                     <td
                       key={`cell-${rowIndex}-${cellIndex}`}
-                      className={`px-4 border-b  text-left ${
-                        rowIndex === rows.length - 1 &&
-                        cellIndex === 0 &&
-                        "rounded-bl-lg"
-                      } ${
-                        rowIndex === rows.length - 1 &&
-                        cellIndex === row.length - 1 &&
-                        "rounded-br-lg"
+                      className={`px-4 border-b text-left ${
+                        !scrollMode && rowIndex === rows.length - 1
+                          ? cellIndex === 0
+                            ? "rounded-bl-lg"
+                            : cellIndex === row.length - 1
+                            ? "rounded-br-lg"
+                            : ""
+                          : ""
                       }`}
                     >
-                      {/* Sử dụng TruncatedCell để hiển thị nội dung ô */}
-                      {typeof cell === 'string' ? <TruncatedCell text={cell} maxLength={25} /> : cell}
+                      {typeof cell === "string" ? (
+                        <TruncatedCell text={cell} maxLength={maxLength} />
+                      ) : (
+                        cell
+                      )}
                     </td>
                   ))}
                 </tr>
@@ -114,49 +124,52 @@ const ReuseTable = ({
           </tbody>
         </table>
       </div>
-      {/* Pagination */}
-      <div className="w-full flex justify-between items-center text-sm px-4 py-2 font-medium">
-        <span className="text-gray-500">
-          Showing {currentPage} of {totalPages} pages - Total records: {totalRecords}
-        </span>
-        <div className="flex gap-2">
-          <button
-            className="bg-white border border-gray-200 rounded-md p-1 hover:bg-slate-100 disabled:bg-gray-200 disabled:cursor-not-allowed"
-            disabled={currentPage === 1}
-            onClick={() => {
-              const newPage = currentPage - 1;
-              setInputValue(newPage);
-              onPageChange(newPage);
-            }}
-            aria-label="Previous page"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <input
-            value={inputValue}
-            onChange={handleChange}
-            onBlur={handleCommit}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleCommit();
-              }
-            }}
-            className="w-12 text-center"
-          />
-          <button
-            className="bg-white border border-gray-200 rounded-md p-1 hover:bg-slate-100 disabled:bg-gray-200 disabled:cursor-not-allowed"
-            disabled={currentPage === totalPages}
-            onClick={() => {
-              const newPage = currentPage + 1;
-              setInputValue(newPage);
-              onPageChange(newPage);
-            }}
-            aria-label="Next page"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+      {/* Pagination (hidden in scrollMode) */}
+      {!scrollMode && (
+        <div className="w-full flex justify-between items-center text-sm px-4 py-2 font-medium">
+          <span className="text-gray-500">
+            Showing {currentPage} of {totalPages} pages - Total records:{" "}
+            {totalRecords}
+          </span>
+          <div className="flex gap-2">
+            <button
+              className="bg-white border border-gray-200 rounded-md p-1 hover:bg-slate-100 disabled:bg-gray-200 disabled:cursor-not-allowed"
+              disabled={currentPage === 1}
+              onClick={() => {
+                const newPage = currentPage - 1;
+                setInputValue(newPage);
+                onPageChange(newPage);
+              }}
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <input
+              value={inputValue}
+              onChange={handleChange}
+              onBlur={handleCommit}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleCommit();
+                }
+              }}
+              className="w-12 text-center"
+            />
+            <button
+              className="bg-white border border-gray-200 rounded-md p-1 hover:bg-slate-100 disabled:bg-gray-200 disabled:cursor-not-allowed"
+              disabled={currentPage === totalPages}
+              onClick={() => {
+                const newPage = currentPage + 1;
+                setInputValue(newPage);
+                onPageChange(newPage);
+              }}
+              aria-label="Next page"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
