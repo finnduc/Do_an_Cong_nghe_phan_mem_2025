@@ -13,17 +13,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/AuthContext";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const formSchema = z.object({
   userName: z.string().min(1, "Username is required"),
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters long")
     .regex(/[a-zA-Z]/, "Password must contain at least one letter")
     .regex(/\d/, "Password must contain at least one number"),
   remember: z.boolean().optional(),
@@ -33,7 +31,7 @@ export default function LoginForm() {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      userName: localStorage.getItem("rememberedUserName") || "",
+      userName: "",
       password: "",
       remember: false,
     },
@@ -43,6 +41,13 @@ export default function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const rememberedUserName = localStorage.getItem("rememberedUserName") || "";
+      form.setValue("userName", rememberedUserName);
+    }
+  }, [form]);
 
   async function onSubmit(values) {
     setError(null);
@@ -158,12 +163,6 @@ export default function LoginForm() {
           </Button>
         </form>
       </Form>
-      <div className="flex gap-1 w-[300px] mt-1 mb-5">
-        <div className="text-sm text-gray-500">Don't have account?</div>
-        <Link className="p-0 text-sm text-blue-500 hover:underline" href="/signup">
-          Signup now!
-        </Link>
-      </div>
     </motion.div>
   );
 }
