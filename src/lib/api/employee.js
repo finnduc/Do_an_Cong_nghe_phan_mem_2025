@@ -1,9 +1,11 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/v1/api";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/v1/api";
 
 const handleResponse = async (response) => {
   const data = await response.json();
   if (!response.ok) {
-    const errorMessage = data?.message || `Error: ${response.status} ${response.statusText}`;
+    const errorMessage =
+      data?.message || `Error: ${response.status} ${response.statusText}`;
     throw new Error(errorMessage);
   }
   return data;
@@ -18,7 +20,7 @@ export async function fetchEmployees(page, limit = 10, extraParams = {}) {
 
   try {
     const response = await fetch(`${API_BASE_URL}/employee/getAll?${query}`, {
-      method: 'GET',
+      method: "GET",
     });
     return await handleResponse(response);
   } catch (error) {
@@ -30,9 +32,9 @@ export async function fetchEmployees(page, limit = 10, extraParams = {}) {
 export async function createEmployee(employeeData) {
   try {
     const response = await fetch(`${API_BASE_URL}/employee/create`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(employeeData),
     });
@@ -50,9 +52,9 @@ export async function updateEmployee(employeeData) {
 
   try {
     const response = await fetch(`${API_BASE_URL}/employee/update`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(employeeData),
     });
@@ -70,12 +72,15 @@ export async function deleteEmployees(employeeIds) {
   }
 
   const params = new URLSearchParams();
-  ids.forEach(id => params.append('employee_id', id));
+  ids.forEach((id) => params.append("employee_id", id));
 
   try {
-    const response = await fetch(`${API_BASE_URL}/employee/delete?${params.toString()}`, {
-      method: 'GET',
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/employee/delete?${params.toString()}`,
+      {
+        method: "GET",
+      }
+    );
     return await handleResponse(response);
   } catch (error) {
     console.error("Lỗi khi xóa nhân viên:", error);
@@ -88,13 +93,16 @@ export async function searchEmployees(searchTerm, page, limit = 10) {
   const bodyPayload = { search: searchTerm };
 
   try {
-    const response = await fetch(`${API_BASE_URL}/employee/search?${queryParams}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(bodyPayload),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/employee/search?${queryParams}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bodyPayload),
+      }
+    );
     return await handleResponse(response);
   } catch (error) {
     console.error("Lỗi khi tìm kiếm nhân viên:", error);

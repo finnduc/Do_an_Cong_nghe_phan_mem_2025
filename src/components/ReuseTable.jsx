@@ -55,13 +55,8 @@ const ReuseTable = ({
   };
 
   return (
-    <div className={scrollMode ? "flex flex-col" : "min-h-[510px] flex flex-col"}>
-      <div
-        className={`border border-gray-300 shadow-md rounded-lg ${
-          scrollMode ? "overflow-y-auto" : ""
-        }`}
-        style={scrollMode ? { maxHeight, overflowY: "auto" } : {}}
-      >
+    <div>
+      <div className="border border-gray-300 shadow-md rounded-lg h-full bg-white">
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-10">
             <tr>

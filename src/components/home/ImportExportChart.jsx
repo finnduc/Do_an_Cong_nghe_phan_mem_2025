@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { Bar } from 'react-chartjs-2';
+import React, { useEffect, useState } from "react";
+import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -9,8 +9,10 @@ import {
   BarElement,
   Title,
   Tooltip,
-  Legend
-} from 'chart.js';
+  Legend,
+} from "chart.js";
+// Đảm bảo tên hàm Chart này đúng với file home.js
+import { Chart  } from "../../lib/api/home";
 
 ChartJS.register(
   CategoryScale,
@@ -22,51 +24,93 @@ ChartJS.register(
 );
 
 export default function ImportExportChart() {
-  const getPastMonthsLabels = (count = 12) => {
-       const labels = [];
-       const today = new Date("2025-04-11");
-       let currentMonth = today.getMonth();
-       let currentYear = today.getFullYear();
-       for (let i = 0; i < count; i++) {
-           labels.push(`${String(currentMonth + 1).padStart(2, '0')}/${currentYear}`);
-           currentMonth--;
-           if (currentMonth < 0) {
-               currentMonth = 11;
-               currentYear--;
-           }
-       }
-       return labels.reverse();
-  };
-
-  const labels = getPastMonthsLabels(12);
-  const data = {
-    labels: labels,
+  const [chart, setChart] = useState({
+    labels: [],
     datasets: [
       {
-        label: 'Nhập hàng',
-        data: [65, 59, 80, 81, 56, 55, 40, 90, 75, 110, 130, 150],
-        backgroundColor: 'rgb(96, 165, 250)',
-        hoverBackgroundColor: 'rgb(59, 130, 246)',
+        label: "Nhập hàng",
+        data: [],
+        backgroundColor: "rgb(96, 165, 250)",
+        hoverBackgroundColor: "rgb(59, 130, 246)",
         borderRadius: 4,
         barPercentage: 0.6,
       },
       {
-        label: 'Xuất hàng',
-        data: [28, 48, 40, 19, 86, 27, 90, 50, 65, 85, 100, 95],
-        backgroundColor: 'rgb(56, 189, 248)', 
-        hoverBackgroundColor: 'rgb(14, 165, 233)', 
+        label: "Xuất hàng",
+        data: [],
+        backgroundColor: "rgb(56, 189, 248)",
+        hoverBackgroundColor: "rgb(14, 165, 233)",
         borderRadius: 4,
         barPercentage: 0.6,
       },
     ],
-  };
+  });
 
 
+  useEffect(() => {
+    const fetch_data = async () => {
+      try {
+        const response = await Chart();
+        const data = response.metadata;
+        const month_fake = data.map((item) => item.month);
+        const month_real = [...month_fake].reverse();
+        const import_data_fake = data.map((item) => item.import_quantity);
+        const import_data_real = [...import_data_fake].reverse();
+        const export_data_fake = data.map((item) => item.export_quantity);
+        const export_data_real = [...export_data_fake].reverse();
+        setChart({
+          labels: month_real,
+          datasets: [
+            {
+              label: "Nhập hàng",
+              data: import_data_real,
+              backgroundColor: "rgb(96, 165, 250)",
+              hoverBackgroundColor: "rgb(59, 130, 246)",
+              borderRadius: 4,
+              barPercentage: 0.6,
+            },
+            {
+              label: "Xuất hàng",
+              data: export_data_real,
+              backgroundColor: "rgb(56, 189, 248)",
+              hoverBackgroundColor: "rgb(14, 165, 233)",
+              borderRadius: 4,
+              barPercentage: 0.6,
+            },
+          ],
+        });
+      } catch (error) {
+        console.error("API call failed:", error);
+        setChart({
+          labels: [],
+          datasets: [
+            {
+              label: "Nhập hàng",
+              data: [],
+              backgroundColor: "rgb(96, 165, 250)",
+              hoverBackgroundColor: "rgb(59, 130, 246)",
+              borderRadius: 4,
+              barPercentage: 0.6,
+            },
+            {
+              label: "Xuất hàng",
+              data: [],
+              backgroundColor: "rgb(56, 189, 248)",
+              hoverBackgroundColor: "rgb(14, 165, 233)",
+              borderRadius: 4,
+              barPercentage: 0.6,
+            },
+          ],
+        });
+      }
+    };
+    fetch_data();
+  }, []);
 
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: {
+     plugins: {
       legend: {
         position: 'bottom',
         labels: {
@@ -80,13 +124,13 @@ export default function ImportExportChart() {
         display: true,
         text: 'Thống Kê Nhập/Xuất Hàng (12 Tháng)',
         font: { size: 16 },
-        padding: { top: 10, bottom: 20 } 
+        padding: { top: 10, bottom: 20 }
       },
       tooltip: {
         enabled: true,
         mode: 'index',
         intersect: false,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)', 
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
         titleFont: { weight: 'bold' },
         bodyFont: { size: 12 },
         padding: 10,
@@ -97,12 +141,12 @@ export default function ImportExportChart() {
       x: {
           stacked: false,
           grid: {
-            display: false 
+            display: false
           },
-          ticks: { 
-              color: 'rgb(107, 114, 128)' 
+          ticks: {
+              color: 'rgb(107, 114, 128)'
           },
-          border: { 
+          border: {
               color: 'rgba(0, 0, 0, 0.05)'
           }
       },
@@ -110,13 +154,13 @@ export default function ImportExportChart() {
         beginAtZero: true,
         stacked: false,
         grid: {
-            color: 'rgba(0, 0, 0, 0.05)', 
+            color: 'rgba(0, 0, 0, 0.05)',
         },
-        ticks: { 
-              color: 'rgb(107, 114, 128)' 
+        ticks: {
+              color: 'rgb(107, 114, 128)'
         },
         border: {
-            display: false 
+            display: false
         }
       }
     },
@@ -127,8 +171,8 @@ export default function ImportExportChart() {
   };
 
   return (
-    <div style={{ height: '400px', width: '100%' }}>
-      <Bar options={options} data={data} />
+    <div style={{ height: "400px", width: "100%" }}>
+      <Bar options={options} data={chart} />
     </div>
   );
 }

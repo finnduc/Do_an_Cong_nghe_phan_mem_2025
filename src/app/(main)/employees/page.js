@@ -78,25 +78,18 @@ export default function EmployeePage() {
     }
   };
 
-  const columns = [
-    "No",
-    "Name",
-    "Email",
-    "Phone",
-    "Created_At",
-    "Account",
-  ];
+  const columns = ["No", "Name", "Email", "Phone", "Created_At", "Account"];
 
   const rows = employees.map((emp, index) => {
     const sequentialNumber = (currentPage - 1) * limit + index + 1;
-  
+
     return [
-      sequentialNumber, 
+      sequentialNumber,
       emp.name,
       emp.email,
-      emp.phone || 'N/A',
+      emp.phone || "N/A",
       formatDate(emp.created_at),
-      emp.username || 'Chưa có'
+      emp.username || "Chưa có",
     ];
   });
 
@@ -108,11 +101,11 @@ export default function EmployeePage() {
   return (
     <div className="flex flex-col bg-gray-100">
       <h1 className="text-2xl font-semibold text-gray-800 mb-4">
-      Employee Management
+        Employee Management
       </h1>
 
       <div className="flex flex-col md:flex-row flex-grow gap-4 md:gap-2 md:items-start">
-        <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 shadow-lg">
+        <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 shadow-lg rounded-lg">
           <CreateEmployeeForm onEmployeeCreated={refreshEmployeeList} />
         </div>
 
