@@ -54,7 +54,7 @@ const ReuseTable = ({
 
   return (
     <div>
-      <div className="border border-gray-300 shadow-md rounded-lg">
+      <div className="border border-gray-300 shadow-md rounded-lg h-full bg-white">
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-10">
             <tr>
