@@ -9,35 +9,53 @@ const compression = require('compression');
 require('dotenv').config();
 require('./database/init.mysql'); // Khởi tạo kết nối DB
 const { createAllTables } = require('./models/database.model');
+const { addInfo } = require('./models/repo/admin.repo');
 
 const app = express();
 
 // Tạo model database
-createAllTables();
+const initializeDatabase = async () => {
+    try {
+        console.log('Creating tables...');
+        await createAllTables();
+        console.log('Tables created successfully');
+
+        console.log('Inserting default data...');
+        await addInfo();
+        console.log('Default data inserted successfully');
+    } catch (error) {
+        console.error('Database initialization failed:', error.message);
+        throw error;
+    };
+}
+initializeDatabase().catch((error) => {
+    console.error('Failed to initialize database:', error.message);
+    process.exit(1);
+});
 
 // Middleware cơ bản
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:4000', // Chỉ định origin của frontend
-    credentials: true // Cho phép gửi cookie hoặc thông tin xác thực
+    origin: process.env.CORS_ORIGIN || 'http://localhost:4000',
+    credentials: true
 }));
-app.use(bodyParser.json()); // Parse JSON body
-app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded body
-app.use(cookieParser()); // Xử lý cookie
-app.use(morgan('dev')); // Logging
-app.use(helmet()); // Bảo mật header
-app.use(compression()); // Nén dữ liệu trả về
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(morgan('dev'));
+app.use(helmet());
+app.use(compression());
 
 // Cấu hình Routes
-const apiRouter = require('./routers'); // Giả sử bạn có file routes
+const apiRouter = require('./routers');
 const errorHandler = require('./helpers/errorHandler');
 app.use('/v1/api', apiRouter);
 
 app.use((req, res, next) => {
-    res.status(404).json({ status: 404 , message: 'Endpoint not found' });
+    res.status(404).json({ status: 404, message: 'Endpoint not found' });
 });
 
 app.use((res, req, next) => {
-    res.status(401).json({ status: 401 , message: 'Unauthorized' });
+    res.status(401).json({ status: 401, message: 'Unauthorized' });
 });
 
 app.use(errorHandler);
