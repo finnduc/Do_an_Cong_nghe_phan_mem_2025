@@ -1,9 +1,11 @@
 "use client";
+
 import { AnimatePresence, motion } from "motion/react";
+import { useAuth } from "@/lib/AuthContext";
 import { useState } from "react";
 import { TriangleAlert } from "lucide-react";
 import { Button } from "./ui/button";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const textMotion = {
   rest: {
@@ -26,7 +28,26 @@ const slashMotion = {
 };
 
 export default function LogoutButton({ icon, title }) {
+  const { logout } = useAuth();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      const response = await logout();
+      
+      router.push("/login"); // Chỉ chuyển hướng khi logout thành công
+      setIsOpen(false); // Đóng dialog sau khi logout thành công
+    } catch (error) {
+      console.error("Lỗi khi đăng xuất:", error);
+      // Không chuyển hướng nếu có lỗi, có thể thông báo cho người dùng
+    } finally {
+      setIsLoggingOut(false); // Reset trạng thái loading dù thành công hay thất bại
+    }
+  };
+
   return (
     <div>
       <motion.div
@@ -65,7 +86,7 @@ export default function LogoutButton({ icon, title }) {
             <motion.div
               initial={{ opacity: 0, top: 100 }}
               animate={{ opacity: 1, top: "50%" }}
-              exit={{ opacity: 0, top: -100}}
+              exit={{ opacity: 0, top: -100 }}
               transition={{ ease: "easeOut", duration: 0.3 }}
               className="absolute z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
             >
@@ -80,15 +101,16 @@ export default function LogoutButton({ icon, title }) {
                 </div>
                 <div className="mt-12 self-end flex gap-4">
                   <Button
-                    asChild
                     className="text-lg bg-white border border-gray-300 text-black hover:bg-red-500 hover:text-white hover:border-red-400 w-[100px]"
-                    onClick={() => setIsOpen(false)}
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
                   >
-                    <Link href={"/"}>Logout</Link>
+                    <span>{isLoggingOut ? "Đang đăng xuất..." : "Logout"}</span>
                   </Button>
                   <Button
                     className="text-lg bg-blue-500 hover:bg-blue-700 w-[100px]"
                     onClick={() => setIsOpen(false)}
+                    disabled={isLoggingOut}
                   >
                     Cancel
                   </Button>
