@@ -10,7 +10,7 @@ Router.use(authentication);
 
 Router.get('/logout', asyncHandler(AccessController.logout));
 
-Router.post('/refreshToken', asyncHandler(AccessController.refeshToken));
+Router.post('/refreshToken', asyncHandler(AccessController.refreshToken));
 
 
 module.exports = Router;

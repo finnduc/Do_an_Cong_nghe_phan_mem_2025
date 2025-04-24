@@ -4,6 +4,11 @@ const getUserByUserName = async (userName) => {
     const query = `SELECT * FROM users WHERE username = ?`;
     return await executeQuery(query, [userName]);
 }
+
+const findRoleBy = async (role) => {
+    const query = `SELECT * FROM roles WHERE role = ?`;
+    return await executeQuery(query, [role]);
+}
 // Lấy danh sách tất cả users
 const getUsers = async () => {
     const query = `SELECT * FROM users`;
@@ -40,5 +45,6 @@ module.exports = {
     getIDByUsername,
     getPasswordHashByUserName,
     getPasswordHashByUserID,
-    findUserById
+    findUserById,
+    findRoleBy
 };

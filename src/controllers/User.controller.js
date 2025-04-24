@@ -73,6 +73,18 @@ class UserController {
       next(error);
     }
   }
+
+  getRoleUser = async (req, res, next) => {
+    try {
+      const responces = await UserService.getRoleUser();
+      return new OK({
+        message: 'Get user role success',
+        metadata: responces,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new UserController();

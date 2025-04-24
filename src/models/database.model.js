@@ -6,7 +6,6 @@ const createAllTables = async () => {
         user_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
         username VARCHAR(50) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
-        role ENUM('manager', 'employee') NOT NULL DEFAULT 'employee',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
 
@@ -103,13 +102,50 @@ const createAllTables = async () => {
         FOREIGN KEY (manufacturer_id) REFERENCES manufacturers (manufacturer_id) ON DELETE SET NULL ON UPDATE CASCADE,
         FOREIGN KEY (category_id) REFERENCES categories (category_id) ON DELETE SET NULL ON UPDATE CASCADE
     )`,
-    ``
-  ];
 
+    `CREATE TABLE IF NOT EXISTS roles (
+        role_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    `CREATE TABLE IF NOT EXISTS permissions (
+        permission_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    `CREATE TABLE IF NOT EXISTS resources (
+        resource_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+        name VARCHAR(255) NOT NULL UNIQUE,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+
+    `CREATE TABLE IF NOT EXISTS user_roles (
+        user_id CHAR(36),
+        role_id CHAR(36),
+        PRIMARY KEY (user_id, role_id),
+        FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+        FOREIGN KEY (role_id) REFERENCES roles (role_id) ON DELETE CASCADE
+    )`,
+
+    `CREATE TABLE IF NOT EXISTS role_permissions (
+        role_id CHAR(36),
+        permission_id CHAR(36),
+        resource_id CHAR(36),
+        PRIMARY KEY (role_id, permission_id, resource_id),
+        FOREIGN KEY (role_id) REFERENCES roles (role_id) ON DELETE CASCADE,
+        FOREIGN KEY (permission_id) REFERENCES permissions (permission_id) ON DELETE CASCADE,
+        FOREIGN KEY (resource_id) REFERENCES resources (resource_id) ON DELETE CASCADE
+    )`
+  ];
 
   for (const [index, query] of queries.entries()) {
     try {
-      await pool.query(query); // ✅ Sử dụng `pool.query()`
+      await pool.query(query);
       console.log(`Query ${index + 1} executed successfully`);
     } catch (error) {
       console.error(`Error executing query ${index + 1}:`, error.message);

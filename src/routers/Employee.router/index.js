@@ -1,24 +1,59 @@
 const express = require('express');
 const Router = express.Router();
-const asyncHandler = require('../../helpers/asyncHandle')
+const asyncHandler = require('../../helpers/asyncHandle');
 const EmployeeController = require('../../controllers/Employee.controller');
 const { authentication } = require('../../auth/authUtils');
+const { hasPermission, hasRole } = require('../../middleware/role.permission');
 
-// Middleware to authenticate routes
-// Router.use(authentication);
-// create employee
-Router.post('/create', asyncHandler(EmployeeController.createEmployees));
+Router.use(authentication);
 
-Router.post('/update', asyncHandler(EmployeeController.updateEmployees));
+Router.post(
+  '/create',
+  hasRole('manager'),
+  hasPermission({ permissions: ['create'], resource: 'employees' }),
+  asyncHandler(EmployeeController.createEmployees)
+);
 
-Router.get('/getAll', asyncHandler(EmployeeController.getAllEmployees));
+Router.post(
+  '/update',
+  hasRole('manager'),
+  hasPermission({ permissions: ['update'], resource: 'employees' }),
+  asyncHandler(EmployeeController.updateEmployees)
+);
 
-Router.get('/getById', asyncHandler(EmployeeController.getEmployeesById));
+Router.get(
+  '/getAll',
+  hasRole(['manager', 'employee']),
+  hasPermission({ permissions: ['read'], resource: 'employees' }),
+  asyncHandler(EmployeeController.getAllEmployees)
+);
 
-Router.get('/getName', asyncHandler(EmployeeController.getEmployeeName));
+Router.get(
+  '/getById',
+  hasRole(['manager', 'employee']),
+  hasPermission({ permissions: ['read'], resource: 'employees' }),
+  asyncHandler(EmployeeController.getEmployeesById)
+);
 
-Router.get('/delete', asyncHandler(EmployeeController.deleteEmployee));
+Router.get(
+  '/getName',
+  hasRole(['manager', 'employee']),
+  hasPermission({ permissions: ['read'], resource: 'employees' }),
+  asyncHandler(EmployeeController.getEmployeeName)
+);
 
-Router.post('/search', asyncHandler(EmployeeController.searchEmployee));
+Router.get(
+  '/delete',
+  hasRole('manager'),
+  hasPermission({ permissions: ['delete'], resource: 'employees' }),
+  asyncHandler(EmployeeController.deleteEmployee)
+);
+
+Router.post(
+  '/search',
+  hasRole('manager'),
+  hasPermission({ permissions: ['read'], resource: 'employees' }),
+  asyncHandler(EmployeeController.searchEmployee)
+);
 
 module.exports = Router;

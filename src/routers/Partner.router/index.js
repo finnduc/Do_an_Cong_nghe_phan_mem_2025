@@ -1,29 +1,66 @@
 const express = require('express');
 const Router = express.Router();
-const asyncHandler = require('../../helpers/asyncHandle')
+const asyncHandler = require('../../helpers/asyncHandle');
 const PartnerController = require('../../controllers/Partner.controller');
 const { authentication } = require('../../auth/authUtils');
+const { hasPermission, hasRole } = require('../../middleware/role.permission');
 
-// Middleware to authenticate routes
-// Router.use(authentication);
+Router.use(authentication);
 
-// create partner
-Router.post('/create', asyncHandler(PartnerController.createPartner));
+// Create partner
+Router.post(
+  '/create',
+  hasRole('manager'),
+  hasPermission({ permissions: ['create'], resource: 'partners' }),
+  asyncHandler(PartnerController.createPartner)
+);
 
-Router.post('/update', asyncHandler(PartnerController.updatePartner))
+// Update partner
+Router.post(
+  '/update',
+  hasRole('manager'),
+  hasPermission({ permissions: ['update'], resource: 'partners' }),
+  asyncHandler(PartnerController.updatePartner)
+);
 
-// get all partners
-Router.get('/getAll', asyncHandler(PartnerController.getAllPartners));
+// Get all partners
+Router.get(
+  '/getAll',
+  hasRole(['manager', 'employee']),
+  hasPermission({ permissions: ['read'], resource: 'partners' }),
+  asyncHandler(PartnerController.getAllPartners)
+);
 
-// get partner by id
-Router.get('/getById', asyncHandler(PartnerController.getPartnerById));
+// Get partner by id
+Router.get(
+  '/getById',
+  hasRole(['manager', 'employee']),
+  hasPermission({ permissions: ['read'], resource: 'partners' }),
+  asyncHandler(PartnerController.getPartnerById)
+);
 
-// get partner name
-Router.get('/getName', asyncHandler(PartnerController.getPartnerName));
+// Get partner name
+Router.get(
+  '/getName',
+  hasRole(['manager', 'employee']),
+  hasPermission({ permissions: ['read'], resource: 'partners' }),
+  asyncHandler(PartnerController.getPartnerName)
+);
 
-// delete partner
-Router.get('/delete', asyncHandler(PartnerController.deletePartner));
+// Delete partner
+Router.delete(
+  '/delete',
+  hasRole('manager'),
+  hasPermission({ permissions: ['delete'], resource: 'partners' }),
+  asyncHandler(PartnerController.deletePartner)
+);
 
-Router.post('/search', asyncHandler(PartnerController.searchPartner))
+// Search partner
+Router.post(
+  '/search',
+  hasRole(['manager', 'employee']),
+  hasPermission({ permissions: ['read'], resource: 'partners' }),
+  asyncHandler(PartnerController.searchPartner)
+);
 
 module.exports = Router;

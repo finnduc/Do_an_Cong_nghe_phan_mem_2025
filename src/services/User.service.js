@@ -1,25 +1,38 @@
-const { getUserByUserName, findUserById } = require("../models/repo/user.repo");
+const { getUserByUserName, findUserById, findRoleBy } = require("../models/repo/user.repo");
 const { executeQuery } = require("../database/executeQuery");
 const { BadRequestError, ConflictError, InternalServerError, NotFoundError } = require("../core/error");
 
 class UserService {
     createrUser = async (payload) => {
-        const { userName, role, password } = payload;
+        const { userName, role_id , password } = payload;
         const foundUser = await getUserByUserName(userName);
 
         if (foundUser[0]) {
             throw new ConflictError("Người dùng này đã tồn tại!");
         }
+            
         const query = `
-                INSERT INTO users (username, role, password)
-                VALUES (?, ?, ?);
+                INSERT INTO users (username, password)
+                VALUES (?, ?);
             `;
-        return await executeQuery(query, [userName, role, password]);
+        await executeQuery(query, [userName, password]);
+
+        const user_id = await getUserByUserName(userName);
+
+        const insertRoleQuery = `
+            INSERT INTO user_roles (user_id, role_id)
+            VALUES (?, ?);
+            `;
+        await executeQuery(insertRoleQuery, [user_id[0].user_id, role_id]);
+        return {
+            user_id: user_id[0],
+            role_id: role_id[0]
+        }
     }
 
     updateUser = async (payload) => {
-        const { user_id, userName, role, password } = payload;
-        // Kiểm tra user_id có tồn tại không
+        const { user_id, userName, role_id , password } = payload;
+
         const foundUser = await findUserById(user_id);
         if (!foundUser[0]) {
             throw new NotFoundError("Không tìm thấy người dùng!");
@@ -28,10 +41,24 @@ class UserService {
         // Cập nhật thông tin người dùng
         const query = `
                 UPDATE users
-                SET username = ?, role = ? , password = ?
+                SET username = ?, password = ?
                 WHERE user_id = ?;
             `;
-        return await executeQuery(query, [userName, role, password, user_id]);
+        
+        const queryUpdateRole = `
+            UPDATE user_roles
+            SET role_id = ?
+            WHERE user_id = ?
+            `;
+
+        
+        const updateUser =  await executeQuery(query, [userName, password, user_id]);
+        const updateRole = await executeQuery(queryUpdateRole, [role_id, user_id]);
+
+        return {
+            user_id: user_id,
+            role_id: role_id
+        }
     }
 
     deleteUser = async (payload) => {
@@ -74,7 +101,10 @@ class UserService {
         const offset = (parsedPage - 1) * parsedLimit;
 
         const query = `
-                SELECT * FROM users
+                SELECT *,r.name
+                FROM users
+                JOIN user_roles ur ON users.user_id = ur.user_id
+                JOIN roles r ON ur.role_id = r.role_id
                 LIMIT ${parsedLimit} OFFSET ${offset};
             `;
         const countQuery = `
@@ -123,6 +153,13 @@ class UserService {
     getNameUser = async () => {
         const query = `
                 SELECT username, user_id FROM users;
+            `;
+        return await executeQuery(query);
+    }
+
+    getRoleUser = async () => {
+        const query = `
+                SELECT role_id, name FROM roles;
             `;
         return await executeQuery(query);
     }

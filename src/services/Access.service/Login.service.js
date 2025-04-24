@@ -5,6 +5,7 @@ const { creatTokenPair } = require('../../auth/authUtils');
 const keyTokenService = require('../ApiKey.service');
 const { BadRequestError, NotFoundError, InternalServerError } = require('../../core/error');
 const e = require('express');
+const { getRole } = require('../../models/repo/rbac.repo');
 
 
 class AccessService {
@@ -49,9 +50,15 @@ class AccessService {
             });
 
             const user = await findUserById(user_id[0].user_id);
+            const role = await getRole(user_id[0].user_id);
+            const dataReponse = {
+                userName: user[0].username,
+                role: role[0].name,
+                user_id: user_id[0].user_id
+            }
 
             return {
-                user: user,
+                user: dataReponse,
                 tokens: {
                     accessToken: tokens.accessToken,
                     refreshToken: tokens.refreshToken
