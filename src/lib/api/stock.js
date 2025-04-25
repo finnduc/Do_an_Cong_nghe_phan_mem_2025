@@ -1,3 +1,5 @@
+import { authFetch } from "../auth/authWrapper";
+
 export async function fetchStock(page, limit = 8, extraParams = {}) {
   const payload = {
     page: page,
@@ -19,10 +21,9 @@ export async function fetchStock(page, limit = 8, extraParams = {}) {
 
   const query = new URLSearchParams(cleanedPayload).toString();
 
-  const response = await fetch(
+  const data = await authFetch(
     `http://localhost:3000/v1/api/stock/getStock?${query}`
   );
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.detail);
+
   return data;
 }

@@ -1,18 +1,18 @@
+import { authFetch } from "../auth/authWrapper";
+
 export async function fetchCatetories() {
-  const response = await fetch(
+  const data = await authFetch(
     "http://localhost:3000/v1/api/parameter/getCate"
   );
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.detail);
+
   return data;
 }
 
 export async function fetchManufacturers() {
-  const response = await fetch(
+  const data = await authFetch(
     "http://localhost:3000/v1/api/parameter/getManu"
   );
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.detail);
+
   return data;
 }
 
@@ -22,26 +22,25 @@ export async function fetchProducts(page, limit = 8) {
     limit: limit,
   };
   const query = new URLSearchParams(payload).toString();
-  const response = await fetch(
+  const data = await authFetch(
     `http://localhost:3000/v1/api/parameter/getAll?${query}`
   );
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.detail);
+
   return data;
 }
 
 export async function updateCategory(id, name) {
-  const response = await fetch(
+  options = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id, name }),
+  };
+  const data = await authFetch(
     "http://localhost:3000/v1/api/parameter/updateCate",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id, name }),
-    }
+    options
   );
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.detail);
+
   return data;
 }
