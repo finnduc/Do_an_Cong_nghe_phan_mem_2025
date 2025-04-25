@@ -11,7 +11,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-// Đảm bảo tên hàm Chart này đúng với file home.js
+
 import { Chart  } from "../../lib/api/home";
 
 ChartJS.register(

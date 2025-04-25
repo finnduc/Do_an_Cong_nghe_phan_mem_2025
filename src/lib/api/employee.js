@@ -19,7 +19,7 @@ export async function fetchEmployees(page, limit = 10, extraParams = {}) {
   const query = new URLSearchParams(cleanedParams).toString();
 
   try {
-    const response = await fetch(`${API_BASE_URL}/employee/getAll?${query}`, {
+    const response = await fetch(`http://localhost:3000/v1/api/employee/getAll?${query}`, {
       method: "GET",
     });
     return await handleResponse(response);
@@ -31,7 +31,7 @@ export async function fetchEmployees(page, limit = 10, extraParams = {}) {
 
 export async function createEmployee(employeeData) {
   try {
-    const response = await fetch(`${API_BASE_URL}/employee/create`, {
+    const response = await fetch(`http://localhost:3000/v1/api/employee/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
