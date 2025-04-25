@@ -1,9 +1,8 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
-import Cookies from "js-cookie";
 import { refreshAccessToken } from "./refreshToken";
-import { set_cookie, get_cookie } from "../cookie/action";
+import { get_cookie } from "../cookie/action";
 import { logout } from "./action";
 
 const AuthContext = createContext();

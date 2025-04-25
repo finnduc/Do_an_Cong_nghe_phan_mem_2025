@@ -5,7 +5,7 @@ import { delete_cookie, get_cookie, set_cookie } from "../cookie/action";
 
 export const logout = async () => {
   // Lấy dữ liệu user từ get_cookie để sử dụng trong logout
-  const { user } = await get_cookie();
+  const { user, accessToken } = await get_cookie();
 
   try {
     await fetch("http://localhost:3000/v1/api/access/logout", {
@@ -13,7 +13,7 @@ export const logout = async () => {
       headers: {
         "Content-Type": "application/json",
         "x-client-id": user?.user_id || "",
-        authorization: `Bearer ${Cookies.get("accessToken") || ""}`,
+        authorization: `Bearer ${accessToken || ""}`,
       },
       body: JSON.stringify({
         user_id: user?.user_id || "",
