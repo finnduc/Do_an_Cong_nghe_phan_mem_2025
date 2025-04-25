@@ -1,15 +1,3 @@
-import { AwardIcon } from "lucide-react";
-
-const handleResponse = async (response) => {
-  const data = await response.json();
-  if (!response.ok) {
-    const errorMessage =
-      data?.message || `Lỗi HTTP: ${response.status} ${response.statusText}`;
-    throw new Error(errorMessage);
-  }
-  return data;
-};
-
 export async function Total_Product() {
   const response = await fetch(
     "http://localhost:3000/v1/api/stock/getTotalStock"
