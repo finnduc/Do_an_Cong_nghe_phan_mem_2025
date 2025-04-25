@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "framer-motion";
-import { useAuth } from "@/lib/auth/authContext";
+import { login } from "@/lib/auth/action"; 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -35,8 +35,6 @@ export default function LoginForm() {
       remember: false,
     },
   });
-
-  const { login } = useAuth();
   const router = useRouter();
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +56,6 @@ export default function LoginForm() {
       } else {
         localStorage.removeItem("rememberedUserName");
       }
-      router.push("/imports");
     } catch (error) {
       setError(error.message || "Đăng nhập thất bại");
     } finally {

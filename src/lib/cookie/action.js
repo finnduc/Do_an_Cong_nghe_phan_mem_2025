@@ -37,3 +37,11 @@ export async function get_cookie() {
   const refreshToken = cookieStore.get("refreshToken")?.value || null;
   return { accessToken, user, refreshToken };
 }
+
+
+export async function delete_cookie(){
+  const cookieStore = await cookies();
+  cookieStore.delete("accessToken");
+  cookieStore.delete("refreshToken");
+  cookieStore.delete("user");
+}
