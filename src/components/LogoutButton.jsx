@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useAuth } from "@/lib/AuthContext";
+import { useAuth } from "@/lib/auth/authContext";
 import { useState } from "react";
 import { TriangleAlert } from "lucide-react";
 import { Button } from "./ui/button";

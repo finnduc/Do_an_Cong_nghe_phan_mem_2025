@@ -1,4 +1,6 @@
-export async function fetchAccounts(page, limit = 8) {
+import { withAuthHeaders } from "../auth/authWrapper";
+
+async function fetchAccounts(page, limit = 8) {
   const payload = {
     page: page,
     limit: limit,
@@ -12,7 +14,7 @@ export async function fetchAccounts(page, limit = 8) {
   return data;
 }
 
-export async function createAccount(username, password, role) {
+async function createAccount(username, password, role) {
   const payload = {
     username,
     password,
@@ -31,3 +33,7 @@ export async function createAccount(username, password, role) {
   if (!response.ok) throw new Error(data.message);
   return data;
 }
+
+
+export const fetchAccountsWithAuth = withAuthHeaders(fetchAccounts);
+export const createAccountWithAuth = withAuthHeaders(createAccount);

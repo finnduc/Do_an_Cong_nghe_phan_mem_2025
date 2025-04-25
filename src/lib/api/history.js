@@ -1,3 +1,5 @@
+import { authFetch } from "../auth/authWrapper";
+
 export async function fetchHistories(page, limit = 6, extraParams = {}) {
   const payload = {
     page: page,
@@ -11,10 +13,9 @@ export async function fetchHistories(page, limit = 6, extraParams = {}) {
 
   const query = new URLSearchParams(cleanedPayload).toString();
 
-  const response = await fetch(
+  const data = await authFetch(
     `http://localhost:3000/v1/api/transaction/getTransaction?${query}`
   );
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.detail);
   return data;
 }
+
