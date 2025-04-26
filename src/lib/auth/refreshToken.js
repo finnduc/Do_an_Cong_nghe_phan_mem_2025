@@ -1,26 +1,28 @@
-import { set_cookie } from "../cookie/action";
+import { set_cookie, get_cookie } from "../cookie/action";
 
 export async function refreshAccessToken(storedRefreshToken) {
-  console.log('Refreshing access token...');  
-  const res = await fetch('http://localhost:3000/v1/api/access/refreshToken', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const { user, accessToken } = await get_cookie(); // Xác minh get_cookie trả về { user }
+  const res = await fetch("http://localhost:3000/v1/api/access/refreshToken", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      'authorization': 'Bearer ' + accessToken,
+      "x-client-id": user?.user_id || "", // thêm dòng này
+    },
     body: JSON.stringify({ refreshToken: storedRefreshToken }),
   });
-
-  if (res.status !== 200) {
-    throw new Error('Refresh token không hợp lệ');
-  }
-
   const data = await res.json();
-  const { accessToken, refreshToken: newRefreshToken, user } = data.metadata;
 
-  if (!accessToken || !user) {
-    throw new Error('Dữ liệu từ backend không đầy đủ');
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to refresh token");
   }
 
-  // Cập nhật cookie qua API Route
-  await set_cookie({ accessToken, refreshToken: newRefreshToken, user })
-  print(accessToken)
+  const { accessToken: newAccessToken, refreshToken } = data.metadata;
+
+  if (!accessToken) {
+    throw new Error("Dữ liệu từ backend không đầy đủ");
+  }
+
+  await set_cookie({ accessToken: newAccessToken, refreshToken, user }); // Xác minh set_cookie
   return accessToken;
 }

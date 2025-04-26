@@ -13,11 +13,11 @@ export async function fetchAccounts(page, limit = 8) {
   return data;
 }
 
-export async function createAccount(username, password, role) {
+export async function createAccount(username, password, role_id) {
   const payload = {
-    username,
+    userName: username,
     password,
-    role,
+    role_id,
   };
 
   const options = {
@@ -26,8 +26,16 @@ export async function createAccount(username, password, role) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
-  }
+  };
 
-  const data = await authFetch("http://localhost:3000/v1/api/user/create", options);
+  const data = await authFetch(
+    "http://localhost:3000/v1/api/user/create",
+    options
+  );
+  return data;
+}
+
+export async function fetchRoles() {
+  const data = await authFetch("http://localhost:3000/v1/api/user/getRole");
   return data;
 }

@@ -30,14 +30,13 @@ const ReuseTable = ({
   maxLength = 15,
   onPageChange = () => {},
   totalRecords = 0,
-  scrollMode = false, // Toggle between pagination and scroll mode
-  maxHeight = "480px", // Max height for scroll mode
+  scrollMode = false,
+  maxHeight = "480px",
 }) => {
   const [inputValue, setInputValue] = useState(currentPage);
 
   const handleChange = (e) => {
     const value = e.target.value;
-    // Allow empty string or numbers only
     if (value === "" || /^[0-9]+$/.test(value)) {
       setInputValue(value);
     }
@@ -49,22 +48,26 @@ const ReuseTable = ({
       setInputValue(newPage);
       onPageChange(newPage);
     } else {
-      // Reset to current page if input is invalid
       setInputValue(currentPage);
     }
   };
 
   return (
     <div>
-      <div className="border border-gray-300 shadow-md rounded-lg h-full bg-white">
+      <div
+        className={`border border-gray-300 shadow-md rounded-lg bg-white ${
+          scrollMode ? "overflow-y-auto" : "h-full"
+        }`}
+        style={scrollMode ? { maxHeight: maxHeight } : {}}
+      >
         <table className="w-full text-sm text-left">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-10">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-100">
             <tr>
               {columns.map((column, index) => (
                 <th
                   key={`header-${index}`}
                   scope="col"
-                  className={`py-3 px-4 border-b text-left ${
+                  className={`py-3 px-4 border-b text-left sticky top-0 bg-gray-100 z-10 ${
                     index === 0 ? "rounded-tl-lg" : ""
                   } ${index === columns.length - 1 ? "rounded-tr-lg" : ""}`}
                 >
@@ -110,16 +113,15 @@ const ReuseTable = ({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="py-4 px-4 text-center text-gray-500"
+                  className="py-8 px-4 text-center text-gray-500 text-lg font-medium rounded-lg"
                 >
-                  No Data
+                  No Data Available
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
-      {/* Pagination (hidden in scrollMode) */}
       {!scrollMode && (
         <div className="w-full flex justify-between items-center text-sm px-4 py-2 font-medium">
           <span className="text-gray-500">

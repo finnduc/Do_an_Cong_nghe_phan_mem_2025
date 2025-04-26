@@ -1,5 +1,5 @@
 "use client";
-import { set, z } from "zod";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -31,26 +31,27 @@ const formSchema = z.object({
     .min(8, "Mật khẩu phải có ít nhất 8 kí tự")
     .regex(/[a-zA-Z]/, "Mật khẩu phải có ít nhất một chữ cái")
     .regex(/\d/, "Mật khẩu phải có ít nhất một chữ số"),
-  role: z.string(),
+  role_id: z.string().min(1, "Vui lòng chọn một vai trò"),
 });
 
-export default function CreateUser() {
+export default function CreateUser({ roleData, onSuccess }) {
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({});
   const [message, setMessage] = useState("");
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       username: "",
       password: "",
-      role: "employee",
+      role_id: "",
     },
   });
 
   async function onSubmit(values) {
     setMessage("");
-    setIsCreating(true);
     setFormData(values);
+    setIsCreating(true); // Mở modal
   }
 
   async function handleCreateAccount(values) {
@@ -58,11 +59,14 @@ export default function CreateUser() {
       const data = await createAccount(
         values.username,
         values.password,
-        values.role
+        values.role_id
       );
       setMessage(data.message);
+      toast.success("Tạo tài khoản thành công!");
+      onSuccess();
     } catch (error) {
-      setMessage(error.message);
+      setMessage(error.message || "Có lỗi xảy ra khi tạo tài khoản");
+      toast.error(error.message || "Có lỗi xảy ra");
     }
   }
 
@@ -105,22 +109,22 @@ export default function CreateUser() {
           />
           <FormField
             control={form.control}
-            name="role"
+            name="role_id"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Role</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="employee">Employee</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
+                    {roleData.map((role) => (
+                      <SelectItem key={role.role_id} value={role.role_id}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -132,7 +136,7 @@ export default function CreateUser() {
             className="w-full self-center bg-blue-500 hover:bg-blue-700 mt-4"
             disabled={isCreating}
           >
-            Tạo
+            Create
           </Button>
         </form>
       </Form>
@@ -145,29 +149,33 @@ export default function CreateUser() {
                 className="bg-blue-500 hover:bg-blue-700"
                 onClick={() => setIsCreating(false)}
               >
-                Thoát
+                Close
               </Button>
             </div>
           ) : (
             <div className="bg-white p-6 size-fit rounded-lg gap-4 flex flex-col font-medium">
               <div className="font-semibold text-xl">
-                Xác nhận tạo tài khoản mới với thông tin sau
+                Confirm account information
               </div>
-              <div>Tên tài khoản: {formData.username}</div>
-              <div>Mật khẩu: {formData.password}</div>
-              <div>Vai trò: {formData.role}</div>
+              <div>Username: {formData.username}</div>
+              <div>Password: {formData.password}</div>
+              <div>
+                Role:{" "}
+                {roleData.find((item) => item.role_id === formData.role_id)
+                  ?.name || "N/A"}
+              </div>
               <div className="flex self-end gap-2">
                 <Button
                   className="bg-blue-500 hover:bg-blue-700"
                   onClick={async () => await handleCreateAccount(formData)}
                 >
-                  Xác nhận
+                  Confirm
                 </Button>
                 <Button
                   className="bg-red-500 hover:bg-red-700"
                   onClick={() => setIsCreating(false)}
                 >
-                  Hủy
+                  Cancel
                 </Button>
               </div>
             </div>

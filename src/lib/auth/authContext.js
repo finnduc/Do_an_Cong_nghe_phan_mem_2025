@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { refreshAccessToken } from "./refreshToken";
 import { get_cookie } from "../cookie/action";
 import { logout } from "./action";
+import { jwtDecode } from "jwt-decode"; // Cần cài đặt: npm install jwt-decode
 
 const AuthContext = createContext();
 
@@ -12,32 +13,53 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
+    let isMounted = true;
     const restoreSession = async () => {
-      // Lấy dữ liệu xác thực từ hàm get_cookie
-      const {
-        accessToken,
-        user: storedUser,
-        refreshToken,
-      } = await get_cookie();
+      const cookies = await get_cookie();
+      const { accessToken, user: storedUser, refreshToken } = cookies || {};
 
-      if (accessToken && refreshToken && storedUser) {
+      if (accessToken && refreshToken && storedUser && isMounted) {
         setUser(storedUser);
-        try {
-          await refreshAccessToken(refreshToken);
-          // Lấy lại dữ liệu user mới nhất từ get_cookie
-          const { user: newUser } = await get_cookie();
-          setUser(newUser);
+
+        // Kiểm tra xem accessToken còn hợp lệ không
+        const isTokenValid = () => {
+          try {
+            const decoded = jwtDecode(accessToken);
+            const now = Date.now() / 1000;
+            return decoded.exp > now;
+          } catch (error) {
+            return false;
+          }
+        };
+
+        if (isTokenValid()) {
           setIsAuthenticated(true);
-        } catch (error) {
-          console.error("Không thể khôi phục phiên:", error);
-          logout();
+        } else {
+          try {
+            await refreshAccessToken(refreshToken);
+            if (isMounted) {
+              setIsAuthenticated(true);
+            }
+          } catch (error) {
+            console.error("Không thể khôi phục phiên:", error);
+            if (isMounted) {
+              logout();
+              setIsAuthenticated(false);
+              setUser(null);
+              window.location.href = "/login"; // Chuyển hướng đến trang đăng nhập
+            }
+          }
         }
-      } else {
+      } else if (isMounted) {
         setIsAuthenticated(false);
       }
     };
 
     restoreSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (

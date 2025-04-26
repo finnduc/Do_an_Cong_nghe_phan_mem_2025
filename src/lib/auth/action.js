@@ -1,4 +1,4 @@
-'use server'
+"use server";
 
 import { redirect } from "next/navigation";
 import { delete_cookie, get_cookie, set_cookie } from "../cookie/action";
@@ -34,14 +34,14 @@ export const login = async (userName, password) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userName, password }),
     });
+    const data = await res.json();
     if (res.status !== 200) {
       throw new Error(data.metadata?.error || "Đăng nhập thất bại");
     }
-    const data = await res.json();
     const { user, tokens } = data.metadata;
     const { accessToken, refreshToken } = tokens;
     await set_cookie({ accessToken, refreshToken, user });
-    redirect('/history')
+    redirect("/history");
   } catch (error) {
     throw error;
   }

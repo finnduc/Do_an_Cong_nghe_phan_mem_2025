@@ -5,11 +5,18 @@ import { fetchAccounts } from "@/lib/api/accounts";
 import { toast } from "sonner";
 import { Toaster } from "../ui/sonner";
 import { useState } from "react";
+
+function removeRoleId(data) {
+  return data.map(item => {
+    const { role_id, ...rest } = item;
+    return rest;
+});
+}
+
 export default function AccountsTable({ data, totalPages, totalRecords }) {
   const [currentData, setCurrentData] = useState(data);
   const [currentPage, setCurrentPage] = useState(1);
-  const formattedData = jsonToTableFormat(currentData, currentPage, 9);
-  console.log(totalRecords);
+  const formattedData = jsonToTableFormat(removeRoleId(currentData), currentPage, 9);
   const getNextPage = async (page) => {
     try {
       const data = await fetchAccounts(page, 9);

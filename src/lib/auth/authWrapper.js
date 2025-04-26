@@ -10,7 +10,6 @@ export async function addAuthHeaders(options = {}) {
   if (!user?.user_id || !accessToken) {
     if (refreshToken) {
       try {
-        console.log("Attempting to refresh token...");
         await refreshAccessToken(refreshToken);
         // Get fresh tokens after refresh
         const refreshedAuth = await get_cookie();
@@ -61,7 +60,6 @@ export async function authFetch(url, options = {}) {
   try {
     // Add auth headers to the request
     const authOptions = await addAuthHeaders(options);
-
     // Make the fetch request
     const response = await fetch(url, authOptions);
 

@@ -18,7 +18,7 @@ import { ListFilterPlus } from "lucide-react";
 import SearchBar from "../SearchBar";
 import { set } from "zod";
 
-export default function Stock({ data, manufacturers, categories }) {
+export default function StockUI({ data, manufacturers, categories }) {
   const [currentData, setCurrentData] = useState(data.data);
   const [totalPages, setTotalPages] = useState(data.totalPage);
   const [totalRecords, setTotalRecords] = useState(data.totalItem);
@@ -35,8 +35,8 @@ export default function Stock({ data, manufacturers, categories }) {
     category_name: categoryFilter,
     priceMin: priceRange[0],
     priceMax: priceRange[1],
-    quatityMin: quantityRange[0],
-    quatityMax: quantityRange[1],
+    quantityMin: quantityRange[0],
+    quantityMax: quantityRange[1],
     action: priceTypeFilter,
   };
 
@@ -88,7 +88,7 @@ export default function Stock({ data, manufacturers, categories }) {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold mb-2">Stock Management</h1>
       </div>
-      <div className="px-4 pt-4 flex gap-10 bg-white rounded-lg border shadow-lg">
+      <div className="px-4 pt-4 flex gap-10 bg-white rounded-lg border shadow-lg h-[570px]">
         {/* Bộ lọc */}
         <div className="flex flex-col gap-6 h-fit max-w-[300px]">
           <div className="flex items-center gap-2 text-xl font-semibold font-sans">
