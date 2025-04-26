@@ -96,10 +96,7 @@ const authentication = asyncHandler ( async (req, res, next) => {
 
         return next();
     } catch (error) {
-        return res.status(400).json({
-            status: 400,
-            message: "Error. Please try again"
-        });
+        throw error;
     }
 });
 

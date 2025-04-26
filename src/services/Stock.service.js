@@ -145,17 +145,17 @@ class StockService {
         const { limit, page, category_name, product_name, manufacturer, priceMax, priceMin, quantityMax, quantityMin, action } = payload;
         const parsedLimit = parseInt(limit, 10);
         const parsedPage = parseInt(page, 10);
-        
+    
+        // Validate pagination
         if (isNaN(parsedLimit) || isNaN(parsedPage) || parsedLimit <= 0 || parsedPage <= 0) {
             throw new BadRequestError("Limit và page phải là số nguyên dương!");
         }
-        
-        const offset = (parsedPage - 1) * parsedLimit;
     
+        const offset = (parsedPage - 1) * parsedLimit;
         let whereQuery = '';
         let havingQuery = '';
         let param = [];
-        
+    
         // WHERE clause conditions
         if (product_name) {
             whereQuery += ' AND p.name LIKE ?';
@@ -169,23 +169,44 @@ class StockService {
             whereQuery += ' AND m.name LIKE ?';
             param.push(`%${manufacturer}%`);
         }
-        if (quantityMax) {
+    
+        // Validate and handle quantity
+        const parsedQuantityMax = quantityMax !== undefined ? parseFloat(quantityMax) : null;
+        const parsedQuantityMin = quantityMin !== undefined ? parseFloat(quantityMin) : null;
+    
+        if (parsedQuantityMax !== null) {
+            if (isNaN(parsedQuantityMax) || parsedQuantityMax < 0) {
+                throw new BadRequestError("QuantityMax phải là số không âm!");
+            }
             whereQuery += ' AND s.stock_quantity <= ?';
-            param.push(quantityMax);
+            param.push(parsedQuantityMax);
         }
-        if (quantityMin) {
+        if (parsedQuantityMin !== null) {
+            if (isNaN(parsedQuantityMin) || parsedQuantityMin < 0) {
+                throw new BadRequestError("QuantityMin phải là số không âm!");
+            }
             whereQuery += ' AND s.stock_quantity >= ?';
-            param.push(quantityMin);
+            param.push(parsedQuantityMin);
         }
     
-        // HAVING clause conditions for price
-        if (priceMax) {
+        // Validate and handle price
+        const parsedPriceMax = priceMax !== undefined ? parseFloat(priceMax) : null;
+        const parsedPriceMin = priceMin !== undefined ? parseFloat(priceMin) : null;
+        const priceType = action === 'import' ? 'import' : 'export';
+    
+        if (parsedPriceMax !== null) {
+            if (isNaN(parsedPriceMax) || parsedPriceMax < 0) {
+                throw new BadRequestError("PriceMax phải là số không âm!");
+            }
             havingQuery += ' AND COALESCE(MAX(CASE WHEN pp.price_type = ? THEN pp.price END), 0) <= ?';
-            param.push(action === 'import' ? 'import' : 'export', priceMax);
+            param.push(priceType, parsedPriceMax);
         }
-        if (priceMin) {
+        if (parsedPriceMin !== null) {
+            if (isNaN(parsedPriceMin) || parsedPriceMin < 0) {
+                throw new BadRequestError("PriceMin phải là số không âm!");
+            }
             havingQuery += ' AND COALESCE(MAX(CASE WHEN pp.price_type = ? THEN pp.price END), 0) >= ?';
-            param.push(action === 'import' ? 'import' : 'export', priceMin);
+            param.push(priceType, parsedPriceMin);
         }
     
         const query = `SELECT 
@@ -196,11 +217,11 @@ class StockService {
                         s.stock_quantity AS quantity,
                         COALESCE(
                             MAX(CASE WHEN pp.price_type = 'import' THEN pp.price END),
-                            'N/A'
+                            0
                         ) AS product_price_import,
                         COALESCE(
                             MAX(CASE WHEN pp.price_type = 'export' THEN pp.price END),
-                            'N/A'
+                            0
                         ) AS product_price_export
                     FROM 
                         stock s
@@ -254,11 +275,11 @@ class StockService {
         const data = await executeQuery(query, param);
     
         return {
-            data: data,
+            data,
             page: parsedPage,
             limit: parsedLimit,
             totalPage: Math.ceil(totalItem / parsedLimit),
-            totalItem: totalItem
+            totalItem
         };
     };
 

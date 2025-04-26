@@ -16,7 +16,7 @@ class AccessController {
 
   logout = async (req, res, next) => {
     try {
-      const responces = await AccessService.logout(req.keyStore);
+      const responces = await AccessService.logout(req.keyStore[0]);
       return new OK({
         message: 'Logout success',
         metadata: responces,
@@ -28,7 +28,7 @@ class AccessController {
 
   refreshToken = async (req, res, next) => {
     try {
-      const responces = await AccessService.refreshToken(req.body, req.keyStore);
+      const responces = await AccessService.refreshToken(req.body, req.keyStore[0]);
       return new OK({
         message: 'Refresh token success',
         metadata: responces,

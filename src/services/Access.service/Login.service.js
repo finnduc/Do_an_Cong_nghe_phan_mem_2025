@@ -64,11 +64,9 @@ class AccessService {
                     refreshToken: tokens.refreshToken
                 }
             };
-        }else {
+        } else {
             throw new BadRequestError('Password is incorrect!');
         }
-
-
     }
 
 
@@ -86,22 +84,26 @@ class AccessService {
             throw new NotFoundError('Refresh token not found!');
         }
 
-        const { publicKey, privateKey } = keyToken;
+        const { public_key, private_key, refresh_token } = keyToken[0];
 
-        const tokens = await creatTokenPair({ ID: refreshToken.user_id }, publicKey, privateKey);
+        if (refresh_token !== refreshToken) {
+            throw new BadRequestError('Invalid refresh token!');
+        }
+
+        let tokens;
+        tokens = await creatTokenPair({ ID: user_id }, public_key, private_key);
 
         await keyTokenService.createKeyToken({
-            user_id: refreshToken.user_id,
+            user_id,
             refreshToken: tokens.refreshToken,
-            publicKey,
-            privateKey
+            publicKey: public_key,
+            privateKey: private_key
         });
 
         return {
             accessToken: tokens.accessToken,
             refreshToken: tokens.refreshToken
         };
-
     }
     // đăng xuất
     logout = async (payload) => {
