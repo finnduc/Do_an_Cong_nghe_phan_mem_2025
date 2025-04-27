@@ -10,6 +10,7 @@ function CreateEmployeeForm() {
   const handleSubmit = (event) => {
     event.preventDefault();
     console.log("Form submitted:", { name, email, phone, hasAccount });
+    setPhone();
     alert("Đã thêm nhân viên!");
   };
 
