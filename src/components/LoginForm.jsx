@@ -56,6 +56,7 @@ export default function LoginForm() {
       } else {
         localStorage.removeItem("rememberedUserName");
       }
+      router.push("/");
     } catch (error) {
       setError(error.message || "Đăng nhập thất bại");
     } finally {
