@@ -1,5 +1,4 @@
 import { get_cookie } from "@/lib/cookie/action";
-import LogoutButton from "./LogoutButton";
 import SideBarButton from "./SideBarButton";
 import {
   House,
@@ -10,7 +9,6 @@ import {
   Import,
   Bot,
   Settings,
-  LogOut,
   History,
   ChartBarStacked,
   UserRoundPen,
@@ -36,7 +34,6 @@ const other = {
   Setting: [<Settings size={20} />, "/setting"],
 };
 
-const logout = ["Logout", <LogOut size={20} />];
 
 export default async function SideBar() {
   const { user } = await get_cookie();
@@ -88,7 +85,6 @@ export default async function SideBar() {
             route={other[1]}
           />
         ))}
-        <LogoutButton title={logout[0]} icon={logout[1]} />
       </div>
     </div>
   );

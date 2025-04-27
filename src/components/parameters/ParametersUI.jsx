@@ -25,7 +25,7 @@ export default function ParametersUI({ categories, manufacturers, products }) {
   };
 
   return (
-    <div className="flex gap-6">
+    <div className="flex gap-6 p-4 bg-white rounded-lg border">
       <ParametersTable title="Category" data={categories} scrollAble={true} handleCreateParameters={handleEditCategory}>
         {({ item, index }) => (
           <div>
