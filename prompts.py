@@ -113,16 +113,14 @@ Now, please classify the following question:
 {question}
 """
 
-correcting_semantic_prompt = """Given a database schema, a user question, and an SQL query. 
-You must evalute if the SQL query answers the question correctly based on the schema.
+correcting_semantic_prompt = """You are given a database schema, a user question in natural language, and an SQL query.
+Your task is to evaluate whether the SQL query correctly and fully answers the user’s question based on the schema.
 
-# OUTPUT FORMAT:
-- If it does, reply with YES. Do not explain anything.
-- If it doesn't, rewrite the correct SQL query and return only that. Do not explain anything.
-
-# CONSTRAINTS:
-- The SQL query must be valid and executable in MySQL 8.0 syntax.
-- Use only MySQL-compatible functions and date/time expressions.
+# INSTRUCTIONS:
+- If the SQL query is correct and complete (i.e. it returns all the necessary columns and rows to fully answer the question based on the schema), respond only with: YES
+- If the SQL query is incomplete, incorrect, or missing columns or filters, rewrite a correct and complete SQL query that answers the question. Output only the new query.
+- You must always output either: YES, or a valid corrected SQL query.
+- Never leave the output empty and never explain your answer. Only return YES or the correct SQL query.
 
 # DATABASE SCHEMA:
 - categories(category_id, name, created_at)
@@ -145,6 +143,11 @@ Question: List all manufacturers and the total stock they provide.
 SQL: SELECT name FROM manufacturers;
 Your response: SELECT m.name, SUM(s.stock_quantity) AS total_stock FROM manufacturers m JOIN stock s ON m.manufacturer_id = s.manufacturer_id GROUP BY m.name;
 
+Example 3:
+Question: List the information of all manufacturers.
+SQL: SELECT name FROM manufacturers;
+Your response: SELECT * FROM manufacturers;
+
 Now evalute the following question and sql query:
 QUESTION: {question}
 
@@ -155,6 +158,10 @@ correcting_syntax_prompt = """Given an SQL query and an error message, you must 
 
 # OUTPUT FORMAT:
 - Return only the corrected SQL query. Do not explain anything.
+
+# CONSTRAINTS:
+- The SQL query must be valid and executable in MySQL 8.0 syntax.
+- Use only MySQL-compatible functions and date/time expressions.
 
 # DATABASE SCHEMA:
 - categories(category_id, name, created_at)

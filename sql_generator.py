@@ -16,17 +16,27 @@ import re
 
 def extract_select_sql(text: str) -> str:
     """
-    Extract the first complete SELECT SQL statement from the text.
-    A complete SQL statement ends with a semicolon.
+    Extract the first SELECT SQL statement from the text.
+    Handles SQL code blocks (```sql ... ```) or plain text.
+    Ensures the statement ends with a semicolon.
     """
-    # Remove leading/trailing whitespace
-    text = text.strip()
+    # 1. Check if inside markdown ```sql ... ``` block
+    code_block_match = re.search(r"```sql\s+(SELECT[\s\S]+?)```", text, re.IGNORECASE)
+    if code_block_match:
+        sql = code_block_match.group(1).strip()
+    else:
+        # 2. Fallback to plain text: match from SELECT until next keyword or end
+        match = re.search(r"\bSELECT\b[\s\S]+?(?=(?:\bWITH\b|\bSELECT\b|\bINSERT\b|\bUPDATE\b|\bDELETE\b|$))", text, re.IGNORECASE)
+        if match:
+            sql = match.group(0).strip()
+        else:
+            return ""
 
-    # Match any SQL SELECT statement that ends with a semicolon
-    match = re.search(r"\bSELECT\b.*?;", text, re.IGNORECASE)
+    # 3. Ensure it ends with a semicolon
+    if not sql.endswith(";"):
+        sql += ";"
 
-    return match.group(0).strip()  # Return the matched SELECT statement
-
+    return sql
 
 class State(TypedDict):
     question: str
@@ -35,9 +45,8 @@ class State(TypedDict):
     max_retries: int
     error_message: str
 
-
 class SQLGenerator:
-    def __init__(self, llm_config: dict, database_config: dict):
+    def __init__(self, llm_config: dict, database):
         """
         Constructor for SQLGenerator
 
@@ -51,8 +60,7 @@ class SQLGenerator:
         self.model = model
         self.tokenizer = tokenizer
         self.llm = ChatGoogleGenerativeAI(**llm_config)
-        self.database = MySQLDatabase(database_config)
-
+        self.database = database
     def validate_question(self, state: State) -> Command[Literal[END, "generate_sql"]]:  # type: ignore
         question = state["question"]
 
@@ -79,9 +87,11 @@ class SQLGenerator:
             [sql_prompt.format(question, "")], return_tensors="pt"
         ).to("cuda")
         input_ids = inputs.input_ids  # Lấy token IDs của prompt
+        attention_mask = inputs.attention_mask # Lấy attention mask của prompt
         # Generate response từ model
         output_ids = self.model.generate(
             input_ids,
+            attention_mask=attention_mask,
             max_new_tokens=256,
             eos_token_id=self.tokenizer.eos_token_id,
             do_sample=False,
@@ -93,26 +103,7 @@ class SQLGenerator:
         sql_text = sql_text.replace("<|im_end|>", "").strip()
         return {"sql_query": sql_text}
 
-    def execute_sql(self, state: State) -> Command[Literal[END, "correcting_syntax"]]:  # type: ignore
-        sql_query = state["sql_query"]
-        if state["max_retries"] <= 0:
-            print(1)
-            return Command(
-                update={
-                    "sql_query": "",
-                    "received_data": "Please rewrite your question to be clearer and improve clarity. Also check again if your question is related to the database.",
-                },
-                goto=END,
-            )
-        try:
-            data = self.database.execute_query(sql_query)
-            print(2)
-            return Command(update={"received_data": data}, goto=END)
-        except Exception as e:
-            print(3)
-            return Command(update={"error_message": str(e)}, goto="correcting_syntax")
-
-    def correcting_semantic(self, state: State) -> Command[Literal[END, "execute_sql"]]:  # type: ignore
+    def correcting_semantic(self, state: State) -> Command[Literal[END, "adjust_limit_and_execute_sql"]]:  # type: ignore
         sql_query = state["sql_query"]
         question = state["question"]
         prompt = ChatPromptTemplate.from_messages(
@@ -128,7 +119,7 @@ class SQLGenerator:
         while max_retries > 0:
             result = chain.invoke({"sql_query": sql_query, "question": question})
             if "yes" in result.content.lower():
-                return Command(update={"sql_query": sql_query}, goto="execute_sql")
+                return Command(update={"sql_query": sql_query}, goto="adjust_limit_and_execute_sql")
             sql_query = extract_select_sql(result.content)
             max_retries -= 1
         return Command(
@@ -156,6 +147,22 @@ class SQLGenerator:
             "max_retries": state["max_retries"] - 1,
         }
 
+    def adjust_limit_and_execute_sql(self, state: State) -> Command[Literal[END, "correcting_syntax"]]:  # type: ignore
+        if state["max_retries"] <= 0:
+            return Command(
+                update={
+                    "sql_query": "",
+                    "received_data": "Please rewrite your question to be clearer and improve clarity. Also check again if your question is related to the database.",
+                },
+                goto=END,
+            )
+        sql_query = state["sql_query"]
+        try:
+            data = self.database.execute_limited_query(sql_query)
+            return Command(update={"received_data": data}, goto=END)
+        except Exception as e:
+            return Command(update={"error_message": str(e)}, goto="correcting_syntax")
+
     def build(self):
         """
         Build a Text2SQL workflow.
@@ -181,7 +188,7 @@ class SQLGenerator:
         workflow = StateGraph(state_schema=State)
         workflow.add_node("validate_question", self.validate_question)
         workflow.add_node("generate_sql", self.generate_sql)
-        workflow.add_node("execute_sql", self.execute_sql)
+        workflow.add_node("adjust_limit_and_execute_sql", self.adjust_limit_and_execute_sql)
         workflow.add_node("correcting_syntax", self.correcting_syntax)
         workflow.add_node("correcting_semantic", self.correcting_semantic)
         workflow.add_edge(START, "validate_question")
@@ -189,8 +196,6 @@ class SQLGenerator:
             "generate_sql",
             "correcting_semantic",
         )
-        workflow.add_edge("correcting_semantic", "execute_sql")
-        workflow.add_edge("correcting_syntax", "execute_sql")
-
+        workflow.add_edge("correcting_syntax", "adjust_limit_and_execute_sql")
         app = workflow.compile()
-        return app, self.database
+        return app

@@ -3,7 +3,7 @@ unsloth
 openai
 langchain
 langgraph
-langchain-openai
+langchain-google-genai
 langchain-core
 typing-extensions
 pydantic
@@ -11,3 +11,4 @@ mysql-connector-python
 python-dotenv
 requests
 fastapi
+PyJWT
