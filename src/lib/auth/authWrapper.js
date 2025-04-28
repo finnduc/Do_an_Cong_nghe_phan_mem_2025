@@ -75,7 +75,7 @@ export async function authFetch(url, options = {}) {
           const retryResponse = await fetch(url, newAuthOptions);
           const data = await retryResponse.json();
           if (!retryResponse.ok)
-            throw new Error(data.message || `Error: ${retryResponse.status}`);
+            throw new Error(data.message || data.detail || `Error: ${retryResponse.status}`);
           return data;
         } catch (error) {
           console.error("Error during retry:", error);
@@ -90,7 +90,7 @@ export async function authFetch(url, options = {}) {
 
     // Check if response is ok
     const data = await response.json();
-    if (!response.ok) throw new Error(data.message);
+    if (!response.ok) throw new Error(data.message || data.detail || `Error: ${response.status}`);
 
     return data;
   } catch (error) {

@@ -1,22 +1,21 @@
+import { authFetch } from "../auth/authWrapper";
+
 export async function generateSQL(question) {
-    const response = await fetch("http://localhost:8000/question", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.detail);
-      return data;
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question }),
+  };
+  const data = await authFetch("http://localhost:8000/question", options);
+  return data;
 }
 
 export async function executeSQL(sqlQuery, offset = 0, forceOffset = false) {
-    const response = await fetch("http://localhost:8000/execute", {
+  const options = {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sql: sqlQuery, offset, force_offset: forceOffset }),
-  });
-
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.detail);
+  };
+  const data = await authFetch("http://localhost:8000/execute", options);
   return data;
 }

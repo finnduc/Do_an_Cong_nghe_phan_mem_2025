@@ -1,10 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { refreshAccessToken } from "./refreshToken";
-import { get_cookie } from "../cookie/action";
-import { logout } from "./action";
-import { jwtDecode } from "jwt-decode"; // Cần cài đặt: npm install jwt-decode
+import { get_cookie } from "../cookie/action"; // Giả định đây là hàm lấy cookie phía client
 
 const AuthContext = createContext();
 
@@ -13,53 +10,20 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    let isMounted = true;
-    const restoreSession = async () => {
+    const checkAuth = async () => {
       const cookies = await get_cookie();
-      const { accessToken, user: storedUser, refreshToken } = cookies || {};
+      const { accessToken, user: storedUser } = cookies || {};
 
-      if (accessToken && refreshToken && storedUser && isMounted) {
+      if (accessToken && storedUser) {
         setUser(storedUser);
-
-        // Kiểm tra xem accessToken còn hợp lệ không
-        const isTokenValid = () => {
-          try {
-            const decoded = jwtDecode(accessToken);
-            const now = Date.now() / 1000;
-            return decoded.exp > now;
-          } catch (error) {
-            return false;
-          }
-        };
-
-        if (isTokenValid()) {
-          setIsAuthenticated(true);
-        } else {
-          try {
-            await refreshAccessToken(refreshToken);
-            if (isMounted) {
-              setIsAuthenticated(true);
-            }
-          } catch (error) {
-            console.error("Không thể khôi phục phiên:", error);
-            if (isMounted) {
-              logout();
-              setIsAuthenticated(false);
-              setUser(null);
-              window.location.href = "/login"; // Chuyển hướng đến trang đăng nhập
-            }
-          }
-        }
-      } else if (isMounted) {
+        setIsAuthenticated(true);
+      } else {
         setIsAuthenticated(false);
+        setUser(null);
       }
     };
 
-    restoreSession();
-
-    return () => {
-      isMounted = false;
-    };
+    checkAuth();
   }, []);
 
   return (
