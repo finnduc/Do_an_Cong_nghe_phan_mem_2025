@@ -34,7 +34,6 @@ export default function TopBarButton() {
     } finally {
       setIsLoggingOut(false);
       setIsOpen(false);
-      redirect('/login')
     }
   };
   return (

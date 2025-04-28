@@ -30,11 +30,9 @@ export async function addAuthHeaders(options = {}) {
         };
       } catch (error) {
         console.error("Error refreshing token:", error);
-        handleAuthError();
         throw new Error("Unable to refresh token");
       }
     } else {
-      handleAuthError();
       throw new Error("No user information or access token");
     }
   }
@@ -48,11 +46,6 @@ export async function addAuthHeaders(options = {}) {
       ...(options.headers || {}),
     },
   };
-}
-
-// Handle auth errors by redirecting to login
-function handleAuthError() {
-  redirect("/login");
 }
 
 // Function to handle auth and response errors
@@ -79,11 +72,9 @@ export async function authFetch(url, options = {}) {
           return data;
         } catch (error) {
           console.error("Error during retry:", error);
-          handleAuthError();
           throw new Error("Failed to refresh token during retry");
         }
       } else {
-        handleAuthError();
         throw new Error("No refresh token available");
       }
     }

@@ -22,6 +22,7 @@ export const logout = async () => {
   }
 
   await delete_cookie();
+  redirect('/login')
 };
 
 export const login = async (userName, password) => {
@@ -38,6 +39,7 @@ export const login = async (userName, password) => {
     const { user, tokens } = data.metadata;
     const { accessToken, refreshToken } = tokens;
     await set_cookie({ accessToken, refreshToken, user });
+    redirect('/')
   } catch (error) {
     throw error;
   }
