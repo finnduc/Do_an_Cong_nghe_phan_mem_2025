@@ -15,8 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "framer-motion";
 import { login } from "@/lib/auth/action"; 
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState} from "react";
 
 const formSchema = z.object({
   userName: z.string().min(1, "Username is required"),
@@ -35,28 +34,14 @@ export default function LoginForm() {
       remember: false,
     },
   });
-  const router = useRouter();
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const rememberedUserName = localStorage.getItem("rememberedUserName") || "";
-      form.setValue("userName", rememberedUserName);
-    }
-  }, [form]);
 
   async function onSubmit(values) {
     setError(null);
     setIsLoading(true);
     try {
       await login(values.userName, values.password);
-      if (values.remember) {
-        localStorage.setItem("rememberedUserName", values.userName);
-      } else {
-        localStorage.removeItem("rememberedUserName");
-      }
-      router.push("/");
     } catch (error) {
       setError(error.message || "Đăng nhập thất bại");
     } finally {

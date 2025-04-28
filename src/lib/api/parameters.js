@@ -29,18 +29,120 @@ export async function fetchProducts(page, limit = 8) {
   return data;
 }
 
-export async function updateCategory(id, name) {
-  options = {
+export async function updateCategory(category_id, name) {
+  const options = {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ id, name }),
+    body: JSON.stringify({ category_id: category_id, category: name }),
   };
   const data = await authFetch(
     "http://localhost:3000/v1/api/parameter/updateCate",
     options
   );
+  return data;
+}
 
+export async function createCategory(name) {
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ category: name }),
+  };
+  const data = await authFetch(
+    `http://localhost:3000/v1/api/parameter/createCate`,
+    options
+  );
+  return data;
+}
+
+export async function deleteCategory(category_id) {
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ category_id }),
+  };
+  const data = await authFetch(
+    `http://localhost:3000/v1/api/parameter/deleteCate`,
+    options
+  );
+  return data;
+}
+
+export async function createManufacturer(name) {
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ manufacturer: name }),
+  };
+  const data = await authFetch(
+    `http://localhost:3000/v1/api/parameter/createManu`,
+    options
+  );
+  return data;
+}
+
+export async function updateManufacturer(manufacturer_id, name) {
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ manufacturer_id, manufacturer: name }),
+  };
+  const data = await authFetch(
+    `http://localhost:3000/v1/api/parameter/updateManu`,
+    options
+  );
+  return data;
+}
+
+export async function deleteManufacturer(manufacturer_id) {
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ manufacturer_id }),
+  };
+  const data = await authFetch(
+    `http://localhost:3000/v1/api/parameter/deleteManu`,
+    options
+  );
+  return data;
+}
+
+export async function createProduct(productData) {
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(productData),
+  };
+  const data = await authFetch(
+    `http://localhost:3000/v1/api/parameter/create`,
+    options
+  );
+  return data;
+}
+
+export async function updateProduct(productData) {
+  const options = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(productData),
+  };
+  const data = await authFetch(
+    `http://localhost:3000/v1/api/parameter/update`,
+    options
+  );
+  return data;
+}
+
+export async function deleteProduct(parameter_id) {
+  const options = {
+    method: "DELETE",
+  };
+  const query = new URLSearchParams({ parameter_id }).toString();
+  const data = await authFetch(
+    `http://localhost:3000/v1/api/parameter/delete?${query}`,
+    options
+  );
   return data;
 }

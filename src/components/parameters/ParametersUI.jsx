@@ -1,7 +1,7 @@
 "use client";
 import { jsonToTableFormat } from "@/lib/utils";
 import ReuseTable from "../ReuseTable";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react"; // Đảm bảo useCallback đã được import
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import ParametersTable from "./ParametersTable";
@@ -12,104 +12,432 @@ import {
   SelectContent,
   SelectItem,
 } from "../ui/select";
-import { updateCategory } from "@/lib/api/parameters";
+import {
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  createManufacturer,
+  updateManufacturer,
+  deleteManufacturer,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  fetchProducts,
+  fetchCatetories,
+  fetchManufacturers,
+} from "@/lib/api/parameters";
 
-export default function ParametersUI({ categories, manufacturers, products }) {
-  const handleEditCategory = async (id, name) => {
+// --- Wrapper Component cho Form Category (Giữ nguyên logic, không có label) ---
+const CategoryFormContent = ({
+  item,
+  categoryName,
+  setCategoryName,
+  handleFormStateUpdate,
+}) => {
+  useEffect(() => {
+    handleFormStateUpdate(item, "category");
+  }, [item, handleFormStateUpdate]);
+
+  return (
+    <div>
+      {/* Không có label */}
+      <Input
+        id="category-name" // Giữ id để liên kết (dù label bị ẩn)
+        type="text"
+        placeholder="Enter category name"
+        value={categoryName}
+        onChange={(e) => setCategoryName(e.target.value)}
+      />
+    </div>
+  );
+};
+
+// --- Wrapper Component cho Form Manufacturer (Giữ nguyên logic, không có label) ---
+const ManufacturerFormContent = ({
+  item,
+  manufacturerName,
+  setManufacturerName,
+  handleFormStateUpdate,
+}) => {
+  useEffect(() => {
+    handleFormStateUpdate(item, "manufacturer");
+  }, [item, handleFormStateUpdate]);
+
+  return (
+    <div>
+      {/* Không có label */}
+      <Input
+        id="manufacturer-name" // Giữ id
+        type="text"
+        placeholder="Enter manufacturer name"
+        value={manufacturerName}
+        onChange={(e) => setManufacturerName(e.target.value)}
+      />
+    </div>
+  );
+};
+
+// --- Wrapper Component cho Form Product (Giữ nguyên logic, không có label) ---
+const ProductFormContent = ({
+  item,
+  categories,
+  manufacturers,
+  productName,
+  setProductName,
+  selectedCategoryId,
+  setSelectedCategoryId,
+  selectedManufacturerId,
+  setSelectedManufacturerId,
+  handleFormStateUpdate,
+}) => {
+  useEffect(() => {
+    handleFormStateUpdate(item, "product");
+  }, [item, handleFormStateUpdate]);
+
+  return (
+    // Sử dụng cấu trúc div cũ của bạn
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-2">
+        {/* Category Select */}
+        <Select
+          value={selectedCategoryId}
+          onValueChange={setSelectedCategoryId}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((cat) => (
+              <SelectItem key={cat.category_id} value={cat.category_id}>
+                {cat.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {/* Manufacturer Select */}
+        <Select
+          value={selectedManufacturerId}
+          onValueChange={setSelectedManufacturerId}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Manufacturer" />
+          </SelectTrigger>
+          <SelectContent>
+            {manufacturers.map((man) => (
+              <SelectItem key={man.manufacturer_id} value={man.manufacturer_id}>
+                {man.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {/* Product Name Input */}
+      <Input
+        id="product-name" // Giữ id
+        type="text"
+        placeholder="Enter product name"
+        value={productName}
+        onChange={(e) => setProductName(e.target.value)}
+      />
+    </div>
+  );
+};
+
+// --- Component chính ParametersUI ---
+export default function ParametersUI({
+  categories: initialCategories,
+  manufacturers: initialManufacturers,
+  products: initialProducts,
+}) {
+  // --- State Management (Giữ nguyên) ---
+  const [categories, setCategories] = useState(initialCategories || []);
+  const [manufacturers, setManufacturers] = useState(
+    initialManufacturers || []
+  );
+  const [products, setProducts] = useState(initialProducts || []); // Use state for products
+
+  // State for form inputs (Giữ nguyên)
+  const [categoryName, setCategoryName] = useState("");
+  const [manufacturerName, setManufacturerName] = useState("");
+  const [productName, setProductName] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedManufacturerId, setSelectedManufacturerId] = useState("");
+
+  // --- Data Refresh Functions (Giữ nguyên) ---
+  const refreshCategories = async () => {
     try {
-      const updatedCategory = await updateCategory(id, name);
-      console.log(updatedCategory);
+      const updatedData = await fetchCatetories();
+      setCategories(updatedData?.metadata || []);
+    } catch (error) {
+      console.error("Error refreshing categories:", error);
+    }
+  };
+
+  const refreshManufacturers = async () => {
+    try {
+      const updatedData = await fetchManufacturers();
+      setManufacturers(updatedData?.metadata || []);
+    } catch (error) {
+      console.error("Error refreshing manufacturers:", error);
+    }
+  };
+
+  const refreshProducts = async () => {
+    try {
+      const updatedData = await fetchProducts(1); // Fetch page 1
+      // Cập nhật state products thay vì initialProducts
+      setProducts(updatedData?.metadata || []);
+    } catch (error) {
+      console.error("Error refreshing products:", error);
+    }
+  };
+
+  // --- Handlers CRUD (Giữ nguyên logic) ---
+  // --- Handlers for Category ---
+  const handleCreateCategory = async () => {
+    if (!categoryName) return;
+    try {
+      await createCategory(categoryName);
+      setCategoryName("");
+      refreshCategories();
+    } catch (error) {
+      console.error("Error creating category:", error);
+    }
+  };
+
+  const handleEditCategory = async (item) => {
+    if (!categoryName || !item?.category_id) return;
+    try {
+      await updateCategory(item.category_id, categoryName);
+      setCategoryName("");
+      refreshCategories();
     } catch (error) {
       console.error("Error updating category:", error);
     }
   };
 
+  const handleDeleteCategory = async (item) => {
+    if (!item?.category_id) return;
+    try {
+      await deleteCategory(item.category_id);
+      refreshCategories();
+    } catch (error) {
+      console.error(
+        "Error deleting category:",
+        error
+      ); /* TODO: Handle DB constraint error */
+    }
+  };
+
+  // --- Handlers for Manufacturer ---
+  const handleCreateManufacturer = async () => {
+    if (!manufacturerName) return;
+    try {
+      await createManufacturer(manufacturerName);
+      setManufacturerName("");
+      refreshManufacturers();
+    } catch (error) {
+      console.error("Error creating manufacturer:", error);
+    }
+  };
+
+  const handleEditManufacturer = async (item) => {
+    if (!manufacturerName || !item?.manufacturer_id) return;
+    try {
+      await updateManufacturer(item.manufacturer_id, manufacturerName);
+      setManufacturerName("");
+      refreshManufacturers();
+    } catch (error) {
+      console.error("Error updating manufacturer:", error);
+    }
+  };
+
+  const handleDeleteManufacturer = async (item) => {
+    if (!item?.manufacturer_id) return;
+    try {
+      await deleteManufacturer(item.manufacturer_id);
+      refreshManufacturers();
+    } catch (error) {
+      console.error("Error deleting manufacturer:", error);
+    }
+  };
+
+  // --- Handlers for Product (Parameter) ---
+  const handleCreateProduct = async () => {
+    if (!productName || !selectedCategoryId || !selectedManufacturerId) return;
+    try {
+      const productData = {
+        name_product: productName,
+        category_id: selectedCategoryId,
+        manufacturer_id: selectedManufacturerId,
+      };
+      await createProduct(productData);
+      setProductName("");
+      setSelectedCategoryId("");
+      setSelectedManufacturerId("");
+      refreshProducts();
+    } catch (error) {
+      console.error("Error creating product:", error);
+    }
+  };
+
+  const handleEditProduct = async (item) => {
+    if (
+      !productName ||
+      !selectedCategoryId ||
+      !selectedManufacturerId ||
+      !item?.parameter_id
+    )
+      return;
+    const originalProduct = products.find(
+      (p) => p.parameter_id === item.parameter_id
+    );
+    const productIdToUpdate = originalProduct?.product_id;
+    if (!productIdToUpdate) {
+      console.error(
+        "Could not find product_id for the item being edited:",
+        item
+      );
+      return;
+    }
+    try {
+      const productData = {
+        parameter_id: item.parameter_id,
+        product_id: productIdToUpdate,
+        name_product: productName,
+        category_id: selectedCategoryId,
+        manufacturer_id: selectedManufacturerId,
+      };
+      await updateProduct(productData);
+      setProductName("");
+      setSelectedCategoryId("");
+      setSelectedManufacturerId("");
+      refreshProducts();
+    } catch (error) {
+      console.error("Error updating product:", error);
+    }
+  };
+
+  const handleDeleteProduct = async (item) => {
+    if (!item?.parameter_id) return;
+    try {
+      await deleteProduct(item.parameter_id);
+      refreshProducts();
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
+  };
+
+  // --- Form State Update Function (Giữ nguyên) ---
+  const handleFormStateUpdate = useCallback(
+    (item, type) => {
+      if (!item) {
+        // Reset for Create modal
+        if (type === "category") setCategoryName("");
+        else if (type === "manufacturer") setManufacturerName("");
+        else if (type === "product") {
+          setProductName("");
+          setSelectedCategoryId("");
+          setSelectedManufacturerId("");
+        }
+        return;
+      }
+      // Set state for Edit modal
+      if (type === "category") {
+        setCategoryName(item?.name || "");
+      } else if (type === "manufacturer") {
+        setManufacturerName(item?.name || "");
+      } else if (type === "product") {
+        setProductName(item?.product_name || "");
+        const cat = categories.find((c) => c.name === item?.category_name);
+        const man = manufacturers.find(
+          (m) => m.name === item?.manufacturer_name
+        );
+        setSelectedCategoryId(cat?.category_id || "");
+        setSelectedManufacturerId(man?.manufacturer_id || "");
+      }
+    },
+    [categories, manufacturers]
+  );
+
+  // --- JSX Structure (Theo yêu cầu của bạn) ---
   return (
-    <div className="flex gap-6 p-4 bg-white rounded-lg border">
-      <ParametersTable title="Category" data={categories} scrollAble={true} handleCreateParameters={handleEditCategory}>
-        {({ item, index }) => (
-          <div>
-            <Input
-              id="name"
-              type="text"
-              placeholder="Enter category name"
-              onChange={(e) => console.log(e.target.value)}
-              defaultValue={item?.name}
+    // Sử dụng class gốc bạn cung cấp
+    <div className="flex flex-col lg:flex-row gap-6 p-4 bg-white rounded-lg border">
+      {/* Category Table (Không có flex-1, min-w-0) */}
+      <div>
+        <ParametersTable
+          title="Category"
+          data={categories}
+          scrollAble={true} // Giữ scrollAble nếu bạn muốn
+          handleCreateParameters={handleCreateCategory} // Sửa lại đúng handler
+          handleEditParameters={handleEditCategory}
+          handleDeleteParameters={handleDeleteCategory}
+        >
+          {(
+            { item } // Render wrapper component
+          ) => (
+            <CategoryFormContent
+              item={item}
+              categoryName={categoryName}
+              setCategoryName={setCategoryName}
+              handleFormStateUpdate={handleFormStateUpdate}
             />
-          </div>
-        )}
-      </ParametersTable>
-      <ParametersTable
-        title="Manufacturer"
-        data={manufacturers}
-        scrollAble={true}
-      >
-        {({ item, index }) => (
-          <div>
-            <Input
-              id="name"
-              type="text"
-              placeholder="Enter manufacturer name"
-              onChange={(e) => console.log(e.target.value)}
-              defaultValue={item?.name}
+          )}
+        </ParametersTable>
+      </div>
+
+      {/* Manufacturer Table (Không có flex-1, min-w-0) */}
+      <div>
+        <ParametersTable
+          title="Manufacturer"
+          data={manufacturers}
+          scrollAble={true} // Giữ scrollAble nếu bạn muốn
+          handleCreateParameters={handleCreateManufacturer}
+          handleEditParameters={handleEditManufacturer}
+          handleDeleteParameters={handleDeleteManufacturer}
+        >
+          {(
+            { item } // Render wrapper component
+          ) => (
+            <ManufacturerFormContent
+              item={item}
+              manufacturerName={manufacturerName}
+              setManufacturerName={setManufacturerName}
+              handleFormStateUpdate={handleFormStateUpdate}
             />
-          </div>
-        )}
-      </ParametersTable>
-      <ParametersTable title="Product" data={products.slice(0, 8)}>
-        {({ item, index }) => (
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-2">
-              <Select
-                defaultValue={
-                  item
-                    ? categories.filter((c) => c.name === item.category_name)[0]
-                        .name
-                    : undefined
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.category_id} value={cat.name}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                defaultValue={
-                  item
-                    ? manufacturers.filter(
-                        (m) => m.name === item.manufacturer_name
-                      )[0].name
-                    : undefined
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Manufacturer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {manufacturers.map((man) => (
-                    <SelectItem key={man.manufacturer_id} value={man.name}>
-                      {man.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Input
-              id="name"
-              type="text"
-              placeholder="Enter product name"
-              onChange={(e) => console.log(e.target.value)}
-              defaultValue={item?.product_name}
+          )}
+        </ParametersTable>
+      </div>
+
+      {/* Product Table (Không có flex-1, min-w-0) */}
+      <div>
+        {/* Sử dụng state products thay vì initialProducts.slice */}
+        <ParametersTable
+          title="Product"
+          data={products}
+          handleCreateParameters={handleCreateProduct}
+          handleEditParameters={handleEditProduct}
+          handleDeleteParameters={handleDeleteProduct}
+        >
+          {(
+            { item } // Render wrapper component
+          ) => (
+            <ProductFormContent
+              item={item}
+              categories={categories} // Pass categories state
+              manufacturers={manufacturers} // Pass manufacturers state
+              productName={productName}
+              setProductName={setProductName}
+              selectedCategoryId={selectedCategoryId}
+              setSelectedCategoryId={setSelectedCategoryId}
+              selectedManufacturerId={selectedManufacturerId}
+              setSelectedManufacturerId={setSelectedManufacturerId}
+              handleFormStateUpdate={handleFormStateUpdate}
             />
-          </div>
-        )}
-      </ParametersTable>
+          )}
+        </ParametersTable>
+      </div>
     </div>
   );
 }
