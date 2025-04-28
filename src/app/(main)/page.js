@@ -1,4 +1,5 @@
 "use client";
+import Loading from "./loading.jsx";
 import React, { useState, useEffect } from "react";
 import KpiCard from "../../components/home/KpiCard.jsx";
 import {
@@ -58,7 +59,7 @@ export default function DashboardHomePage() {
   }, []);
 
   if (loading) {
-    return <div>Đang Load</div>;
+    return <Loading/>
   }
   if (err) {
     return <div>Lỗi </div>;

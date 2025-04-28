@@ -107,7 +107,7 @@ export default function PartnerPage() {
       </h1>
       <div className="flex flex-col md:flex-row flex-grow gap-4 md:gap-2 md:items-start">
         <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 shadow-md">
-          <CreatePartnerForm onPartnerCreated={refreshPartnerList} />
+          <CreatePartnerForm  />
         </div>
         <div className="flex-grow overflow-hidden">
           <ReuseTable
