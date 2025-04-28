@@ -1,4 +1,5 @@
 "use server";
+import { redirect } from "next/navigation";
 import { delete_cookie, get_cookie, set_cookie } from "../cookie/action";
 export const logout = async () => {
   // Lấy dữ liệu user từ get_cookie để sử dụng trong logout
@@ -21,7 +22,6 @@ export const logout = async () => {
   }
 
   await delete_cookie();
-  redirect("/login");
 };
 
 export const login = async (userName, password) => {

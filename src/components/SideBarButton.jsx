@@ -26,7 +26,7 @@ const slashMotion = {
 export default function SideBarButton({ title, icon, route }) {
   const pathName = usePathname();
   const isActive = route === pathName;
-  return <Link href={route}>
+  return <Link href={route} prefetch={true}>
       <motion.div
         initial="rest"
         whileHover="hover"
