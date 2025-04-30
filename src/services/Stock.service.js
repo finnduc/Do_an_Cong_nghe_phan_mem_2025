@@ -6,157 +6,209 @@ const { findPartnerByID } = require('../models/repo/partner.repo');
 const { findEmployeeByID } = require('../models/repo/employees.repo');
 
 class StockService {
-    /**
-     * Xử lý giao dịch nhập hoặc xuất kho.
-     * @param {Object} payload - Dữ liệu giao dịch.
-     * @param {'import' | 'export'} payload.action - Loại giao dịch.
-     * @param {string} payload.product_name - iphone 14 pro max.
-     * @param {string} payload.category_name - Điện thoại.
-     * @param {string} payload.manufacturer - Apple.
-     * @param {string} payload.partner_id - ID đối tác (chỉ bắt buộc khi nhập).
-     * @param {string} payload.employee_id - ID nhân viên (chỉ bắt buộc khi xuất).
-     * @param {number} payload.price_per_unit - Đơn giá lấy theo nhập xuất
-     * @param {number} payload.quantity - Số lượng sản phẩm.
-     * @returns {Promise<Object>} Kết quả giao dịch đã được lưu.
-     */
     ImportItems = async (payload) => {
-        const { product_name, category_name, manufacturer, partner_id, employee_id, price_per_unit, quantity, action, time } = payload;
+        const { product_name, category_name, manufacturer_name, partner_id, employee_id, price_per_unit, quantity, action, time } = payload;
+        const foundProduct = await checkProduct(product_name, category_name, manufacturer_name);
 
-        try {
-            const foundProduct = await checkProduct(product_name, category_name, manufacturer);
+        const foundPartner = await findPartnerByID(partner_id);
+        const foundEmployee = await findEmployeeByID(employee_id);
 
-            const foundPartner = await findPartnerByID(partner_id);
-            const foundEmployee = await findEmployeeByID(employee_id);
+        if (!foundPartner[0]) {
+            throw new NotFoundError("Đối tác không tồn tại!");
+        }
 
-            if (!foundPartner[0]) {
-                throw new NotFoundError("Đối tác không tồn tại!");
-            }
+        if (!foundEmployee[0]) {
+            throw new NotFoundError("Nhân viên không tồn tại!");
+        }
 
-            if (!foundEmployee[0]) {
-                throw new NotFoundError("Nhân viên không tồn tại!");
-            }
+        const Id_product = await findProductByName(product_name);
+        const Id_manufacturer = await findManufacturer(manufacturer_name);
+        const Id_category = await findCategory(category_name);
 
-            const Id_product = await findProductByName(product_name);
-            const Id_manufacturer = await findManufacturer(manufacturer);
-            const Id_category = await findCategory(category_name);
+        if (!foundProduct[0]) {
 
-            if (!foundProduct[0]) {
-
-                const insertProductQuery = `
+            const insertProductQuery = `
                     INSERT INTO stock (product_id, category_id, manufacturer_id, stock_quantity)
                     VALUES (?, ?, ?, ?)
                 `;
 
-                await executeQuery(insertProductQuery, [Id_product[0].product_id, Id_category[0].category_id, Id_manufacturer[0].manufacturer_id, quantity]);
-            } else {
-                const updateProductQuery = `
+            await executeQuery(insertProductQuery, [Id_product[0].product_id, Id_category[0].category_id, Id_manufacturer[0].manufacturer_id, quantity]);
+        } else {
+            const updateProductQuery = `
                     UPDATE stock
                     SET stock_quantity = stock_quantity + ?
                     WHERE product_id = ? AND manufacturer_id = ? AND category_id = ?
                 `;
-                await executeQuery(updateProductQuery, [quantity, Id_product[0].product_id, Id_manufacturer[0].manufacturer_id, Id_category[0].category_id]);
-            }
+            await executeQuery(updateProductQuery, [quantity, Id_product[0].product_id, Id_manufacturer[0].manufacturer_id, Id_category[0].category_id]);
+        }
 
-            const stock_id = await getStockId(Id_product[0].product_id, Id_manufacturer[0].manufacturer_id, Id_category[0].category_id);
+        const stock_id = await getStockId(Id_product[0].product_id, Id_manufacturer[0].manufacturer_id, Id_category[0].category_id);
 
-            const insertTransactionQuery = `
-                INSERT INTO transactions (action, stock_id, partner_id, employee_id, price_per_unit, quantity)
-                VALUES (?, ?, ?, ?, ?, ?)
+        const insertTransactionQuery = `
+                INSERT INTO transactions (action, product_name, manufacturer_name, categories_name, partner_name, employee_name, price_per_unit, quantity)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             `;
-            const insertTransaction = await executeQuery(insertTransactionQuery, [action, stock_id[0].stock_id, partner_id, employee_id, price_per_unit, quantity]);
+        const insertTransaction = await executeQuery(insertTransactionQuery, [action, product_name, manufacturer_name, category_name, foundPartner[0].name, foundEmployee[0].name, price_per_unit, quantity]);
 
-            const insertPriceQuery = `
+        const insertPriceQuery = `
                 INSERT INTO product_prices (stock_id, price_type, price, effective_date)
                 VALUES (?, ?, ?, ?)
             `;
-            const insertPrice = await executeQuery(insertPriceQuery, [stock_id[0].stock_id, action, price_per_unit, time]);
+        const insertPrice = await executeQuery(insertPriceQuery, [stock_id[0].stock_id, action, price_per_unit, time]);
 
-            return {
-                product: await checkProduct(product_name, category_name, manufacturer),
-                transaction: insertTransaction,
-                price: insertPrice
-            }
-
-        } catch (error) {
-            throw new InternalServerError(error.message);
+        return {
+            product: await checkProduct(product_name, category_name, manufacturer_name),
+            transaction: insertTransaction,
+            price: insertPrice
         }
     }
 
     ExportItems = async (payload) => {
-        const { product_name, category_name, manufacturer, partner_id, employee_id, price_per_unit, quantity, action, time } = payload;
+        const {
+            product_name,
+            category_name,
+            manufacturer_name,
+            partner_id,
+            employee_id,
+            price_per_unit,
+            quantity,
+            action,
+            time,
+        } = payload;
 
-        try {
-            const foundProduct = await checkProduct(product_name, category_name, manufacturer);
+        const foundProduct = await checkProduct(product_name, category_name, manufacturer_name);
+        const foundEmployee = await findEmployeeByID(employee_id);
+        const foundPartner = await findPartnerByID(partner_id);
 
-            const foundEmployee = await findEmployeeByID(employee_id);
-            const foundPartner = await findPartnerByID(partner_id);
-
-            if (!foundEmployee[0]) {
-                throw new NotFoundError("Nhân viên không tồn tại!");
-            }
-            if (!foundPartner[0]) {
-                throw new NotFoundError("Đối tác không tồn tại!");
-            }
-            const Id_product = await findProductByName(product_name);
-            const Id_manufacturer = await findManufacturer(manufacturer);
-            const Id_category = await findCategory(category_name);
-
-            if (!foundProduct[0]) {
-                throw new ConflictError("Sản phẩm không tồn tại trong kho!");
-            } else {
-                if (foundProduct[0].quantity < quantity) {
-                    throw new ConflictError("Số lượng sản phẩm trong kho không đủ!");
-                } else {
-                    const updateProductQuery = `
-                        UPDATE stock
-                        SET stock_quantity = stock_quantity - ?
-                        WHERE product_id = ? AND manufacturer_id = ? AND category_id = ?
-                    `;
-                    await executeQuery(updateProductQuery, [quantity, Id_product[0].product_id, Id_manufacturer[0].manufacturer_id, Id_category[0].category_id]);
-                }
-            }
-
-            const stock_id = await getStockId(Id_product[0].product_id, Id_manufacturer[0].manufacturer_id, Id_category[0].category_id);
-
-            const insertTransactionQuery = `
-                INSERT INTO transactions (action, stock_id, partner_id, employee_id, price_per_unit, quantity)
-                VALUES (?, ?, ?, ?, ?, ?)
-            `;
-            const insertTransaction = await executeQuery(insertTransactionQuery, [action, stock_id[0].stock_id, partner_id, employee_id, price_per_unit, quantity]);
-
-            const insertPriceQuery = `
-                INSERT INTO product_prices (stock_id, price_type, price, effective_date)
-                VALUES (?, ?, ?, ?)
-            `;
-            const insertPrice = await executeQuery(insertPriceQuery, [stock_id[0].stock_id, action, price_per_unit, time]);
-
-            return {
-                product: await checkProduct(product_name, category_name, manufacturer),
-                transaction: insertTransaction,
-                price: insertPrice
-            }
-
-        } catch (error) {
-            throw new InternalServerError(error.message);
+        if (!foundEmployee[0]) {
+            throw new NotFoundError("Nhân viên không tồn tại!");
         }
-    }
+        if (!foundPartner[0]) {
+            throw new NotFoundError("Đối tác không tồn tại!");
+        }
+
+        const Id_product = await findProductByName(product_name);
+        const Id_manufacturer = await findManufacturer(manufacturer_name);
+        const Id_category = await findCategory(category_name);
+
+        if (!foundProduct[0]) {
+            throw new ConflictError("Sản phẩm không tồn tại trong kho!");
+        }
+
+        // Kiểm tra số lượng trong bảng stock
+        const checkStockQuery = `
+          SELECT stock_quantity
+          FROM ttcs.stock
+          WHERE product_id = ? AND manufacturer_id = ? AND category_id = ?
+        `;
+        const stockResult = await executeQuery(checkStockQuery, [
+            Id_product[0].product_id,
+            Id_manufacturer[0].manufacturer_id,
+            Id_category[0].category_id,
+        ]);
+
+        if (!stockResult[0] || stockResult[0].stock_quantity < quantity) {
+            throw new ConflictError("Số lượng sản phẩm trong kho không đủ!");
+        }
+
+        // Cập nhật số lượng trong stock
+        const updateProductQuery = `
+          UPDATE ttcs.stock
+          SET stock_quantity = stock_quantity - ?
+          WHERE product_id = ? AND manufacturer_id = ? AND category_id = ?
+        `;
+        await executeQuery(updateProductQuery, [
+            quantity,
+            Id_product[0].product_id,
+            Id_manufacturer[0].manufacturer_id,
+            Id_category[0].category_id,
+        ]);
+
+        // Lấy stock_id
+        const stock_id = await getStockId(
+            Id_product[0].product_id,
+            Id_manufacturer[0].manufacturer_id,
+            Id_category[0].category_id
+        );
+
+        if (!stock_id[0]) {
+            throw new NotFoundError("Sản phẩm không tồn tại trong kho");
+        }
+
+        // Chèn bản ghi vào transactions
+        const insertTransactionQuery = `
+          INSERT INTO ttcs.transactions (action, product_name, manufacturer_name, categories_name, partner_name, employee_name, price_per_unit, quantity)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        const insertTransaction = await executeQuery(insertTransactionQuery, [
+            action,
+            product_name,
+            manufacturer_name,
+            category_name,
+            foundPartner[0].name,
+            foundEmployee[0].name,
+            price_per_unit,
+            quantity,
+        ]);
+
+        // Chèn bản ghi vào product_prices
+        const insertPriceQuery = `
+          INSERT INTO ttcs.product_prices (stock_id, price_type, price, effective_date)
+          VALUES (?, ?, ?, ?)
+        `;
+        const insertPrice = await executeQuery(insertPriceQuery, [
+            stock_id[0].stock_id,
+            action,
+            price_per_unit,
+            time,
+        ]);
+
+        // Kiểm tra nếu stock_quantity = 0, xóa bản ghi
+        const checkZeroStockQuery = `
+          SELECT stock_quantity
+          FROM ttcs.stock
+          WHERE product_id = ? AND manufacturer_id = ? AND category_id = ?
+        `;
+        const updatedStock = await executeQuery(checkZeroStockQuery, [
+            Id_product[0].product_id,
+            Id_manufacturer[0].manufacturer_id,
+            Id_category[0].category_id,
+        ]);
+
+        if (updatedStock[0] && updatedStock[0].stock_quantity === 0) {
+            const deleteStockQuery = `
+            DELETE FROM ttcs.stock
+            WHERE product_id = ? AND manufacturer_id = ? AND category_id = ?
+          `;
+            await executeQuery(deleteStockQuery, [
+                Id_product[0].product_id,
+                Id_manufacturer[0].manufacturer_id,
+                Id_category[0].category_id,
+            ]);
+        }
+
+        return {
+            product: await checkProduct(product_name, category_name, manufacturer_name),
+            transaction: insertTransaction,
+            price: insertPrice,
+        };
+    };
 
     getStock = async (payload) => {
-        const { limit, page, category_name, product_name, manufacturer, priceMax, priceMin, quantityMax, quantityMin, action } = payload;
+        const { limit, page, category_name, product_name, manufacturer, priceMax, priceMin, quantityMax, quantityMin } = payload;
         const parsedLimit = parseInt(limit, 10);
         const parsedPage = parseInt(page, 10);
-    
+
         // Validate pagination
         if (isNaN(parsedLimit) || isNaN(parsedPage) || parsedLimit <= 0 || parsedPage <= 0) {
             throw new BadRequestError("Limit và page phải là số nguyên dương!");
         }
-    
+
         const offset = (parsedPage - 1) * parsedLimit;
         let whereQuery = '';
         let havingQuery = '';
         let param = [];
-    
-        // WHERE clause conditions
+
         if (product_name) {
             whereQuery += ' AND p.name LIKE ?';
             param.push(`%${product_name}%`);
@@ -169,11 +221,10 @@ class StockService {
             whereQuery += ' AND m.name LIKE ?';
             param.push(`%${manufacturer}%`);
         }
-    
-        // Validate and handle quantity
+
         const parsedQuantityMax = quantityMax !== undefined ? parseFloat(quantityMax) : null;
         const parsedQuantityMin = quantityMin !== undefined ? parseFloat(quantityMin) : null;
-    
+
         if (parsedQuantityMax !== null) {
             if (isNaN(parsedQuantityMax) || parsedQuantityMax < 0) {
                 throw new BadRequestError("QuantityMax phải là số không âm!");
@@ -188,27 +239,25 @@ class StockService {
             whereQuery += ' AND s.stock_quantity >= ?';
             param.push(parsedQuantityMin);
         }
-    
-        // Validate and handle price
+
         const parsedPriceMax = priceMax !== undefined ? parseFloat(priceMax) : null;
         const parsedPriceMin = priceMin !== undefined ? parseFloat(priceMin) : null;
-        const priceType = action === 'import' ? 'import' : 'export';
-    
+
         if (parsedPriceMax !== null) {
             if (isNaN(parsedPriceMax) || parsedPriceMax < 0) {
                 throw new BadRequestError("PriceMax phải là số không âm!");
             }
-            havingQuery += ' AND COALESCE(MAX(CASE WHEN pp.price_type = ? THEN pp.price END), 0) <= ?';
-            param.push(priceType, parsedPriceMax);
+            havingQuery += ' AND COALESCE(MAX(pp.price), 0) <= ?';
+            param.push(parsedPriceMax);
         }
         if (parsedPriceMin !== null) {
             if (isNaN(parsedPriceMin) || parsedPriceMin < 0) {
                 throw new BadRequestError("PriceMin phải là số không âm!");
             }
-            havingQuery += ' AND COALESCE(MAX(CASE WHEN pp.price_type = ? THEN pp.price END), 0) >= ?';
-            param.push(priceType, parsedPriceMin);
+            havingQuery += ' AND COALESCE(MAX(pp.price), 0) >= ?';
+            param.push(parsedPriceMin);
         }
-    
+
         const query = `SELECT 
                         s.stock_id,
                         p.name AS product_name,
@@ -246,7 +295,7 @@ class StockService {
                         manufacturer ASC,
                         product_name ASC
                     LIMIT ${parsedLimit} OFFSET ${offset};`;
-    
+
         const countQuery = `SELECT COUNT(*) AS total
                     FROM (
                         SELECT s.stock_id
@@ -269,11 +318,11 @@ class StockService {
                             1=1
                             ${havingQuery}
                     ) AS subquery;`;
-    
+
         const countResult = await executeQuery(countQuery, param);
         const totalItem = countResult[0].total;
         const data = await executeQuery(query, param);
-    
+
         return {
             data,
             page: parsedPage,

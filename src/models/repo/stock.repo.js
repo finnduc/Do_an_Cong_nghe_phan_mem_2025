@@ -29,8 +29,32 @@ const totalProduct = async ( ) => {
     return await executeQuery(query);
 }
 
+const findManuStock = async ( manufacturer_id ) => {
+    const query = `
+        SELECT * FROM stock WHERE manufacturer_id = ?;
+    `
+    return await executeQuery( query , [ manufacturer_id])
+}
+
+const findCateStock = async ( category_id ) => {
+    const query = `
+        SELECT * FROM stock WHERE category_id = ?;
+    `
+    return await executeQuery( query , [ category_id])
+}
+
+const findProductStock = async ( product_id ) => {
+    const query = `
+        SELECT * FROM stock WHERE product_id = ?;
+    `
+    return await executeQuery( query , [ product_id ])
+}
+
 module.exports = {
     getStockId,
     checkProduct,
-    totalProduct
+    totalProduct,
+    findManuStock,
+    findCateStock,
+    findProductStock
 }

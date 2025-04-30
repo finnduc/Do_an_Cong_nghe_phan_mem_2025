@@ -27,7 +27,6 @@ const hasPermission = ({ resource, permissions }) => {
 
     try {
       const userPermissions = await getUserPermissions(userId);
-      console.log('userPermissions:', userPermissions);
 
       if (!Array.isArray(userPermissions)) {
         throw new Error('Invalid permissions format returned from getUserPermissions');

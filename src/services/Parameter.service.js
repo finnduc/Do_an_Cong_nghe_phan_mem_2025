@@ -1,6 +1,7 @@
-const { BadRequestError, NotFoundError, InternalServerError } = require('../core/error');
+const { BadRequestError, NotFoundError, InternalServerError, ConflictError } = require('../core/error');
 const { executeQuery } = require('../database/executeQuery');
 const { findNameAndCategory, findParameterById, findIdAndCategory, foundManufactuner, findProductByName, findManufacturer, findCategory, findParametersEx, findIdCategory, findIdManu, findIdProduct } = require('../models/repo/parameter.repo');
+const { findManuStock, findCateStock, findProductStock } = require('../models/repo/stock.repo');
 
 class ParameterService {
 
@@ -46,6 +47,11 @@ class ParameterService {
         const foundManu = await findIdManu(manufacturer_id);
         if (!foundManu[0]) {
             throw new NotFoundError("Không tìm thấy nhà sản xuất!");
+        }
+
+        const foundManuStock = await findManuStock(manufacturer_id);
+        if(foundManuStock[0]) {
+            throw new ConflictError("Không thể xóa vì đang tồn tại trong kho!")
         }
 
         const queryDeleteManufacturers = `
@@ -107,6 +113,12 @@ class ParameterService {
         const foundCategory = await findIdCategory(category_id);
         if (!foundCategory[0]) {
             throw new NotFoundError("Không tìm thấy danh mục!");
+        }
+
+        const foundCateStock = await findCateStock( category_id )
+
+        if(foundCateStock[0]) {
+            throw new ConflictError("Không thể xóa vì tồn tại trong kho")
         }
 
         const queryDeleteCategories = `
@@ -257,6 +269,12 @@ class ParameterService {
         const foundParameter = await executeQuery(query, [parameter_id]);
         if (!foundParameter[0]) {
             throw new NotFoundError("Không tìm thấy tham số!");
+        }
+
+        const foundProductStock = await findProductStock(foundParameter[0].product_id);
+
+        if(foundProductStock[0]) {
+            throw new ConflictError("Không thể xóa vì tồn tại sản phẩm trong kho")
         }
 
         const queryDeleteProduct = `
