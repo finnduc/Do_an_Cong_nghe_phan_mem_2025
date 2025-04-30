@@ -72,7 +72,7 @@ const authentication = asyncHandler ( async (req, res, next) => {
             throw new NotFoundError('KeyStore not found!');
         }
 
-        const accessToken = req.headers[HEADERS.AUTHORIZATION];
+        const accessToken = req.headers[HEADERS.AUTHORIZATION].split(' ')[1];
 
         if(!accessToken) {
             throw new ForbiddenError('Missing access token!');
