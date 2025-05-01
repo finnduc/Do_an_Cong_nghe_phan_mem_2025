@@ -51,12 +51,13 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
     try {
       const response = await createPartner(partnerData);
 
-      toast.success(response?.message || "Thêm đối tác thành công!");
+      toast.success(response?.message || "Partner added successfully.!");
       resetForm();
       onSuccess();
     } catch (err) {
       console.error("Error creating partner:", err);
-      const errorMessage = err.message || "Đã xảy ra lỗi khi thêm đối tác.";
+      const errorMessage =
+        err.message || "An error occurred while adding the partner.";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -69,10 +70,10 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
       <Toaster position="top-right" richColors />
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 md:p-8 max-w-md h-full flex flex-col">
         <h2 className="text-center text-xl md:text-2xl font-semibold text-gray-800 mb-1">
-          Tạo Đối Tác Mới
+          Create Partner
         </h2>
         <p className="text-sm text-gray-600 mb-4">
-          Nhập thông tin để thêm đối tác mới vào hệ thống.
+          Enter information to add a new partner to the system.
         </p>
         <form
           onSubmit={handleSubmit}
@@ -83,7 +84,7 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
               htmlFor="name"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Tên đối tác: <span className="text-red-500">*</span>
+              Name: <span className="text-red-500">*</span>
             </Label>
             <Input
               type="text"
@@ -91,7 +92,7 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              placeholder="Nhập tên đối tác"
+              placeholder="Enter partner name "
               disabled={isLoading}
             />
           </div>
@@ -101,7 +102,7 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
               htmlFor="partnerType"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Loại đối tác: <span className="text-red-500">*</span>
+              Type: <span className="text-red-500">*</span>
             </Label>
             <Select
               value={partnerType}
@@ -110,11 +111,11 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
               disabled={isLoading}
             >
               <SelectTrigger id="partnerType">
-                <SelectValue placeholder="Chọn loại đối tác" />
+                <SelectValue placeholder="Select partner type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="supplier">Nhà cung cấp</SelectItem>
-                <SelectItem value="customer">Khách hàng</SelectItem>
+                <SelectItem value="supplier">Supplier</SelectItem>
+                <SelectItem value="customer">Customer</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -124,7 +125,7 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
               htmlFor="phone"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Số điện thoại: <span className="text-red-500">*</span>
+              Phone: <span className="text-red-500">*</span>
             </Label>
             <Input
               type="tel"
@@ -132,7 +133,7 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               required
-              placeholder="Nhập số điện thoại"
+              placeholder="Enter phone"
               disabled={isLoading}
             />
           </div>
@@ -149,7 +150,7 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Nhập địa chỉ email (không bắt buộc)"
+              placeholder="Enter email (Optional)"
               disabled={isLoading}
             />
           </div>
@@ -159,14 +160,14 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
               htmlFor="address"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Địa chỉ:
+              Address:
             </Label>
             <Textarea
               id="address"
               rows="3"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="Nhập địa chỉ (không bắt buộc)"
+              placeholder="Enter address (Optional)"
               disabled={isLoading}
             />
           </div>
@@ -176,7 +177,7 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
             className="mt-auto bg-blue-500 hover:bg-blue-700 text-white"
             disabled={isLoading}
           >
-            {isLoading ? "Đang thêm..." : "Thêm Đối Tác"}
+            {isLoading ? "Loading..." : "Create"}
           </Button>
         </form>
       </div>
@@ -184,5 +185,3 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
   );
 }
 export default CreatePartnerForm;
-
-
