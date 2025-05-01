@@ -52,6 +52,18 @@ class TransactionController {
       next(error);
     }
   }
+
+  getTodayCount = async (req, res, next) => {
+    try {
+      const respone = await TransactionService.getTodayCount();
+      return new OK({
+        message: 'Lấy số lượng giao dịch hôm nay thành công',
+        metadata: respone,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new TransactionController();

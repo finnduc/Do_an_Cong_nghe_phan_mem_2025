@@ -434,13 +434,25 @@ class StockService {
 
     totalUnsoldItemsInStock3Months = async () => {
         const query = `
-            SELECT COALESCE(SUM(s.stock_quantity), 0) AS total_items
-            FROM stock s
-            LEFT JOIN transactions t 
-                ON s.stock_id = t.stock_id 
-                AND t.action = 'export' 
-                AND t.created_at >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
-            WHERE t.transaction_id IS NULL;
+          SELECT COALESCE(SUM(s.stock_quantity), 0) AS total_items
+          FROM stock s
+          LEFT JOIN parameters p 
+            ON s.product_id = p.product_id 
+            AND s.manufacturer_id = p.manufacturer_id 
+            AND s.category_id = p.category_id
+          LEFT JOIN products pr 
+            ON p.product_id = pr.product_id
+          LEFT JOIN manufacturers m 
+            ON p.manufacturer_id = m.manufacturer_id
+          LEFT JOIN categories c 
+            ON p.category_id = c.category_id
+          LEFT JOIN transactions t 
+            ON pr.name = t.product_name 
+            AND m.name = t.manufacturer_name 
+            AND (c.name = t.categories_name OR (c.name IS NULL AND t.categories_name IS NULL))
+            AND t.action = 'export' 
+            AND t.created_at >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
+          WHERE t.transaction_id IS NULL;
         `;
         const result = await executeQuery(query);
         return result[0].total_items;

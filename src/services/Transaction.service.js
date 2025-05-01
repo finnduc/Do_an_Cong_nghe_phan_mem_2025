@@ -134,6 +134,16 @@ class TransactionService {
         const result = await executeQuery(query);
         return result;
     };
+
+    getTodayCount = async () => {
+        const query = `
+            SELECT COUNT(*) AS total_transactions
+            FROM transactions
+            WHERE DATE(created_at) = CURDATE();
+        `;
+        const result = await executeQuery(query);
+        return result[0].total_transactions;
+    }
 }
 
 module.exports = new TransactionService();

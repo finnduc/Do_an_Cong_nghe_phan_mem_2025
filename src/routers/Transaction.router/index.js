@@ -23,4 +23,11 @@ Router.get(
   asyncHandler(TransactionController.getTransactionStatsLast12Months)
 );
 
+Router.get(
+  '/today-count',
+  hasRole(['manager', 'employee']),
+  hasPermission({ permissions: ['read'], resource: 'transactions' }),
+  asyncHandler(TransactionController.getTodayCount)
+);
+
 module.exports = Router;
