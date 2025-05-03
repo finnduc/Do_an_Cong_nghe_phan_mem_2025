@@ -5,7 +5,7 @@ import { jsonToTableFormat } from "@/lib/utils";
 import { fetchEmployees } from "@/lib/api/employee";
 import { toast } from "sonner";
 import { Toaster } from "../ui/sonner";
-
+import addEditButtons from "../../components/AddEditDeleteButtons";
 function removeRoleId(data) {
   if (!data) return [];
   return data.map((item) => {
@@ -62,11 +62,32 @@ export default function EmployeeUI({
     }
   };
 
+  const handleEditClick = () => {
+    if (onEdit) {
+      onEdit(item); // Gọi hàm onEdit với dữ liệu của hàng này
+    } else {
+      console.warn("onEdit handler is not provided to ActionButtons");
+    }
+  };
+
+  const handleDeleteClick = () => {
+    if (onDelete) {
+      onDelete(item); // Gọi hàm onDelete với dữ liệu của hàng này
+    } else {
+      console.warn("onDelete handler is not provided to ActionButtons");
+    }
+  };
+
+
+
+  const colums_with_button = [...formattedData.columns, "Actions"];
+  
+
   return (
     <div>
       <Toaster />
       <ReuseTable
-        columns={formattedData.columns}
+        columns={colums_with_button}
         rows={formattedData.rows}
         currentPage={currentPage}
         totalPages={totalPages}

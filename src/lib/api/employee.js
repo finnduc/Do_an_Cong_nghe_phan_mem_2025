@@ -66,3 +66,13 @@ export async function searchEmployees(searchTerm, page, limit = 10) {
   );
   return data;
 }
+
+export async function GetAllUser(page, limit = 10) {
+  const params = { page, limit };
+  const query = new URLSearchParams(params).toString();
+  const data = await authFetch(
+    `http://localhost:3000/v1/api/user/getAll?${query}`,
+    { method: "GET" }
+  );
+  return data;
+}
