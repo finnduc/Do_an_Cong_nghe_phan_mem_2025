@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import ReuseTable from "../ReuseTable";
 import {
   Select,
@@ -16,7 +16,6 @@ import { Toaster } from "../ui/sonner";
 import DualRangeSlider from "../ui/slider";
 import { ListFilterPlus } from "lucide-react";
 import SearchBar from "../SearchBar";
-import { set } from "zod";
 
 export default function StockUI({ data, manufacturers, categories }) {
   const [currentData, setCurrentData] = useState(data.data);
@@ -31,6 +30,7 @@ export default function StockUI({ data, manufacturers, categories }) {
   const [priceTypeFilter, setPriceTypeFilter] = useState("import");
   const formattedData = jsonToTableFormat(currentData, currentPage);
   const currentFilter = {
+    product_name: searchText,
     manufacturer: manufacturerFilter,
     category_name: categoryFilter,
     priceMin: priceRange[0],
@@ -56,7 +56,6 @@ export default function StockUI({ data, manufacturers, categories }) {
   const getNextPage = async (page) => {
     try {
       const data = await fetchStock(page, 8, currentFilter);
-      console.log(data);
       setCurrentData(data?.metadata?.data);
       setCurrentPage(page);
     } catch (e) {
@@ -72,8 +71,8 @@ export default function StockUI({ data, manufacturers, categories }) {
       const data = await fetchStock(1, 8, currentFilter);
       setCurrentData(data?.metadata?.data);
       setCurrentPage(1);
-      setTotalPages(data?.totalPage);
-      setTotalRecords(data?.totalItem);
+      setTotalPages(data?.metadata?.totalPage);
+      setTotalRecords(data?.metadata?.totalItem);
     } catch (e) {
       setErrorMessage(e.message || "Đã xảy ra lỗi não xác định.");
       toast.error(
@@ -81,6 +80,21 @@ export default function StockUI({ data, manufacturers, categories }) {
       );
     }
   };
+
+  const isFirstRun = useRef(true);
+
+useEffect(() => {
+  if (isFirstRun.current) {
+    isFirstRun.current = false;
+    return; // Bỏ qua lần đầu
+  }
+
+  const timeout = setTimeout(() => {
+    handleApplyFilter();
+  }, 300);
+
+  return () => clearTimeout(timeout); // cleanup nếu searchText thay đổi quá nhanh
+}, [searchText]);
 
   return (
     <div>
@@ -176,7 +190,7 @@ export default function StockUI({ data, manufacturers, categories }) {
         <div>
           <SearchBar
             value={searchText}
-            onValueChange={(value) => setSearchText(value)}
+            onValueChange={(e) => setSearchText(e.target.value)}
           />
           <ReuseTable
             columns={formattedData.columns}
@@ -185,6 +199,7 @@ export default function StockUI({ data, manufacturers, categories }) {
             totalPages={totalPages}
             totalRecords={totalRecords}
             onPageChange={getNextPage}
+            maxLength={25}
           />
         </div>
       </div>
