@@ -1,133 +1,187 @@
 "use client";
 
 import React, { useState } from "react";
+import { createPartner } from "@/lib/api/partner";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
-function CreatePartnerForm() {
+function CreatePartnerForm({ onSuccess = () => {} }) {
   const [name, setName] = useState("");
   const [partnerType, setPartnerType] = useState("supplier");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSubmit = (event) => {
+  const resetForm = () => {
+    setName("");
+    setPartnerType("supplier");
+    setPhone("");
+    setEmail("");
+    setAddress("");
+    setError(null);
+  };
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
+    setError(null);
 
-    console.log("Partner Form submitted:", {
-      name,
-      partnerType,
-      phone,
-      email,
-      address,
-    });
-    alert("Đã thêm đối tác!");
+    const partnerData = {
+      name: name,
+      partner_type: partnerType,
+      phone: phone,
+      email: email || null,
+      address: address || null,
+    };
+    console.log("Sending partner data:", partnerData);
+
+    try {
+      const response = await createPartner(partnerData);
+
+      toast.success(response?.message || "Partner added successfully.!");
+      resetForm();
+      onSuccess();
+    } catch (err) {
+      console.error("Error creating partner:", err);
+      const errorMessage =
+        err.message || "An error occurred while adding the partner.";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="font-sans h-full">
+      <Toaster position="top-right" richColors />
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 md:p-8 max-w-md h-full flex flex-col">
         <h2 className="text-center text-xl md:text-2xl font-semibold text-gray-800 mb-1">
-          Tạo Đối Tác Mới
+          Create Partner
         </h2>
-
         <p className="text-sm text-gray-600 mb-4">
-          Nhập thông tin để thêm đối tác mới vào hệ thống.
+          Enter information to add a new partner to the system.
         </p>
-        <form onSubmit={handleSubmit} className="flex flex-col flex-grow">
-          <div className="mb-4">
-            <label
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col flex-grow space-y-4"
+        >
+          <div>
+            <Label
               htmlFor="name"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Tên đối tác: <span className="text-red-500">*</span>
-            </label>
-            <input
+              Name: <span className="text-red-500">*</span>
+            </Label>
+            <Input
               type="text"
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="Enter partner name "
+              disabled={isLoading}
             />
           </div>
 
-          <div className="mb-4">
-            <label
+          <div>
+            <Label
               htmlFor="partnerType"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Loại đối tác: <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="partnerType"
+              Type: <span className="text-red-500">*</span>
+            </Label>
+            <Select
               value={partnerType}
-              onChange={(e) => setPartnerType(e.target.value)}
+              onValueChange={setPartnerType}
               required
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white" // Thêm bg-white để đảm bảo nền trắng
+              disabled={isLoading}
             >
-              <option value="supplier">Nhà cung cấp</option>
-              <option value="customer">Khách hàng</option>
-            </select>
+              <SelectTrigger id="partnerType">
+                <SelectValue placeholder="Select partner type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="supplier">Supplier</SelectItem>
+                <SelectItem value="customer">Customer</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="mb-4">
-            <label
+          <div>
+            <Label
               htmlFor="phone"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Số điện thoại: <span className="text-red-500">*</span>
-            </label>
-            <input
+              Phone: <span className="text-red-500">*</span>
+            </Label>
+            <Input
               type="tel"
               id="phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               required
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="Enter phone"
+              disabled={isLoading}
             />
           </div>
 
-          <div className="mb-4">
-            <label
+          <div>
+            <Label
               htmlFor="email"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
               Email:
-            </label>
-            <input
+            </Label>
+            <Input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="Enter email (Optional)"
+              disabled={isLoading}
             />
           </div>
 
-          <div className="mb-4">
-            <label
+          <div>
+            <Label
               htmlFor="address"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Địa chỉ:
-            </label>
-            <textarea
+              Address:
+            </Label>
+            <Textarea
               id="address"
               rows="3"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            ></textarea>
+              placeholder="Enter address (Optional)"
+              disabled={isLoading}
+            />
           </div>
-          <button
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <Button
             type="submit"
-            className="mt-auto px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-black hover:bg-blue-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+            className="mt-auto bg-blue-500 hover:bg-blue-700 text-white"
+            disabled={isLoading}
           >
-            Thêm Đối Tác
-          </button>
+            {isLoading ? "Loading..." : "Create"}
+          </Button>
         </form>
       </div>
     </div>
   );
 }
-
-// Cập nhật tên khi export
 export default CreatePartnerForm;

@@ -397,9 +397,7 @@ export default function ParametersUI({
           handleEditParameters={handleEditManufacturer}
           handleDeleteParameters={handleDeleteManufacturer}
         >
-          {(
-            { item } // Render wrapper component
-          ) => (
+          {({ item }) => (
             <ManufacturerFormContent
               item={item}
               manufacturerName={manufacturerName}
@@ -409,10 +407,7 @@ export default function ParametersUI({
           )}
         </ParametersTable>
       </div>
-
-      {/* Product Table (Không có flex-1, min-w-0) */}
       <div>
-        {/* Sử dụng state products thay vì initialProducts.slice */}
         <ParametersTable
           title="Product"
           data={products}
@@ -420,13 +415,11 @@ export default function ParametersUI({
           handleEditParameters={handleEditProduct}
           handleDeleteParameters={handleDeleteProduct}
         >
-          {(
-            { item } // Render wrapper component
-          ) => (
+          {({ item }) => (
             <ProductFormContent
               item={item}
-              categories={categories} // Pass categories state
-              manufacturers={manufacturers} // Pass manufacturers state
+              categories={categories}
+              manufacturers={manufacturers}
               productName={productName}
               setProductName={setProductName}
               selectedCategoryId={selectedCategoryId}

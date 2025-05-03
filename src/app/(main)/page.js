@@ -16,9 +16,9 @@ import { Chart } from "../../lib/api/home.js";
 
 
 const kpiData = {
-  totalProducts: {change: +2.5, text: "so với hôm qua" },
-  lowStockProducts: {value: "5",  change: -5, text: "so với tuần trước" },
-  transactionsToday: { change: +10, text: "so với hôm qua" },
+  totalProducts: {change: +2.5, text: "so với tháng trước" },
+  lowStockProducts: {value: "5",  change: -5, text: "so với tháng trước" },
+  transactionsToday: { change: +10, text: "so với tháng trước" },
   totalPartners: {  change: +1.1, text: "so với tháng trước" },
 };
 

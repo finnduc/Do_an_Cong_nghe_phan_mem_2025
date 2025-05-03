@@ -1,141 +1,110 @@
-"use client";
+// src/app/(main)/employees/page.js
+"use client"; // <-- BẮT BUỘC: Chuyển thành Client Component
 
+// --- Thêm import ---
 import React, { useState, useEffect, useCallback } from "react";
-import CreateEmployeeForm from "../../../components/employees/CreateEmployee.jsx";
-import ReuseTable from "@/components/ReuseTable.jsx";
-import { fetchEmployees } from "@/lib/api/employee";
+import { useRouter } from 'next/navigation';
+// ------------------
 
-const formatDate = (dateString) => {
-  if (!dateString) return "N/A";
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  } catch (e) {
-    console.error("Error formatting date:", e);
-    return "Ngày không hợp lệ";
-  }
-};
+// --- Giữ lại các import gốc ---
+import EmployeeUI from "../../../components/employees/TableEmployee"; // Component bảng
+import { fetchEmployees } from "../../../lib/api/employee"; // API lấy danh sách
+import CreateEmployeeForm from "../../../components/employees/CreateEmployee"; // Component form
+// Bỏ import SearchBar nếu không dùng
+// import SearchBar from "../../../components/SearchBar";
+// -----------------------------
 
 export default function EmployeePage() {
-  const [employees, setEmployees] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  // --- Thêm State để quản lý dữ liệu phía client ---
+  const [employeeData, setEmployeeData] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1); // Cần thiết nếu bảng phân trang
   const [error, setError] = useState(null);
-  const [limit] = useState(9);
+  const [isLoading, setIsLoading] = useState(true); // State loading
+  const limit = 9; // Giữ limit
+  const router = useRouter(); // Hook để refresh
+  // -------------------------------------------
 
-  const loadEmployees = useCallback(
-    async (page) => {
-      setIsLoading(true);
-      setError(null);
-      console.log(`Đang tải nhân viên trang: ${page}`);
-      try {
-        const response = await fetchEmployees(page, limit);
-        console.log("Phản hồi API:", response);
-
-        if (response && response.metadata) {
-          setEmployees(response.metadata.data || []);
-          setTotalPages(response.metadata.totalPage || 1);
-          setTotalRecords(response.metadata.total || 0);
-        } else {
-          console.error("Cấu trúc phản hồi API không đúng:", response);
-          setEmployees([]);
-          setTotalPages(1);
-          setTotalRecords(0);
-          setError("Không thể phân tích dữ liệu nhân viên.");
-        }
-      } catch (err) {
-        console.error("Lỗi khi tải nhân viên:", err);
-        setError(err.message || "Đã xảy ra lỗi khi tải dữ liệu.");
-        setEmployees([]);
-        setTotalPages(1);
-        setTotalRecords(0);
-      } finally {
-        setIsLoading(false);
+  // --- Hàm load dữ liệu, bọc trong useCallback ---
+  const loadEmployees = useCallback(async (page = 1) => {
+    if (page === 1) setIsLoading(true); // Chỉ hiện loading xoay tròn khi load trang đầu
+    setError(null);
+    try {
+      // Gọi fetchEmployees không có search
+      const response = await fetchEmployees(page, limit);
+      if (response && response.metadata) {
+        setEmployeeData(response.metadata.data || []);
+        setTotalPages(response.metadata.totalPage || 1);
+        setTotalRecords(response.metadata.total || 0);
+        setCurrentPage(page);
+      } else {
+        throw new Error("Failed to fetch employee data or invalid format.");
       }
-    },
-    [limit]
-  );
-
-  useEffect(() => {
-    loadEmployees(currentPage);
-  }, [currentPage, loadEmployees]);
-
-  const handlePageChange = (newPage) => {
-    if (
-      !isLoading &&
-      newPage >= 1 &&
-      newPage <= totalPages &&
-      newPage !== currentPage
-    ) {
-      console.log(`Chuyển đến trang: ${newPage}`);
-      setCurrentPage(newPage);
+    } catch (err) {
+      console.error(`Error fetching employees (page ${page}):`, err);
+      setError(err.message || "Could not load employee data.");
+       setEmployeeData([]); setTotalPages(1); setTotalRecords(0);
+    } finally {
+       // Luôn tắt loading sau khi fetch xong trang 1
+       if (page === 1) setIsLoading(false);
     }
-  };
+  }, [limit]); // Phụ thuộc vào limit
+  // -----------------------------------------
 
-  const columns = ["No", "Name", "Email", "Phone", "Created_At", "Account"];
-
-  const rows = employees.map((emp, index) => {
-    const sequentialNumber = (currentPage - 1) * limit + index + 1;
-
-    return [
-      sequentialNumber,
-      emp.name,
-      emp.email,
-      emp.phone || "N/A",
-      formatDate(emp.created_at),
-      emp.username || "Chưa có",
-    ];
-  });
-
-  const refreshEmployeeList = () => {
-    setCurrentPage(1);
+  // --- Fetch dữ liệu lần đầu khi component mount ---
+  useEffect(() => {
     loadEmployees(1);
-  };
+  }, [loadEmployees]); // Thêm loadEmployees vào dependency array
+  // -----------------------------------------
 
+  // --- Hàm xử lý khi tạo nhân viên thành công ---
+  const handleCreateSuccess = () => {
+    console.log("Employee created successfully, refreshing list...");
+    // Dùng router.refresh() để yêu cầu Next.js fetch lại data cho route này
+    router.refresh();
+    // Hoặc gọi lại loadEmployees(1); nếu bạn muốn kiểm soát state chi tiết hơn
+    // loadEmployees(1);
+  };
+  // -----------------------------------------
+
+  // --- Hàm xử lý chuyển trang (nếu bảng EmployeeUI cần) ---
+  const handlePageChange = (newPage) => {
+    loadEmployees(newPage);
+  };
+  // -------------------------------------------------
+
+  // --- Giữ nguyên cấu trúc JSX và CSS gốc ---
   return (
-    <div className="flex flex-col bg-gray-100">
-      <h1 className="text-2xl font-semibold text-gray-800 mb-4">
+    <div className="flex flex-col bg-gray-100"> {/* Giữ class gốc */}
+      <h1 className="text-2xl font-semibold text-gray-800 mb-4"> {/* Giữ class gốc */}
         Employee Management
       </h1>
-
-      <div className="flex flex-col md:flex-row flex-grow gap-4 md:gap-2 md:items-start">
-        <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 shadow-lg rounded-lg">
-          <CreateEmployeeForm onEmployeeCreated={refreshEmployeeList} />
+      {error && !isLoading && ( // Hiển thị lỗi nếu có và không loading
+        <div className="text-red-500 p-4 bg-red-100 border border-red-400 rounded mb-4">
+          {error}
         </div>
-
-        <div className="flex-grow overflow-hidden">
-          {isLoading && (
-            <div className="flex justify-center items-center h-64">
-              <p className="text-gray-500">Đang tải dữ liệu...</p>
-            </div>
-          )}
-
-          {error && !isLoading && (
-            <div
-              className="flex justify-center items-center h-64 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-              role="alert"
-            >
-              <strong className="font-bold">Lỗi!</strong>
-              <span className="block sm:inline"> {error}</span>
-            </div>
-          )}
-
-          {!isLoading && !error && (
-            <ReuseTable
-              columns={columns}
-              rows={rows}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalRecords={totalRecords}
-              onPageChange={handlePageChange}
+      )}
+      <div className="flex flex-col md:flex-row flex-grow gap-4 md:gap-2 md:items-start"> {/* Giữ class gốc */}
+        <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 shadow-md"> {/* Giữ class gốc */}
+          {/* Truyền hàm handleCreateSuccess vào prop onSuccess của Form */}
+          <CreateEmployeeForm onSuccess={handleCreateSuccess} />
+        </div>
+        <div className="flex-grow overflow-hidden"> {/* Giữ class gốc */}
+          {/* Bỏ phần SearchBar */}
+          {isLoading ? (
+             <div className="p-4 text-center">Loading employees...</div> // Thêm trạng thái loading
+          ) : !error ? (
+            // Truyền dữ liệu từ state vào bảng
+            <EmployeeUI
+              initialData={employeeData} // Dùng state employeeData
+              initialTotalPages={totalPages} // Dùng state totalPages
+              initialTotalRecords={totalRecords} // Dùng state totalRecords
+              // Nếu EmployeeUI/TableEmployee cần 2 props này để phân trang đúng, hãy bỏ comment
+              // currentPage={currentPage}
+              // onPageChange={handlePageChange}
             />
-          )}
+          ) : null } {/* Không hiển thị gì nếu lỗi và không loading */}
         </div>
       </div>
     </div>
