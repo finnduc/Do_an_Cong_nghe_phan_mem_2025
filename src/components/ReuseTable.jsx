@@ -32,6 +32,7 @@ const ReuseTable = ({
   totalRecords = 0,
   scrollMode = false,
   maxHeight = "480px",
+  showTotal = true,
 }) => {
   const [inputValue, setInputValue] = useState(currentPage);
 
@@ -56,7 +57,7 @@ const ReuseTable = ({
     <div>
       <div
         className={`border border-gray-300 shadow-md rounded-lg bg-white ${
-          scrollMode ? "overflow-y-auto" : "h-full"
+          scrollMode && "overflow-y-auto"
         }`}
         style={scrollMode ? { maxHeight: maxHeight } : {}}
       >
@@ -124,11 +125,13 @@ const ReuseTable = ({
       </div>
       {!scrollMode && (
         <div className="w-full flex justify-between items-center text-sm px-4 py-2 font-medium">
-          <span className="text-gray-500">
-            Showing {currentPage} of {totalPages} pages - Total records:{" "}
-            {totalRecords}
-          </span>
-          <div className="flex gap-2">
+          {showTotal && (
+            <span className="text-gray-500">
+              Showing {currentPage} of {totalPages} pages - Total records:{" "}
+              {totalRecords}
+            </span>
+          )}
+          <div className="flex gap-2 ml-auto">
             <button
               className="bg-white border border-gray-200 rounded-md p-1 hover:bg-slate-100 disabled:bg-gray-200 disabled:cursor-not-allowed"
               disabled={currentPage === 1}

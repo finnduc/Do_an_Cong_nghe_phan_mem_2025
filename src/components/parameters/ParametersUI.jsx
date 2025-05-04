@@ -1,6 +1,4 @@
 "use client";
-import { jsonToTableFormat } from "@/lib/utils";
-import ReuseTable from "../ReuseTable";
 import { useState, useEffect, useCallback } from "react"; // Đảm bảo useCallback đã được import
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";

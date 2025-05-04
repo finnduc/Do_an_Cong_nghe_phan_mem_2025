@@ -36,7 +36,6 @@ export default function ParametersTable({
   // Add edit and delete buttons to data
   const modifiedData = addEditButtons(data, handleEdit, handleDelete);
   const formattedData = jsonToTableFormat(modifiedData);
-
   // Handle create submission
   const handleCreateSubmit = () => {
     if (handleCreateParameters) {
@@ -93,6 +92,7 @@ export default function ParametersTable({
           rows={formattedData.rows}
           scrollMode={scrollAble}
           maxLength={10}
+          showTotal={false}
         />
       </div>
 
