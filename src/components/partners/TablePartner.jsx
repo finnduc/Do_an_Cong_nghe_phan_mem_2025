@@ -2,10 +2,10 @@
 import { useState, useEffect } from "react";
 import ReuseTable from "../ReuseTable";
 import { jsonToTableFormat } from "@/lib/utils";
-import { fetchPartner } from "@/lib/api/partner";
+import { fetchPartner , updatePartner , deletePartner } from "@/lib/api/partner";
 import { toast } from "sonner";
 import { Toaster } from "../ui/sonner";
-
+import { addEditButtons } from "../../components/AddEditDeleteButtons";
 export default function TablePartner({
   initialData = [],
   initialTotalPages = 1,
@@ -25,13 +25,7 @@ export default function TablePartner({
     setCurrentPage(1);
   }, [initialData, initialTotalPages, initialTotalRecords]);
 
-  // Gọi jsonToTableFormat với dữ liệu hiện tại (currentData)
-  // Hàm jsonToTableFormat sẽ tự động thêm cột "No" và format ngày tháng
-  const formattedData = jsonToTableFormat(currentData, currentPage, limit);
-  console.log("Debugging TablePartner - Before jsonToTableFormat:");
-  console.log("Type of currentData:", typeof currentData);
-  console.log("Is currentData an Array?", Array.isArray(currentData));
-  console.log("Value of currentData:", currentData);
+
   const getNextPage = async (page) => {
     try {
       const result = await fetchPartner(limit, page);
@@ -54,6 +48,44 @@ export default function TablePartner({
       toast.error("Có lỗi xảy ra khi tải dữ liệu đối tác. Vui lòng thử lại.");
     }
   };
+
+  const handleDeleteOnRow = async (item ) => {
+    if (!item?.partner_id) {
+      toast.error("Không tìm thấy nhân viên để xóa" )
+      return;
+    }
+    const confirmed = window.confirm(`Bạn có chắc chắn muốn xóa nhân viên ?`);
+    if (!confirmed) {
+      return;
+    }
+    try {
+      await deletePartner(item.partner_id);
+      toast.success("Đã xóa thành công nhân viên")
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+    }
+  };
+
+  const handleEditOnRow = async (item) => {
+    if (!item?.partner_id) {
+      toast.error("Không tìm thấy nhân viên " )
+      return;
+    }
+    try {
+      await updatePartner(item.partner_id)
+    } catch (error) {
+      
+    }
+  };
+  const processedData = currentData.map(item => {
+    const { created_at,  ...rest } = item; 
+    return rest; 
+  });
+                                             // currentData
+  const dataWithActionButtons = addEditButtons(processedData, handleEditOnRow, handleDeleteOnRow);
+  const formattedData = jsonToTableFormat(dataWithActionButtons, currentPage, limit);
+
+
 
   return (
     <div>

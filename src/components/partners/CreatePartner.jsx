@@ -68,7 +68,7 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
   return (
     <div className="font-sans h-full">
       <Toaster position="top-right" richColors />
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 md:p-8 max-w-md h-full flex flex-col">
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6   md:p-8 max-w-md h-full flex flex-col">
         <h2 className="text-center text-xl md:text-2xl font-semibold text-gray-800 mb-1">
           Create Partner
         </h2>

@@ -2,10 +2,14 @@
 import { useState, useEffect } from "react";
 import ReuseTable from "../ReuseTable";
 import { jsonToTableFormat } from "@/lib/utils";
-import { fetchEmployees } from "@/lib/api/employee";
+import {
+  fetchEmployees,
+  deleteEmployees,
+  updateEmployee,
+} from "@/lib/api/employee";
 import { toast } from "sonner";
 import { Toaster } from "../ui/sonner";
-import addEditButtons from "../../components/AddEditDeleteButtons";
+import { addEditButtons } from "../../components/AddEditDeleteButtons";
 function removeRoleId(data) {
   if (!data) return [];
   return data.map((item) => {
@@ -33,11 +37,7 @@ export default function EmployeeUI({
   }, [initialData, initialTotalPages, initialTotalRecords]);
 
   const limit = 9;
-  const formattedData = jsonToTableFormat(
-    removeRoleId(currentData),
-    currentPage,
-    limit
-  );
+
 
   const getNextPage = async (page) => {
     try {
@@ -62,33 +62,51 @@ export default function EmployeeUI({
     }
   };
 
-  const handleEditClick = () => {
-    if (onEdit) {
-      onEdit(item); // Gọi hàm onEdit với dữ liệu của hàng này
-    } else {
-      console.warn("onEdit handler is not provided to ActionButtons");
+  const handleDeleteOnRow = async (item , index) => {
+    if (!item?.employee_id) {
+      toast.error("Không tìm thấy nhân viên để xóa" )
+      return;
+    }
+    const confirmed = window.confirm(`Bạn có chắc chắn muốn xóa nhân viên ?`);
+    if (!confirmed) {
+      return;
+    }
+    try {
+      await deleteEmployees(item.employee_id);
+      toast.success("Đã xóa thành công nhân viên")
+    } catch (error) {
+      console.error("Error deleting employee:", error);
     }
   };
 
-  const handleDeleteClick = () => {
-    if (onDelete) {
-      onDelete(item); // Gọi hàm onDelete với dữ liệu của hàng này
-    } else {
-      console.warn("onDelete handler is not provided to ActionButtons");
+
+  const handleEditOnRow = async (item) => {
+    if (!item?.employee_id) {
+      toast.error("Không tìm thấy nhân viên " )
+      return;
+    }
+    try {
+      await updateEmployee(item.employee_id)
+    } catch (error) {
+      
     }
   };
+  const dataProcessed = removeRoleId(currentData);
+  const dataWithActionButtons = addEditButtons(dataProcessed, handleEditOnRow, handleDeleteOnRow);
 
+  const formattedTableData = jsonToTableFormat(
+    dataWithActionButtons, 
+    currentPage,
+    limit
+  );
 
-
-  const colums_with_button = [...formattedData.columns, "Actions"];
-  
 
   return (
     <div>
       <Toaster />
       <ReuseTable
-        columns={colums_with_button}
-        rows={formattedData.rows}
+        columns={formattedTableData.columns}
+        rows={formattedTableData.rows}
         currentPage={currentPage}
         totalPages={totalPages}
         totalRecords={totalRecords}
