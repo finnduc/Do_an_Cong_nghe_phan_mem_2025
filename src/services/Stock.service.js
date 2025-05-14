@@ -1,15 +1,16 @@
 const { executeQuery } = require('../database/executeQuery');
 const { BadRequestError, NotFoundError, InternalServerError, ConflictError } = require('../core/error');
-const { findProductByName, findManufacturer, findCategory } = require('../models/repo/parameter.repo');
+const { findProductByName, findManufacturer, findCategory, findIdProduct, findIdManu, findIdCategory } = require('../models/repo/parameter.repo');
 const { getStockId, checkProduct, totalProduct } = require('../models/repo/stock.repo');
 const { findPartnerByID } = require('../models/repo/partner.repo');
 const { findEmployeeByID } = require('../models/repo/employees.repo');
 
 class StockService {
-    ImportItems = async (payload) => {
-        const { product_name, category_name, manufacturer_name, partner_id, employee_id, price_per_unit, quantity, action, time } = payload;
-        const foundProduct = await checkProduct(product_name, category_name, manufacturer_name);
 
+    ImportItems = async (payload) => {
+        const { partner_id, employee_id, action, time, items } = payload;
+        
+        // Validate partner and employee
         const foundPartner = await findPartnerByID(partner_id);
         const foundEmployee = await findEmployeeByID(employee_id);
 
@@ -21,185 +22,363 @@ class StockService {
             throw new NotFoundError("Nhân viên không tồn tại!");
         }
 
-        const Id_product = await findProductByName(product_name);
-        const Id_manufacturer = await findManufacturer(manufacturer_name);
-        const Id_category = await findCategory(category_name);
+        let totalAmount = 0;
+        const stockUpdates = [];
 
-        if (!foundProduct[0]) {
+        for (const item of items) {
+            const { product_id, category_id, manufacturer_id, price_per_unit, quantity } = item;
+            
+            const Id_product = await findIdProduct(product_id);
+            const Id_manufacturer = await findIdManu(manufacturer_id);
+            const Id_category = await findIdCategory(category_id);
 
-            const insertProductQuery = `
-                    INSERT INTO stock (product_id, category_id, manufacturer_id, stock_quantity)
-                    VALUES (?, ?, ?, ?)
-                `;
+            if (!Id_product[0] || !Id_manufacturer[0] || !Id_category[0]) {
+                throw new NotFoundError("Không tìm thấy thông tin sản phẩm, nhà sản xuất hoặc danh mục!");
+            }
 
-            await executeQuery(insertProductQuery, [Id_product[0].product_id, Id_category[0].category_id, Id_manufacturer[0].manufacturer_id, quantity]);
-        } else {
-            const updateProductQuery = `
-                    UPDATE stock
-                    SET stock_quantity = stock_quantity + ?
-                    WHERE product_id = ? AND manufacturer_id = ? AND category_id = ?
-                `;
-            await executeQuery(updateProductQuery, [quantity, Id_product[0].product_id, Id_manufacturer[0].manufacturer_id, Id_category[0].category_id]);
+            const itemTotal = Number(price_per_unit) * Number(quantity);
+            totalAmount += itemTotal;
+
+            stockUpdates.push({
+                product_id: Id_product[0].product_id,
+                manufacturer_id: Id_manufacturer[0].manufacturer_id,
+                category_id: Id_category[0].category_id,
+                quantity,
+                price_per_unit,
+                stock_id: null
+            });
         }
 
-        const stock_id = await getStockId(Id_product[0].product_id, Id_manufacturer[0].manufacturer_id, Id_category[0].category_id);
+        totalAmount = Math.round(totalAmount * 100) / 100;
 
-        const insertTransactionQuery = `
-                INSERT INTO transactions (action, product_name, manufacturer_name, categories_name, partner_name, employee_name, price_per_unit, quantity)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        if (totalAmount > 99999999.99) {
+            throw new BadRequestError("Tổng tiền vượt quá giới hạn cho phép (99999999.99)");
+        }
+
+        try {
+            // Create transaction header first
+            const insertHeaderQuery = `
+                INSERT INTO transaction_headers (
+                    action,
+                    partner_id,
+                    employee_id,
+                    total_amount,
+                    created_at
+                )
+                VALUES (?, ?, ?, ?, ?)
             `;
-        const insertTransaction = await executeQuery(insertTransactionQuery, [action, product_name, manufacturer_name, category_name, foundPartner[0].name, foundEmployee[0].name, price_per_unit, quantity]);
+            
+            const headerResult = await executeQuery(insertHeaderQuery, [
+                action,
+                partner_id,
+                employee_id,
+                totalAmount,
+                time || new Date()
+            ]);
 
-        const insertPriceQuery = `
-                INSERT INTO product_prices (stock_id, price_type, price, effective_date)
-                VALUES (?, ?, ?, ?)
+            // Get the inserted header_id
+            const getHeaderIdQuery = `
+                SELECT header_id 
+                FROM transaction_headers 
+                WHERE action = ? 
+                AND partner_id = ? 
+                AND employee_id = ? 
+                AND total_amount = ? 
+                ORDER BY created_at DESC 
+                LIMIT 1
             `;
-        const insertPrice = await executeQuery(insertPriceQuery, [stock_id[0].stock_id, action, price_per_unit, time]);
+            
+            const headerIdResult = await executeQuery(getHeaderIdQuery, [
+                action,
+                partner_id,
+                employee_id,
+                totalAmount
+            ]);
 
-        return {
-            product: await checkProduct(product_name, category_name, manufacturer_name),
-            transaction: insertTransaction,
-            price: insertPrice
+            if (!headerIdResult || !headerIdResult[0] || !headerIdResult[0].header_id) {
+                throw new InternalServerError("Không thể lấy header_id sau khi tạo transaction");
+            }
+
+            const headerId = headerIdResult[0].header_id;
+            const results = [];
+
+            for (const update of stockUpdates) {
+                const foundProduct = await getStockId(
+                    update.product_id,
+                    update.manufacturer_id,
+                    update.category_id
+                );
+
+                if (!foundProduct[0]) {
+                    const insertProductQuery = `
+                        INSERT INTO stock (product_id, category_id, manufacturer_id, stock_quantity)
+                        VALUES (?, ?, ?, ?)
+                    `;
+                    await executeQuery(insertProductQuery, [
+                        update.product_id,
+                        update.category_id,
+                        update.manufacturer_id,
+                        update.quantity
+                    ]);
+                } else {
+                    const updateProductQuery = `
+                        UPDATE stock
+                        SET stock_quantity = stock_quantity + ?
+                        WHERE product_id = ? AND manufacturer_id = ? AND category_id = ? AND is_deleted = FALSE
+                    `;
+                    await executeQuery(updateProductQuery, [
+                        update.quantity,
+                        update.product_id,
+                        update.manufacturer_id,
+                        update.category_id
+                    ]);
+                }
+
+                const stock_id = await getStockId(
+                    update.product_id,
+                    update.manufacturer_id,
+                    update.category_id
+                );
+
+                if (!stock_id[0] || !stock_id[0].stock_id) {
+                    throw new InternalServerError("Không thể lấy stock_id sau khi cập nhật");
+                }
+
+                update.stock_id = stock_id[0].stock_id;
+
+                const insertItemQuery = `
+                    INSERT INTO transaction_items (
+                        header_id,
+                        stock_id,
+                        quantity,
+                        price_per_unit_snapshot
+                    )
+                    VALUES (?, ?, ?, ?)
+                `;
+                const insertItem = await executeQuery(insertItemQuery, [
+                    headerId,
+                    update.stock_id,
+                    update.quantity,
+                    update.price_per_unit
+                ]);
+
+                const insertPriceQuery = `
+                    INSERT INTO product_prices (stock_id, price_type, price, effective_date)
+                    VALUES (?, ?, ?, ?)
+                `;
+                const insertPrice = await executeQuery(insertPriceQuery, [
+                    update.stock_id,
+                    action,
+                    update.price_per_unit,
+                    time || new Date()
+                ]);
+
+                results.push({
+                    stock_id: update.stock_id,
+                    transaction_item: insertItem,
+                    price: insertPrice
+                });
+            }
+
+            return {
+                header_id: headerId,
+                total_amount: totalAmount,
+                items: results
+            };
+        } catch (error) {
+            throw error;
         }
     }
 
     ExportItems = async (payload) => {
-        const {
-            product_name,
-            category_name,
-            manufacturer_name,
-            partner_id,
-            employee_id,
-            price_per_unit,
-            quantity,
-            action,
-            time,
-        } = payload;
-
-        const foundProduct = await checkProduct(product_name, category_name, manufacturer_name);
-        const foundEmployee = await findEmployeeByID(employee_id);
+        const { partner_id, employee_id, action, time, items } = payload;
+        
         const foundPartner = await findPartnerByID(partner_id);
+        const foundEmployee = await findEmployeeByID(employee_id);
 
-        if (!foundEmployee[0]) {
-            throw new NotFoundError("Nhân viên không tồn tại!");
-        }
         if (!foundPartner[0]) {
             throw new NotFoundError("Đối tác không tồn tại!");
         }
 
-        const Id_product = await findProductByName(product_name);
-        const Id_manufacturer = await findManufacturer(manufacturer_name);
-        const Id_category = await findCategory(category_name);
-
-        if (!foundProduct[0]) {
-            throw new ConflictError("Sản phẩm không tồn tại trong kho!");
+        if (!foundEmployee[0]) {
+            throw new NotFoundError("Nhân viên không tồn tại!");
         }
 
-        // Kiểm tra số lượng trong bảng stock
-        const checkStockQuery = `
-          SELECT stock_quantity
-          FROM ttcs.stock
-          WHERE product_id = ? AND manufacturer_id = ? AND category_id = ?
-        `;
-        const stockResult = await executeQuery(checkStockQuery, [
-            Id_product[0].product_id,
-            Id_manufacturer[0].manufacturer_id,
-            Id_category[0].category_id,
-        ]);
+        let totalAmount = 0;
+        const stockUpdates = [];
 
-        if (!stockResult[0] || stockResult[0].stock_quantity < quantity) {
-            throw new ConflictError("Số lượng sản phẩm trong kho không đủ!");
-        }
+        for (const item of items) {
+            const { product_id, category_id, manufacturer_id, price_per_unit, quantity } = item;
+            
+            const Id_product = await findIdProduct(product_id);
+            const Id_manufacturer = await findIdManu(manufacturer_id);
+            const Id_category = await findIdCategory(category_id);
 
-        // Cập nhật số lượng trong stock
-        const updateProductQuery = `
-          UPDATE ttcs.stock
-          SET stock_quantity = stock_quantity - ?
-          WHERE product_id = ? AND manufacturer_id = ? AND category_id = ?
-        `;
-        await executeQuery(updateProductQuery, [
-            quantity,
-            Id_product[0].product_id,
-            Id_manufacturer[0].manufacturer_id,
-            Id_category[0].category_id,
-        ]);
+            if (!Id_product[0] || !Id_manufacturer[0] || !Id_category[0]) {
+                throw new NotFoundError("Không tìm thấy thông tin sản phẩm, nhà sản xuất hoặc danh mục!");
+            }
 
-        // Lấy stock_id
-        const stock_id = await getStockId(
-            Id_product[0].product_id,
-            Id_manufacturer[0].manufacturer_id,
-            Id_category[0].category_id
-        );
 
-        if (!stock_id[0]) {
-            throw new NotFoundError("Sản phẩm không tồn tại trong kho");
-        }
-
-        // Chèn bản ghi vào transactions
-        const insertTransactionQuery = `
-          INSERT INTO ttcs.transactions (action, product_name, manufacturer_name, categories_name, partner_name, employee_name, price_per_unit, quantity)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-        const insertTransaction = await executeQuery(insertTransactionQuery, [
-            action,
-            product_name,
-            manufacturer_name,
-            category_name,
-            foundPartner[0].name,
-            foundEmployee[0].name,
-            price_per_unit,
-            quantity,
-        ]);
-
-        // Chèn bản ghi vào product_prices
-        const insertPriceQuery = `
-          INSERT INTO ttcs.product_prices (stock_id, price_type, price, effective_date)
-          VALUES (?, ?, ?, ?)
-        `;
-        const insertPrice = await executeQuery(insertPriceQuery, [
-            stock_id[0].stock_id,
-            action,
-            price_per_unit,
-            time,
-        ]);
-
-        // Kiểm tra nếu stock_quantity = 0, xóa bản ghi
-        const checkZeroStockQuery = `
-          SELECT stock_quantity
-          FROM ttcs.stock
-          WHERE product_id = ? AND manufacturer_id = ? AND category_id = ?
-        `;
-        const updatedStock = await executeQuery(checkZeroStockQuery, [
-            Id_product[0].product_id,
-            Id_manufacturer[0].manufacturer_id,
-            Id_category[0].category_id,
-        ]);
-
-        if (updatedStock[0] && updatedStock[0].stock_quantity === 0) {
-            const deleteStockQuery = `
-            DELETE FROM ttcs.stock
-            WHERE product_id = ? AND manufacturer_id = ? AND category_id = ?
-          `;
-            await executeQuery(deleteStockQuery, [
+            const foundProduct = await getStockId(
                 Id_product[0].product_id,
                 Id_manufacturer[0].manufacturer_id,
-                Id_category[0].category_id,
-            ]);
+                Id_category[0].category_id
+            );
+
+            if (!foundProduct[0]) {
+                throw new ConflictError("Sản phẩm không tồn tại trong kho!");
+            }
+
+
+            if (foundProduct[0].stock_quantity < quantity) {
+                throw new ConflictError(`Số lượng sản phẩm trong kho không đủ! (Còn lại: ${foundProduct[0].stock_quantity})`);
+            }
+
+
+            const itemTotal = Number(price_per_unit) * Number(quantity);
+            totalAmount += itemTotal;
+
+
+            stockUpdates.push({
+                product_id: Id_product[0].product_id,
+                manufacturer_id: Id_manufacturer[0].manufacturer_id,
+                category_id: Id_category[0].category_id,
+                quantity,
+                price_per_unit,
+                stock_id: foundProduct[0].stock_id
+            });
         }
 
-        return {
-            product: await checkProduct(product_name, category_name, manufacturer_name),
-            transaction: insertTransaction,
-            price: insertPrice,
-        };
-    };
+        totalAmount = Math.round(totalAmount * 100) / 100;
+
+        if (totalAmount > 99999999.99) {
+            throw new BadRequestError("Tổng tiền vượt quá giới hạn cho phép (99999999.99)");
+        }
+
+        try {
+
+            const insertHeaderQuery = `
+                INSERT INTO transaction_headers (
+                    action,
+                    partner_id,
+                    employee_id,
+                    total_amount,
+                    created_at
+                )
+                VALUES (?, ?, ?, ?, ?)
+            `;
+            
+            await executeQuery(insertHeaderQuery, [
+                action,
+                partner_id,
+                employee_id,
+                totalAmount,
+                time || new Date()
+            ]);
+
+
+            const getHeaderIdQuery = `
+                SELECT header_id 
+                FROM transaction_headers 
+                WHERE action = ? 
+                AND partner_id = ? 
+                AND employee_id = ? 
+                AND total_amount = ? 
+                ORDER BY created_at DESC 
+                LIMIT 1
+            `;
+            
+            const headerIdResult = await executeQuery(getHeaderIdQuery, [
+                action,
+                partner_id,
+                employee_id,
+                totalAmount
+            ]);
+
+            if (!headerIdResult || !headerIdResult[0] || !headerIdResult[0].header_id) {
+                throw new InternalServerError("Không thể lấy header_id sau khi tạo transaction");
+            }
+
+            const headerId = headerIdResult[0].header_id;
+            const results = [];
+
+            for (const update of stockUpdates) {
+                const updateProductQuery = `
+                    UPDATE stock
+                    SET stock_quantity = stock_quantity - ?
+                    WHERE stock_id = ? AND is_deleted = FALSE
+                `;
+                await executeQuery(updateProductQuery, [
+                    update.quantity,
+                    update.stock_id
+                ]);
+
+                const insertItemQuery = `
+                    INSERT INTO transaction_items (
+                        header_id,
+                        stock_id,
+                        quantity,
+                        price_per_unit_snapshot
+                    )
+                    VALUES (?, ?, ?, ?)
+                `;
+                const insertItem = await executeQuery(insertItemQuery, [
+                    headerId,
+                    update.stock_id,
+                    update.quantity,
+                    update.price_per_unit
+                ]);
+
+                const insertPriceQuery = `
+                    INSERT INTO product_prices (stock_id, price_type, price, effective_date)
+                    VALUES (?, ?, ?, ?)
+                `;
+                const insertPrice = await executeQuery(insertPriceQuery, [
+                    update.stock_id,
+                    action,
+                    update.price_per_unit,
+                    time || new Date()
+                ]);
+
+                const checkStockQuery = `
+                    SELECT stock_quantity
+                    FROM stock
+                    WHERE stock_id = ? AND is_deleted = FALSE
+                `;
+                const stockResult = await executeQuery(checkStockQuery, [update.stock_id]);
+                
+                if (stockResult[0] && stockResult[0].stock_quantity === 0) {
+                    const deleteStockQuery = `
+                        UPDATE stock
+                        SET is_deleted = TRUE
+                        WHERE stock_id = ?
+                    `;
+                    await executeQuery(deleteStockQuery, [update.stock_id]);
+                }
+
+                results.push({
+                    stock_id: update.stock_id,
+                    transaction_item: insertItem,
+                    price: insertPrice
+                });
+            }
+
+            return {
+                header_id: headerId,
+                total_amount: totalAmount,
+                items: results
+            };
+        } catch (error) {
+            throw error;
+        }
+    }
 
     getStock = async (payload) => {
         const { limit, page, category_name, product_name, manufacturer, priceMax, priceMin, quantityMax, quantityMin } = payload;
         const parsedLimit = parseInt(limit, 10);
         const parsedPage = parseInt(page, 10);
 
-        // Validate pagination
+
         if (isNaN(parsedLimit) || isNaN(parsedPage) || parsedLimit <= 0 || parsedPage <= 0) {
             throw new BadRequestError("Limit và page phải là số nguyên dương!");
         }
@@ -279,7 +458,7 @@ class StockService {
                         LEFT JOIN categories c ON s.category_id = c.category_id
                         LEFT JOIN product_prices pp ON s.stock_id = pp.stock_id
                     WHERE
-                        1=1
+                        s.is_deleted = FALSE AND p.is_deleted = FALSE AND m.is_deleted = FALSE AND (c.is_deleted = FALSE OR c.is_deleted IS NULL)
                         ${whereQuery}
                     GROUP BY 
                         s.stock_id,
@@ -306,7 +485,7 @@ class StockService {
                             LEFT JOIN categories c ON s.category_id = c.category_id
                             LEFT JOIN product_prices pp ON s.stock_id = pp.stock_id
                         WHERE
-                            1=1
+                            s.is_deleted = FALSE AND p.is_deleted = FALSE AND m.is_deleted = FALSE AND (c.is_deleted = FALSE OR c.is_deleted IS NULL)
                             ${whereQuery}
                         GROUP BY 
                             s.stock_id,
@@ -366,9 +545,8 @@ class StockService {
                     LEFT JOIN categories c ON s.category_id = c.category_id
                     LEFT JOIN product_prices pp ON s.stock_id = pp.stock_id
                 WHERE 
-                    p.name LIKE ? 
-                    OR c.name LIKE ? 
-                    OR m.name LIKE ?
+                    (p.name LIKE ? OR c.name LIKE ? OR m.name LIKE ?)
+                    AND s.is_deleted = FALSE AND p.is_deleted = FALSE AND m.is_deleted = FALSE AND (c.is_deleted = FALSE OR c.is_deleted IS NULL)
                 GROUP BY 
                     s.stock_id,
                     p.name,
@@ -379,8 +557,7 @@ class StockService {
                     category_name ASC,
                     manufacturer ASC,
                     product_name ASC
-                LIMIT ${parsedLimit} OFFSET ${offset};
-            `;
+                LIMIT ${parsedLimit} OFFSET ${offset}`;
 
         // Truy vấn đếm tổng số bản ghi
         const countQuery = `
@@ -394,9 +571,8 @@ class StockService {
                         LEFT JOIN categories c ON s.category_id = c.category_id
                         LEFT JOIN product_prices pp ON s.stock_id = pp.stock_id
                     WHERE 
-                        p.name LIKE ? 
-                        OR c.name LIKE ? 
-                        OR m.name LIKE ?
+                        (p.name LIKE ? OR c.name LIKE ? OR m.name LIKE ?)
+                        AND s.is_deleted = FALSE AND p.is_deleted = FALSE AND m.is_deleted = FALSE AND (c.is_deleted = FALSE OR c.is_deleted IS NULL)
                     GROUP BY 
                         s.stock_id,
                         p.name,
@@ -426,7 +602,8 @@ class StockService {
     totalItemInStock = async () => {
         const query = `
             SELECT SUM(stock_quantity) AS total_items
-            FROM stock;
+            FROM stock
+            WHERE is_deleted = FALSE;
         `;
         const result = await executeQuery(query);
         return result[0].total_items;
@@ -434,25 +611,16 @@ class StockService {
 
     totalUnsoldItemsInStock3Months = async () => {
         const query = `
-          SELECT COALESCE(SUM(s.stock_quantity), 0) AS total_items
-          FROM stock s
-          LEFT JOIN parameters p 
-            ON s.product_id = p.product_id 
-            AND s.manufacturer_id = p.manufacturer_id 
-            AND s.category_id = p.category_id
-          LEFT JOIN products pr 
-            ON p.product_id = pr.product_id
-          LEFT JOIN manufacturers m 
-            ON p.manufacturer_id = m.manufacturer_id
-          LEFT JOIN categories c 
-            ON p.category_id = c.category_id
-          LEFT JOIN transactions t 
-            ON pr.name = t.product_name 
-            AND m.name = t.manufacturer_name 
-            AND (c.name = t.categories_name OR (c.name IS NULL AND t.categories_name IS NULL))
-            AND t.action = 'export' 
-            AND t.created_at >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
-          WHERE t.transaction_id IS NULL;
+            SELECT COALESCE(SUM(s.stock_quantity), 0) AS total_items
+            FROM stock s
+            WHERE s.stock_id NOT IN (
+                SELECT DISTINCT ti.stock_id
+                FROM transaction_items ti
+                JOIN transaction_headers th ON ti.header_id = th.header_id
+                WHERE th.action = 'export'
+                AND th.created_at >= DATE_SUB(NOW(), INTERVAL 3 MONTH)
+            )
+            AND s.is_deleted = FALSE;
         `;
         const result = await executeQuery(query);
         return result[0].total_items;

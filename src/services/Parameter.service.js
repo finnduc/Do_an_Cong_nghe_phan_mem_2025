@@ -35,7 +35,7 @@ class ParameterService {
         const queryUpdateManufacturers = `
             UPDATE manufacturers
             SET name = ?
-            WHERE manufacturer_id = ?;
+            WHERE manufacturer_id = ? AND is_deleted = FALSE;
         `;
 
         const updateManufacturers = await executeQuery(queryUpdateManufacturers, [manufacturer, manufacturer_id]);
@@ -55,7 +55,8 @@ class ParameterService {
         }
 
         const queryDeleteManufacturers = `
-            DELETE FROM manufacturers
+            UPDATE manufacturers
+            SET is_deleted = TRUE
             WHERE manufacturer_id = ?;
         `;
 
@@ -66,7 +67,7 @@ class ParameterService {
 
     getManu = async () => {
         const queryManufacturers = `
-            SELECT manufacturer_id, name FROM manufacturers;
+            SELECT manufacturer_id, name FROM manufacturers WHERE is_deleted = FALSE;
         `;
 
         const manufacturers = await executeQuery(queryManufacturers);
@@ -82,8 +83,8 @@ class ParameterService {
         }
 
         const queryCategories = `
-        INSERT INTO categories (name)
-        VALUES (?);
+            INSERT INTO categories (name)
+            VALUES (?);
         `;
 
         const createCategory = await executeQuery(queryCategories, [category]);
@@ -99,9 +100,9 @@ class ParameterService {
         }
 
         const queryUpdateCategories = `
-        UPDATE categories
-        SET name = ?
-        WHERE category_id = ?;
+            UPDATE categories
+            SET name = ?
+            WHERE category_id = ? AND is_deleted = FALSE;
         `;
 
         const updateCategories = await executeQuery(queryUpdateCategories, [category, category_id]);
@@ -115,14 +116,15 @@ class ParameterService {
             throw new NotFoundError("Không tìm thấy danh mục!");
         }
 
-        const foundCateStock = await findCateStock( category_id )
+        const foundCateStock = await findCateStock(category_id)
 
         if(foundCateStock[0]) {
             throw new ConflictError("Không thể xóa vì tồn tại trong kho")
         }
 
         const queryDeleteCategories = `
-            DELETE FROM categories
+            UPDATE categories
+            SET is_deleted = TRUE
             WHERE category_id = ?;
         `;
 
@@ -132,7 +134,7 @@ class ParameterService {
 
     getCategory = async () => {
         const queryCategories = `
-            SELECT category_id, name FROM categories;
+            SELECT category_id, name FROM categories WHERE is_deleted = FALSE;
         `;
         const categories = await executeQuery(queryCategories);
         return categories;
@@ -156,8 +158,8 @@ class ParameterService {
             throw new BadRequestError("Sản phẩm đã tồn tại!");
         }
         const queryProducts = `
-        INSERT INTO products (name)
-        VALUES (?);
+            INSERT INTO products (name)
+            VALUES (?);
         `;
         await executeQuery(queryProducts, [name_product]);
         
@@ -249,6 +251,7 @@ class ParameterService {
             JOIN products p ON param.product_id = p.product_id
             LEFT JOIN manufacturers m ON param.manufacturer_id = m.manufacturer_id
             LEFT JOIN categories c ON param.category_id = c.category_id
+            WHERE p.is_deleted = FALSE AND (m.is_deleted = FALSE OR m.is_deleted IS NULL) AND (c.is_deleted = FALSE OR c.is_deleted IS NULL)
             ORDER BY category_name ASC, manufacturer_name ASC, product_name ASC
             LIMIT ${parsedLimit} OFFSET ${offset};
         `;
@@ -257,14 +260,13 @@ class ParameterService {
     }
 
     deleteParameter = async (payload) => {
-
         const { parameter_id } = payload;
 
         const query = `
-                SELECT product_id , manufacturer_id , category_id
-                FROM parameters
-                WHERE parameter_id = ?;
-            `;
+            SELECT p.product_id, p.manufacturer_id, p.category_id
+            FROM parameters p
+            WHERE p.parameter_id = ? AND p.is_deleted = FALSE;
+        `;
 
         const foundParameter = await executeQuery(query, [parameter_id]);
         if (!foundParameter[0]) {
@@ -277,22 +279,24 @@ class ParameterService {
             throw new ConflictError("Không thể xóa vì tồn tại sản phẩm trong kho")
         }
 
-        const queryDeleteProduct = `
-                DELETE FROM products
-                WHERE product_id = ?;
-            `;
+        const queryUpdateProduct = `
+            UPDATE products
+            SET is_deleted = TRUE
+            WHERE product_id = ?;
+        `;
 
-        const deleteProduct = await executeQuery(queryDeleteProduct, [foundParameter[0].product_id]);
+        const updateProduct = await executeQuery(queryUpdateProduct, [foundParameter[0].product_id]);
 
-        const queryDeleteParameter = `
-                DELETE FROM parameters
-                WHERE parameter_id = ?;
-            `;
-        const deleteParameter = await executeQuery(queryDeleteParameter, [parameter_id]);
+        const queryUpdateParameter = `
+            UPDATE parameters
+            SET is_deleted = TRUE
+            WHERE parameter_id = ?;
+        `;
+        const updateParameter = await executeQuery(queryUpdateParameter, [parameter_id]);
 
         return {
-            product: deleteProduct,
-            parameter: deleteParameter
+            product: updateProduct,
+            parameter: updateParameter
         }
     }
 
@@ -326,6 +330,7 @@ class ParameterService {
                 JOIN manufacturers m ON param.manufacturer_id = m.manufacturer_id
                 JOIN categories c ON param.category_id = c.category_id
                 WHERE p.name LIKE ? AND m.name LIKE ? AND c.name LIKE ?
+                AND p.is_deleted = FALSE AND m.is_deleted = FALSE AND c.is_deleted = FALSE
                 ORDER BY category_name ASC, manufacturer_name ASC, product_name ASC
                 LIMIT ${parsedLimit} OFFSET ${offset};
             `;

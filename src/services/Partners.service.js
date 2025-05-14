@@ -4,7 +4,7 @@ const { findEmployeeByID } = require('../models/repo/employees.repo');
 const { findPartnerByInfo, findPartnerByID } = require('../models/repo/partner.repo');
 
 class PartnerService {
-    // Create partner
+    
     createPartner = async (payload) => {
         const foundPartner = await findPartnerByInfo({ email: payload.email, phone: payload.phone });
 
@@ -29,7 +29,7 @@ class PartnerService {
         const query = `
                 UPDATE partners
                 SET name = ?, partner_type = ?, address = ?, phone = ?, email = ?
-                WHERE partner_id = ?
+                WHERE partner_id = ? AND is_deleted = FALSE
             `;
         return await executeQuery(query, [payload.name, payload.partner_type, payload.address, payload.phone, payload.email, payload.partner_id]);
     }
@@ -45,8 +45,8 @@ class PartnerService {
             throw new BadRequestError("Limit và page phải là số nguyên dương!");
         }
 
-        const query = `SELECT * FROM partners ORDER BY name ASC LIMIT ${parsedLimit} OFFSET ${offset};`;
-        const countQuery = `SELECT COUNT(*) AS total FROM partners`;
+        const query = `SELECT * FROM partners WHERE is_deleted = 0 ORDER BY name ASC LIMIT ${parsedLimit} OFFSET ${offset};`;
+        const countQuery = `SELECT COUNT(*) AS total FROM partners WHERE is_deleted = 0`;
         const countResult = await executeQuery(countQuery);
         const total = countResult[0].total;
         const results = await executeQuery(query);
@@ -62,14 +62,14 @@ class PartnerService {
 
     // Get partner by id
     getPartnerById = async (payload) => {
-        const query = `SELECT * FROM partners WHERE partner_id = ?`;
+        const query = `SELECT * FROM partners WHERE partner_id = ? AND is_deleted = 0`;
         return await executeQuery(query, [payload.partner_id]);
     }
 
     // get Name of partner
     getPartnerName = async ( payload ) => {
         const { action } = payload;
-        const query = `SELECT name, partner_id FROM partners WHERE partner_type = ?`;
+        const query = `SELECT name, partner_id FROM partners WHERE partner_type = ? AND is_deleted = 0`;
         return await executeQuery(query, [action]);
     }
 
@@ -84,7 +84,7 @@ class PartnerService {
         const placeholders = partnerIds.map(() => '?').join(', ');
         const findQuery = `
             SELECT partner_id FROM partners
-            WHERE partner_id IN (${placeholders});
+            WHERE partner_id IN (${placeholders}) AND is_deleted = FALSE;
         `;
         const foundPartners = await executeQuery(findQuery, partnerIds);
         const foundIds = foundPartners.map(partner => partner.partner_id);
@@ -100,9 +100,10 @@ class PartnerService {
         }
 
         const deleteQuery = `
-                DELETE FROM partners
-                WHERE partner_id IN (${placeholders});
-            `;
+            UPDATE partners
+            SET is_deleted = TRUE
+            WHERE partner_id IN (${placeholders});
+        `;
         return await executeQuery(deleteQuery, partnerIds);
     }
 
@@ -119,7 +120,8 @@ class PartnerService {
         const { search } = payload;
         const searchQuery = `
                 SELECT * FROM partners
-                WHERE name LIKE ? OR phone LIKE ? OR email LIKE ?
+                WHERE (name LIKE ? OR phone LIKE ? OR email LIKE ?)
+                AND is_deleted = FALSE
                 ORDER BY name ASC LIMIT ${parsedLimit} OFFSET ${offset};
             `;
         const searchParams = [`%${search}%`, `%${search}%`, `%${search}%`];

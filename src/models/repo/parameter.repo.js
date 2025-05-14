@@ -4,7 +4,7 @@ const findProductByName = async (name) => {
     const query = `
         SELECT product_id
         FROM products
-        WHERE name = ?
+        WHERE name = ? AND is_deleted = FALSE
     `;
     return await executeQuery(query, [name]);
 }
@@ -13,7 +13,7 @@ const findManufacturer = async (name) => {
     const query = `
         SELECT manufacturer_id
         FROM manufacturers
-        WHERE name = ?
+        WHERE name = ? AND is_deleted = FALSE
     `;
     return await executeQuery(query, [name]);
 }
@@ -22,7 +22,7 @@ const findCategory = async (name) => {
     const query = `
         SELECT category_id
         FROM categories
-        WHERE name = ?
+        WHERE name = ? AND is_deleted = FALSE
     `;
     return await executeQuery(query, [name]);
 }
@@ -31,7 +31,7 @@ const findIdAndCategory = async (name) => {
     const query = `
         SELECT category_id
         FROM categories
-        WHERE name = ?
+        WHERE name = ? AND is_deleted = FALSE
     `;
     return await executeQuery(query, [name]);
 }
@@ -56,7 +56,7 @@ const foundManufactuner = async ( manufacturer ) => {
     const query = `
         SELECT manufacturer_id
         FROM manufacturers
-        WHERE name = ?
+        WHERE name = ? AND is_deleted = FALSE
     `;
 
     return await executeQuery(query, [manufacturer]);
@@ -66,7 +66,7 @@ const findIdCategory = async (id) => {
     const query = `
         SELECT category_id , name
         FROM categories
-        WHERE category_id = ?
+        WHERE category_id = ? AND is_deleted = FALSE
     `;
 
     return await executeQuery(query, [id]);
@@ -76,7 +76,7 @@ const findIdManu = async (id) => {
     const query = `
         SELECT manufacturer_id, name
         FROM manufacturers
-        WHERE manufacturer_id = ?
+        WHERE manufacturer_id = ? AND is_deleted = FALSE
     `;
 
     return await executeQuery(query, [id]);
@@ -86,7 +86,7 @@ const findIdProduct = async (id) => {
     const query = `
         SELECT product_id, name
         FROM products
-        WHERE product_id = ?
+        WHERE product_id = ? AND is_deleted = FALSE
     `;
 
     return await executeQuery(query, [id]);

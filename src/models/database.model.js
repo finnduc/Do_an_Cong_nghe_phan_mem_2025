@@ -26,6 +26,7 @@ const createAllTables = async () => {
     `CREATE TABLE IF NOT EXISTS categories (
         category_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
         name VARCHAR(100) NOT NULL UNIQUE,
+        is_deleted BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
 
@@ -33,6 +34,7 @@ const createAllTables = async () => {
     `CREATE TABLE IF NOT EXISTS manufacturers (
         manufacturer_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
         name VARCHAR(100) NOT NULL UNIQUE,
+        is_deleted BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
 
@@ -40,6 +42,7 @@ const createAllTables = async () => {
     `CREATE TABLE IF NOT EXISTS products (
         product_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
         name VARCHAR(100) UNIQUE NOT NULL,
+        is_deleted BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
 
@@ -50,30 +53,34 @@ const createAllTables = async () => {
         stock_quantity INT NOT NULL CHECK (stock_quantity >= 0),
         manufacturer_id CHAR(36) NOT NULL,
         category_id CHAR(36) NULL,
+        is_deleted BOOLEAN DEFAULT FALSE,
         FOREIGN KEY (product_id) REFERENCES products (product_id) ON UPDATE CASCADE,
         FOREIGN KEY (manufacturer_id) REFERENCES manufacturers (manufacturer_id) ON UPDATE CASCADE,
         FOREIGN KEY (category_id) REFERENCES categories (category_id) ON UPDATE CASCADE
     )`,
 
-    // Bảng product_prices
+
     `CREATE TABLE IF NOT EXISTS product_prices (
         price_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
         stock_id CHAR(36) NOT NULL,
         price_type ENUM('import', 'export') NOT NULL,
         price DECIMAL(10, 2) NOT NULL CHECK (price > 0),
         effective_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_deleted BOOLEAN DEFAULT FALSE,
         FOREIGN KEY (stock_id) REFERENCES stock (stock_id) ON DELETE CASCADE ON UPDATE CASCADE
     )`,
 
     // Bảng partners
     `CREATE TABLE IF NOT EXISTS partners (
         partner_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-        name VARCHAR(100) NOT NULL UNIQUE,
+        name VARCHAR(100) NOT NULL,
         partner_type ENUM('supplier', 'customer') NOT NULL,
         address TEXT,
         phone VARCHAR(15) NOT NULL,
         email VARCHAR(100),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        is_deleted BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY (name, partner_type)
     )`,
 
     // Bảng employees
@@ -82,26 +89,35 @@ const createAllTables = async () => {
         name VARCHAR(100) NOT NULL,
         email VARCHAR(100) UNIQUE NOT NULL,
         phone VARCHAR(15),
+        is_deleted BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         user_id CHAR(36) UNIQUE,
         FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE SET NULL ON UPDATE CASCADE
     )`,
 
-    // Bảng transactions
-    `CREATE TABLE IF NOT EXISTS transactions (
-        transaction_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    `CREATE TABLE IF NOT EXISTS transaction_headers (
+        header_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
         action ENUM('import', 'export') NOT NULL,
-        product_name VARCHAR(225) NOT NULL,
-        manufacturer_name VARCHAR(225) NOT NULL,
-        categories_name VARCHAR(255),
-        partner_name VARCHAR(225),
-        employee_name VARCHAR(225),
-        price_per_unit DECIMAL(10, 2) NOT NULL,
-        quantity INT NOT NULL CHECK (quantity > 0),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        partner_id CHAR(36) NULL,
+        employee_id CHAR(36) NULL,
+        total_amount DECIMAL(10, 2) NOT NULL CHECK (total_amount >= 0),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        notes TEXT NULL,
+        FOREIGN KEY (partner_id) REFERENCES partners (partner_id) ON DELETE SET NULL ON UPDATE CASCADE,
+        FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE SET NULL ON UPDATE CASCADE
     )`,
 
-    // Bảng parameters
+    `CREATE TABLE IF NOT EXISTS transaction_items (
+        item_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+        header_id CHAR(36) NOT NULL,
+        stock_id CHAR(36) NULL,
+        quantity INT NOT NULL CHECK (quantity > 0),
+        price_per_unit_snapshot DECIMAL(10, 2) NOT NULL CHECK (price_per_unit_snapshot > 0),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (header_id) REFERENCES transaction_headers (header_id) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY (stock_id) REFERENCES stock (stock_id) ON DELETE SET NULL ON UPDATE CASCADE
+    );`,
+
     `CREATE TABLE IF NOT EXISTS parameters (
         parameter_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
         product_id CHAR(36),
@@ -113,7 +129,6 @@ const createAllTables = async () => {
         FOREIGN KEY (category_id) REFERENCES categories (category_id) ON DELETE SET NULL ON UPDATE CASCADE
     )`,
 
-    // Bảng roles
     `CREATE TABLE IF NOT EXISTS roles (
         role_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
         name VARCHAR(255) NOT NULL,
@@ -121,7 +136,6 @@ const createAllTables = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
 
-    // Bảng permissions
     `CREATE TABLE IF NOT EXISTS permissions (
         permission_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
         name VARCHAR(255) NOT NULL,
@@ -129,7 +143,6 @@ const createAllTables = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
 
-    // Bảng resources
     `CREATE TABLE IF NOT EXISTS resources (
         resource_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
         name VARCHAR(255) NOT NULL UNIQUE,
@@ -137,7 +150,6 @@ const createAllTables = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`,
 
-    // Bảng user_roles
     `CREATE TABLE IF NOT EXISTS user_roles (
         user_id CHAR(36),
         role_id CHAR(36),
@@ -146,7 +158,6 @@ const createAllTables = async () => {
         FOREIGN KEY (role_id) REFERENCES roles (role_id) ON DELETE CASCADE
     )`,
 
-    // Bảng role_permissions
     `CREATE TABLE IF NOT EXISTS role_permissions (
         role_id CHAR(36),
         permission_id CHAR(36),

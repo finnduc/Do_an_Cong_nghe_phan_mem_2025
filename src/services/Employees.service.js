@@ -30,7 +30,7 @@ class EmployeeService {
         const query = `
                 UPDATE employees
                 SET name = ?, email = ?, phone = ?
-                WHERE employee_id = ?
+                WHERE employee_id = ? AND is_deleted = FALSE
             `;
         return await executeQuery(query, [payload.name, payload.email, payload.phone, payload.employee_id]);
     }
@@ -56,9 +56,10 @@ class EmployeeService {
             COALESCE(u.username, '') AS username
             FROM employees e
             LEFT JOIN users u ON e.user_id = u.user_id
+            WHERE e.is_deleted = FALSE
             ORDER BY e.name ASC
             LIMIT ${parsedLimit} OFFSET ${offset}`;
-        const countQuery = `SELECT COUNT(*) AS total FROM employees;`;
+        const countQuery = `SELECT COUNT(*) AS total FROM employees WHERE is_deleted = FALSE`;
         const countResult = await executeQuery(countQuery);
         const total = countResult[0].total;
         const results = await executeQuery(query);
@@ -75,7 +76,7 @@ class EmployeeService {
     // Get partner by id
     getEmployeerById = async (payload) => {
         const { employee_id } = payload;
-        const query = `SELECT * FROM employees WHERE employee_id = ?`;
+        const query = `SELECT * FROM employees WHERE employee_id = ? AND is_deleted = FALSE`;
         const employee = await executeQuery(query, [employee_id]);
         if (!employee[0]) {
             throw new NotFoundError("Nhân viên không tồn tại!");
@@ -86,7 +87,7 @@ class EmployeeService {
 
     // 
     getEmployeeName = async () => {
-        const query = `SELECT employee_id, name FROM employees`;
+        const query = `SELECT employee_id, name FROM employees WHERE is_delete = 0`;
         const employeeNames = await executeQuery(query);
 
         return employeeNames;
@@ -104,7 +105,7 @@ class EmployeeService {
         const placeholders = employeeIds.map(() => '?').join(', ');
         const findQuery = `
             SELECT employee_id FROM employees
-            WHERE employee_id IN (${placeholders});
+            WHERE employee_id IN (${placeholders}) AND is_delete = FALSE;
         `;
         const foundEmployees = await executeQuery(findQuery, employeeIds);
 
@@ -117,9 +118,10 @@ class EmployeeService {
         }
 
         const deleteQuery = `
-            DELETE FROM employees
+            UPDATE employees
+            SET is_deleted = TRUE
             WHERE employee_id IN (${placeholders});
-            `;
+        `;
         return await executeQuery(deleteQuery, employeeIds);
     }
 
@@ -150,7 +152,8 @@ class EmployeeService {
         // Use parameterized query to prevent SQL injection
         const searchQuery = `
                 SELECT * FROM employees 
-                WHERE name LIKE ? OR email LIKE ? OR phone LIKE ?
+                WHERE (name LIKE ? OR email LIKE ? OR phone LIKE ?)
+                AND is_delete = FALSE
                 LIMIT ${parsedLimit} OFFSET ${offset}
             `;
         const employees = await executeQuery(searchQuery, [
@@ -159,7 +162,7 @@ class EmployeeService {
             `%${search}%`,
         ]);
 
-        // Check if any employees were found
+
         if (employees.length === 0) {
             throw new NotFoundError('Không tìm thấy nhân viên nào!');
         }
