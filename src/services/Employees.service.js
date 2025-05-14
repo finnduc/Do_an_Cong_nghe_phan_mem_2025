@@ -87,7 +87,7 @@ class EmployeeService {
 
     // 
     getEmployeeName = async () => {
-        const query = `SELECT employee_id, name FROM employees WHERE is_delete = 0`;
+        const query = `SELECT employee_id, name FROM employees WHERE is_deleted = FALSE`;
         const employeeNames = await executeQuery(query);
 
         return employeeNames;
@@ -105,7 +105,7 @@ class EmployeeService {
         const placeholders = employeeIds.map(() => '?').join(', ');
         const findQuery = `
             SELECT employee_id FROM employees
-            WHERE employee_id IN (${placeholders}) AND is_delete = FALSE;
+            WHERE employee_id IN (${placeholders}) AND is_deleted = FALSE;
         `;
         const foundEmployees = await executeQuery(findQuery, employeeIds);
 
@@ -153,7 +153,7 @@ class EmployeeService {
         const searchQuery = `
                 SELECT * FROM employees 
                 WHERE (name LIKE ? OR email LIKE ? OR phone LIKE ?)
-                AND is_delete = FALSE
+                AND is_deleted = FALSE
                 LIMIT ${parsedLimit} OFFSET ${offset}
             `;
         const employees = await executeQuery(searchQuery, [

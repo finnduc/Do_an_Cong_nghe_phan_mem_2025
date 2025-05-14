@@ -45,8 +45,8 @@ class PartnerService {
             throw new BadRequestError("Limit và page phải là số nguyên dương!");
         }
 
-        const query = `SELECT * FROM partners WHERE is_deleted = 0 ORDER BY name ASC LIMIT ${parsedLimit} OFFSET ${offset};`;
-        const countQuery = `SELECT COUNT(*) AS total FROM partners WHERE is_deleted = 0`;
+        const query = `SELECT * FROM partners WHERE is_deleted = FALSE ORDER BY name ASC LIMIT ${parsedLimit} OFFSET ${offset};`;
+        const countQuery = `SELECT COUNT(*) AS total FROM partners WHERE is_deleted = FALSE`;
         const countResult = await executeQuery(countQuery);
         const total = countResult[0].total;
         const results = await executeQuery(query);
@@ -62,14 +62,14 @@ class PartnerService {
 
     // Get partner by id
     getPartnerById = async (payload) => {
-        const query = `SELECT * FROM partners WHERE partner_id = ? AND is_deleted = 0`;
+        const query = `SELECT * FROM partners WHERE partner_id = ? AND is_deleted = FALSE`;
         return await executeQuery(query, [payload.partner_id]);
     }
 
     // get Name of partner
     getPartnerName = async ( payload ) => {
         const { action } = payload;
-        const query = `SELECT name, partner_id FROM partners WHERE partner_type = ? AND is_deleted = 0`;
+        const query = `SELECT name, partner_id FROM partners WHERE partner_type = ? AND is_deleted = FALSE`;
         return await executeQuery(query, [action]);
     }
 
