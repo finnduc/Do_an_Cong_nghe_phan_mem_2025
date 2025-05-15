@@ -101,7 +101,7 @@ const TransactionTable = ({
                         : ""
                     }`}
                   >
-                    <td className="px-4 border-b text-left w-12">
+                    <td className={`px-4 border-b text-left w-12 ${rowIndex === rows.length - 1 ? "rounded-bl-lg" : ""}`}>
                       {row.items && row.items.length > 0 && ( // Changed from row.products
                         <button
                           onClick={() => toggleRow(rowIndex)}
@@ -125,9 +125,7 @@ const TransactionTable = ({
                         key={`cell-${rowIndex}-${cellIndex}`}
                         className={`px-4 border-b text-left ${
                           !scrollMode && rowIndex === rows.length - 1
-                            ? cellIndex === 0
-                              ? "rounded-bl-lg"
-                              : cellIndex === row.data.length - 1
+                            ?  cellIndex === row.data.length - 1
                               ? "rounded-br-lg"
                               : ""
                             : ""
@@ -148,20 +146,14 @@ const TransactionTable = ({
                         className="px-4 py-2 bg-gray-50"
                       >
                         <div className="ml-8">
-                          <table className="w-full text-sm text-left border border-gray-200 rounded-lg">
+                          <table className="w-full text-sm text-left border rounded-lg">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-100">
                               <tr>
                                 {itemColumns.map((column, index) => ( // Changed from productColumns
                                   <th
                                     key={`item-header-${index}`} // Changed from product-header
                                     scope="col"
-                                    className={`py-2 px-3 text-left ${
-                                      index === 0 ? "rounded-tl-lg" : ""
-                                    } ${
-                                      index === itemColumns.length - 1
-                                        ? "rounded-tr-lg"
-                                        : ""
-                                    }`}
+                                    className={`py-2 px-3 text-left`}
                                   >
                                     {column}
                                   </th>
@@ -177,7 +169,7 @@ const TransactionTable = ({
                                   {item.map((cell, cellIndex) => (
                                     <td
                                       key={`item-cell-${rowIndex}-${itemIndex}-${cellIndex}`} // Changed from product-cell
-                                      className="px-3 py-2"
+                                      className={`px-3 py-2`}
                                     >
                                       {typeof cell === "string" ? (
                                         <TruncatedCell
