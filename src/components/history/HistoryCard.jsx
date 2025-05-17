@@ -25,18 +25,19 @@ export default function HistoryCard({ data }) {
         )}
         <div>
           {data.action === "export" ? "Supplier" : "Customer"}:{" "}
-          {data.partner_name}
+          {data.partner_name}, Handle by: {data.employee_name}
         </div>
-        <div>Handle by: {data.employee_name}</div>
-        <div>
-          Product name: {data.product_name}, manufacturer: {data.manufacturer},
-          category: {data.category_name}, quantity: {data.quantity}, price per
-          unit: {data.price_per_unit}
+        <div className="flex flex-col gap-1">
+          {data.items.map((item, itemIndex) => (
+            <div key={itemIndex}>
+              Product name: {item.product_name}, Quantity: {item.quantity},
+              Price per unit: {item.price_per_unit}
+            </div>
+          ))}
         </div>
-        <div className="text-gray-500 text-xs">
-          {formatDate(data.created_at)}
-        </div>
+        <div>Total amount: {data.total_amount}</div>
       </div>
+      <div className="text-gray-500 text-xs">{formatDate(data.created_at)}</div>
     </div>
   );
 }

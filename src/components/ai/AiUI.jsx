@@ -39,7 +39,7 @@ export default function AiUI() {
   const pageSize = 9;
   const totalPages = Math.ceil(totalRecords / pageSize);
   const filteredData = filterIdColumns(currentData);
-  
+
   const updateHeight = (event) => {
     const textarea = event.target;
     textarea.style.height = "auto";
@@ -55,9 +55,14 @@ export default function AiUI() {
     setIsLoading(true);
     try {
       const data = await generateSQL(question);
-      setSqlQuery(formatSQL(data.data.limited_sql_query));
-      setCurrentData(data.data.result);
-      setTotalRecords(data.data.total_count);
+      console.log(data);
+      if (typeof data.data === "string") {
+        setCurrentData(data.data);
+      } else {
+        setSqlQuery(formatSQL(data.data.limited_sql_query));
+        setCurrentData(data.data.result);
+        setTotalRecords(data.data.total_count);
+      }
     } catch (e) {
       setErrorMessage(e.message || "Internal sever error");
       toast.error(
@@ -77,6 +82,7 @@ export default function AiUI() {
     setIsExecuting(true);
     try {
       const data = await executeSQL(sqlQuery, 0, false);
+      setQuestion("");
       setCurrentData(data.data.result);
       setTotalRecords(data.data.total_count);
       setSqlQuery(data.data.limited_sql_query);
@@ -111,6 +117,7 @@ export default function AiUI() {
       <Toaster />
       <div className="border border-input rounded-xl shadow-sm flex p-3 w-full bg-white">
         <Textarea
+          value={question}
           className="min-h-[40px] resize-none overflow-hidden border-0 shadow-none focus-visible:ring-0 px-0 py-0"
           placeholder="Enter your question..."
           onChange={updateHeight}
@@ -185,7 +192,9 @@ export default function AiUI() {
               onChange={(value) => (tempQueryRef.current = value)}
             />
             {errorMessage && (
-              <div className="text-red-500 text-sm w-[500px]">{errorMessage}</div>
+              <div className="text-red-500 text-sm w-[500px]">
+                {errorMessage}
+              </div>
             )}
             <div className="w-full flex justify-between">
               <div className="flex self-end gap-2">

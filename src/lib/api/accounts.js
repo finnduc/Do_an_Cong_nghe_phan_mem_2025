@@ -32,10 +32,33 @@ export async function createAccount(username, password, role_id) {
     "http://localhost:3000/v1/api/user/create",
     options
   );
-  return data;
+  retu
 }
 
 export async function fetchRoles() {
   const data = await authFetch("http://localhost:3000/v1/api/user/getRole");
+  return data;
+}
+
+
+export async function updateAccount(user_id, username, password) {
+  const payload = {
+    user_id,
+    userName: username,
+    password,
+  };
+
+  const options = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  };
+
+  const data = await authFetch(
+    "http://localhost:3000/v1/api/user/update",
+    options
+  );
   return data;
 }
