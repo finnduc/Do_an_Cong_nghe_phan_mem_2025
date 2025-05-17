@@ -1,4 +1,3 @@
-// TransactionCreator.js
 import { useState } from "react";
 import {
   Select,
@@ -9,6 +8,7 @@ import {
 } from "../ui/select";
 import { Button } from "../ui/button";
 import { Plus, X } from "lucide-react";
+import TransactionConfirmation from "./TransactionConfirmation";
 
 export default function TransactionCreator({
   currentData,
@@ -30,6 +30,8 @@ export default function TransactionCreator({
   const [partnerIdInput, setPartnerIdInput] = useState("");
   const [employeeIdInput, setEmployeeIdInput] = useState("");
   const [emptyMessage, setEmptyMessage] = useState("");
+  const [requiredMessage, setRequiredMessage] = useState("");
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const handleQuantityInput = (e) => {
     const max = currentProduct ? currentProduct.quantity : 1000;
@@ -49,7 +51,34 @@ export default function TransactionCreator({
     setCurrentProduct({ ...currentProduct, selectedQuantity: value });
   };
 
+  const handlePriceInput = (e) => {
+    const min = 0;
+    const inputValue = e.target.value;
+
+    if (inputValue === "") {
+      setPriceInput(0);
+      return;
+    }
+
+    let value = Number(inputValue);
+    if (value < min) value = min;
+
+    setPriceInput(value);
+  };
+
   const handleAddProduct = () => {
+    if (
+      !currentProduct ||
+      !currentProduct.selectedQuantity ||
+      !priceInput ||
+      !currentProduct.product_name ||
+      !currentProduct.stock_id
+    ) {
+      setRequiredMessage(
+        "Please fill in all the required fields before adding the product."
+      );
+      return;
+    }
     setInvolvedProducts((prev) => [
       ...prev,
       {
@@ -61,6 +90,9 @@ export default function TransactionCreator({
     ]);
     resetFilters();
     setIsAddingProduct(false);
+    setRequiredMessage("");
+    setPriceInput("");
+    setCurrentProduct(null);
   };
 
   const totalAmount = involvedProducts.reduce(
@@ -73,6 +105,7 @@ export default function TransactionCreator({
     items: involvedProducts,
     partner_id: partnerIdInput,
     employee_id: employeeIdInput,
+    transaction_date: new Date().toLocaleString(),
   };
 
   const handleCreateTransaction = () => {
@@ -84,14 +117,28 @@ export default function TransactionCreator({
         (Array.isArray(value) && value.length === 0);
       if (isEmpty) {
         setEmptyMessage(
-          'Please fill in all the required fields before creating the transaction.'
+          "Please fill in all the required fields before creating the transaction."
         );
         return;
       }
     }
     setEmptyMessage("");
-    console.log(transactionData);
+    setIsConfirming(true);
   };
+
+  const handleConfirmTransaction = () => {
+    console.log("Transaction confirmed:", transactionData);
+    setIsConfirming(false);
+    setInvolvedProducts([]);
+    setPartnerIdInput("");
+    setEmployeeIdInput("");
+    setTransactionType("export");
+  };
+
+  const selectedPartner = partners.find((p) => p.partner_id === partnerIdInput);
+  const selectedEmployee = employees.find(
+    (e) => e.employee_id === employeeIdInput
+  );
 
   return (
     <div className="space-y-4">
@@ -119,7 +166,13 @@ export default function TransactionCreator({
           ))}
         </SelectContent>
       </Select>
-      <Select onValueChange={setTransactionType} value={transactionType}>
+      <Select
+        onValueChange={(value) => {
+          setTransactionType(value);
+          setInvolvedProducts([]);
+        }}
+        value={transactionType}
+      >
         <SelectTrigger>
           <SelectValue placeholder="Transaction Type" />
         </SelectTrigger>
@@ -249,7 +302,7 @@ export default function TransactionCreator({
             }
             disabled={transactionType !== "import"}
             min={0}
-            onChange={(e) => setPriceInput(e.target.value)}
+            onChange={handlePriceInput}
           />
           <div className="flex gap-2">
             <Button
@@ -265,6 +318,9 @@ export default function TransactionCreator({
               Cancel
             </Button>
           </div>
+          {requiredMessage && (
+            <div className="text-red-500 text-sm">{requiredMessage}</div>
+          )}
         </div>
       )}
       <Button
@@ -276,11 +332,22 @@ export default function TransactionCreator({
       <Button
         className="w-full bg-blue-500 hover:bg-blue-700"
         onClick={handleCreateTransaction}
+        disabled={isAddingProduct || involvedProducts.length === 0}
       >
         Create
       </Button>
       {emptyMessage && (
         <div className="text-red-500 text-sm">{emptyMessage}</div>
+      )}
+      {isConfirming && (
+        <TransactionConfirmation
+          transactionData={transactionData}
+          selectedPartner={selectedPartner}
+          selectedEmployee={selectedEmployee}
+          totalAmount={totalAmount}
+          onConfirm={handleConfirmTransaction}
+          onCancel={() => setIsConfirming(false)}
+        />
       )}
     </div>
   );

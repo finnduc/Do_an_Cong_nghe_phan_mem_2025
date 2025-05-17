@@ -25,14 +25,15 @@ import { Toaster } from "../ui/sonner";
 import { useState } from "react";
 
 const formSchema = z.object({
-  username: z.string().min(8, "Tên tài khoản phải có ít nhất 8 kí tự"),
+  username: z.string().min(8, "Username must be at least 8 characters"),
   password: z
     .string()
-    .min(8, "Mật khẩu phải có ít nhất 8 kí tự")
-    .regex(/[a-zA-Z]/, "Mật khẩu phải có ít nhất một chữ cái")
-    .regex(/\d/, "Mật khẩu phải có ít nhất một chữ số"),
-  role_id: z.string().min(1, "Vui lòng chọn một vai trò"),
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[a-zA-Z]/, "Password must contain at least one letter")
+    .regex(/\d/, "Password must contain at least one number"),
+  role_id: z.string().min(1, "Please select a role"),
 });
+
 
 export default function CreateUser({ roleData, onSuccess }) {
   const [isCreating, setIsCreating] = useState(false);
@@ -61,12 +62,11 @@ export default function CreateUser({ roleData, onSuccess }) {
         values.password,
         values.role_id
       );
-      setMessage(data.message);
-      toast.success("Tạo tài khoản thành công!");
+      setMessage("The account has been created successfully.");
       onSuccess();
     } catch (error) {
-      setMessage(error.message || "Có lỗi xảy ra khi tạo tài khoản");
-      toast.error(error.message || "Có lỗi xảy ra");
+      setMessage(error.message || "An error occurred while creating the account. Please try again or contact the administrator.");
+      toast.error(error.message || "An error occurred while creating the account. Please try again or contact the administrator.");
     }
   }
 
@@ -147,7 +147,9 @@ export default function CreateUser({ roleData, onSuccess }) {
               <div className="font-semibold text-xl">{message}</div>
               <Button
                 className="bg-blue-500 hover:bg-blue-700"
-                onClick={() => setIsCreating(false)}
+                onClick={() => {
+                  setIsCreating(false);
+                }}
               >
                 Close
               </Button>

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import { Button } from "../ui/button";
 import HistoryCard from "./HistoryCard";
 import { useState } from "react";
@@ -19,6 +19,7 @@ export default function HistoryUI({ dataList, total }) {
   });
   const [isFiltering, setIsFiltering] = useState(false);
   const [filterError, setFilterError] = useState("");
+
   const handleOnExpand = async () => {
     setIsLoading(true);
     try {
@@ -60,6 +61,7 @@ export default function HistoryUI({ dataList, total }) {
     try {
       const newData = await fetchHistories(1, 6, dateFilter);
       setCurrentDataList(newData.metadata.data);
+      setTotalRecords(newData.metadata.total);
     } catch (e) {
       console.log(e);
       toast.error(
@@ -72,19 +74,19 @@ export default function HistoryUI({ dataList, total }) {
 
   const handleResetFilter = () => {
     setDateFilter({
-      startDate: null,
-      endDate: null,
+      startTime: null,
+      endTime: null,
     });
     setCurrentPage(1);
     setCurrentDataList(dataList);
   };
 
   return (
-    <div className="flex">
+    <div className="flex flex-col md:flex-row gap-4">
       <Toaster />
-      <div className="w-[300px] flex flex-col gap-4 pr-4">
+      <div className="w-full md:w-[300px] flex flex-col gap-4 pr-4">
         <div className="flex justify-between items-center">
-          <div className="text-sm">Start date: </div>
+          <div className="text-sm">Start date:</div>
           <button className="hover:text-red-500" onClick={handleResetFilter}>
             <RotateCcw size={15} />
           </button>
@@ -95,7 +97,7 @@ export default function HistoryUI({ dataList, total }) {
           value={dateFilter.startTime || ""}
           onChange={(e) => handleStartDateChange(e.target.value)}
         />
-        <div className="text-sm">End date: </div>
+        <div className="text-sm">End date:</div>
         <input
           type="date"
           className="p-2 shadow-sm border-[1px] rounded-md"
@@ -114,13 +116,15 @@ export default function HistoryUI({ dataList, total }) {
         </Button>
       </div>
       {currentDataList.length > 0 ? (
-        <div className="flex flex-col overflow-auto gap-2 h-[550px] pl-4 w-full py-2">
-          {currentDataList.map((item, index) => (
-            <HistoryCard key={index} data={item} />
-          ))}
+        <div className="flex-1 flex flex-col gap-2 py-2">
+          <div className="space-y-2">
+            {currentDataList.map((item, index) => (
+              <HistoryCard key={index} data={item} />
+            ))}
+          </div>
           {totalRecords !== currentDataList.length && (
             <Button
-              className="self-center"
+              className="self-center mt-4"
               onClick={handleOnExpand}
               disabled={isLoading}
             >
@@ -129,7 +133,7 @@ export default function HistoryUI({ dataList, total }) {
           )}
         </div>
       ) : (
-        <div className="text-center w-full text-gray-600">
+        <div className="flex-1 text-center py-4 text-gray-600">
           No history data found
         </div>
       )}

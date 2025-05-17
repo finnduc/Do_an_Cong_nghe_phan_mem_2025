@@ -32,7 +32,7 @@ export async function createAccount(username, password, role_id) {
     "http://localhost:3000/v1/api/user/create",
     options
   );
-  retu
+  return data
 }
 
 export async function fetchRoles() {
@@ -61,4 +61,19 @@ export async function updateAccount(user_id, username, password) {
     options
   );
   return data;
+}
+
+export async function deleteAccount(user_id) {
+  const options = {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ user_id }),
+  };
+
+  await authFetch(
+    "http://localhost:3000/v1/api/user/delete",
+    options
+  );
 }

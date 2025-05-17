@@ -121,6 +121,7 @@ export default function AiUI() {
           className="min-h-[40px] resize-none overflow-hidden border-0 shadow-none focus-visible:ring-0 px-0 py-0"
           placeholder="Enter your question..."
           onChange={updateHeight}
+          
         />
         <button
           className="size-[40px] p-2 rounded-[50%] text-white flex items-center justify-center hover:bg-blue-700 bg-blue-500"
