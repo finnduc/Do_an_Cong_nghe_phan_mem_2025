@@ -105,7 +105,7 @@ Router.get(
   '/getName',
   hasRole(['manager', 'employee']),
   hasPermission({ permissions: ['read'], resource: 'parameters' }),
-  asyncHandler(ParameterController.getParameterName)
+  asyncHandler(ParameterController.getNameParameter)
 );
 
 Router.post(

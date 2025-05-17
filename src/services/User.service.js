@@ -72,7 +72,7 @@ class UserService {
         const placeholders = userIds.map(() => '?').join(', ');
         const findQuery = `
             SELECT user_id FROM users
-            WHERE user_id IN (${placeholders}) AND is_deleted = FALSE;
+            WHERE user_id IN (${placeholders});
         `;
         const foundUsers = await executeQuery(findQuery, userIds);
         const foundIds = foundUsers.map(user => user.user_id);
@@ -84,8 +84,7 @@ class UserService {
         }
 
         const deleteQuery = `
-            UPDATE users
-            SET is_deleted = TRUE
+            DELETE FROM users
             WHERE user_id IN (${placeholders});
         `;
         return await executeQuery(deleteQuery, userIds);

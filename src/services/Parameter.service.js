@@ -175,7 +175,18 @@ class ParameterService {
                 VALUES (?, ?, ?);
             `;
 
-        return await executeQuery(query, [IdProduct[0].product_id, foundManufacturer[0].manufacturer_id, foundCategory[0].category_id]);
+        const queryInsertStock = `
+            INSERT INTO stock (product_id, manufacturer_id, category_id, stock_quantity, is_deleted)
+            VALUES (?, ?, ?, ?, ?);
+            `;
+        const insertStock = await executeQuery(queryInsertStock, [IdProduct[0].product_id, foundManufacturer[0].manufacturer_id, foundCategory[0].category_id, 0, false]);
+
+        const createParameter = await executeQuery(query, [IdProduct[0].product_id, foundManufacturer[0].manufacturer_id, foundCategory[0].category_id]);
+
+        return {
+            parameter: createParameter,
+            stock: insertStock
+        }
     }
 
     updateParameter = async (payload) => {
@@ -299,6 +310,19 @@ class ParameterService {
             parameter: updateParameter
         }
     }
+
+    getNameParameter = async () => {
+    const query = `
+        SELECT p.product_id, p.name AS product_name, m.manufacturer_id, m.name AS manufacturer_name, c.category_id, c.name AS category_name
+        FROM parameters param
+        JOIN products p ON param.product_id = p.product_id
+        JOIN manufacturers m ON param.manufacturer_id = m.manufacturer_id   
+        JOIN categories c ON param.category_id = c.category_id
+        WHERE p.is_deleted = FALSE AND (m.is_deleted = FALSE OR m.is_deleted IS NULL) AND (c.is_deleted = FALSE OR c.is_deleted IS NULL)
+        ORDER BY category_name ASC, manufacturer_name ASC, product_name ASC;
+    `;
+    return await executeQuery(query);
+}
 
     getParameterById = async (payload) => {
         const { parameter_id } = payload;

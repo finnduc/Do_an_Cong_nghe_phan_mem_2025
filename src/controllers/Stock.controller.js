@@ -85,6 +85,18 @@ class StockController {
       next(error);
     }
   }
+
+  updatePriceExport = async (req, res, next) => {
+    try {
+      const respone = await StockService.updatePriceExport(req.body);
+      return new OK({
+        message: 'Update price export successfully',
+        metadata: respone,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new StockController();

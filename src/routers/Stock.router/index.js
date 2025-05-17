@@ -63,4 +63,10 @@ Router.get(
   asyncHandler(StockController.totalItemInStock3Month)
 );
 
+Router.post(
+  '/updatePriceExport',
+  hasRole(['manager', 'employee']),
+  hasPermission({ permissions: ['update'], resource: 'stock' }),
+  asyncHandler(StockController.updatePriceExport)
+);
 module.exports = Router;

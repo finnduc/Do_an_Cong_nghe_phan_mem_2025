@@ -1,7 +1,7 @@
 const { executeQuery } = require('../database/executeQuery');
 const { BadRequestError, NotFoundError, InternalServerError, ConflictError } = require('../core/error');
-const { findProductByName, findManufacturer, findCategory, findIdProduct, findIdManu, findIdCategory } = require('../models/repo/parameter.repo');
-const { getStockId, checkProduct, totalProduct } = require('../models/repo/stock.repo');
+const { findIdProduct, findIdManu, findIdCategory } = require('../models/repo/parameter.repo');
+const { getStockId, checkProduct, totalProduct, getStockById } = require('../models/repo/stock.repo');
 const { findPartnerByID } = require('../models/repo/partner.repo');
 const { findEmployeeByID } = require('../models/repo/employees.repo');
 
@@ -26,26 +26,21 @@ class StockService {
         const stockUpdates = [];
 
         for (const item of items) {
-            const { product_id, category_id, manufacturer_id, price_per_unit, quantity } = item;
-            
-            const Id_product = await findIdProduct(product_id);
-            const Id_manufacturer = await findIdManu(manufacturer_id);
-            const Id_category = await findIdCategory(category_id);
+            const { stock_id, price_per_unit, quantity } = item;
 
-            if (!Id_product[0] || !Id_manufacturer[0] || !Id_category[0]) {
-                throw new NotFoundError("Không tìm thấy thông tin sản phẩm, nhà sản xuất hoặc danh mục!");
+            const foundStock = await getStockById(stock_id);
+
+            if (!foundStock[0]) {
+                throw new NotFoundError(`Không tìm thấy thông tin kho với stock_id: ${stock_id}!`);
             }
 
             const itemTotal = Number(price_per_unit) * Number(quantity);
             totalAmount += itemTotal;
 
             stockUpdates.push({
-                product_id: Id_product[0].product_id,
-                manufacturer_id: Id_manufacturer[0].manufacturer_id,
-                category_id: Id_category[0].category_id,
+                stock_id,
                 quantity,
-                price_per_unit,
-                stock_id: null
+                price_per_unit
             });
         }
 
@@ -103,48 +98,15 @@ class StockService {
             const results = [];
 
             for (const update of stockUpdates) {
-                const foundProduct = await getStockId(
-                    update.product_id,
-                    update.manufacturer_id,
-                    update.category_id
-                );
-
-                if (!foundProduct[0]) {
-                    const insertProductQuery = `
-                        INSERT INTO stock (product_id, category_id, manufacturer_id, stock_quantity)
-                        VALUES (?, ?, ?, ?)
-                    `;
-                    await executeQuery(insertProductQuery, [
-                        update.product_id,
-                        update.category_id,
-                        update.manufacturer_id,
-                        update.quantity
-                    ]);
-                } else {
-                    const updateProductQuery = `
-                        UPDATE stock
-                        SET stock_quantity = stock_quantity + ?
-                        WHERE product_id = ? AND manufacturer_id = ? AND category_id = ? AND is_deleted = FALSE
-                    `;
-                    await executeQuery(updateProductQuery, [
-                        update.quantity,
-                        update.product_id,
-                        update.manufacturer_id,
-                        update.category_id
-                    ]);
-                }
-
-                const stock_id = await getStockId(
-                    update.product_id,
-                    update.manufacturer_id,
-                    update.category_id
-                );
-
-                if (!stock_id[0] || !stock_id[0].stock_id) {
-                    throw new InternalServerError("Không thể lấy stock_id sau khi cập nhật");
-                }
-
-                update.stock_id = stock_id[0].stock_id;
+                const updateStockQuery = `
+                    UPDATE stock
+                    SET stock_quantity = stock_quantity + ?
+                    WHERE stock_id = ? AND is_deleted = FALSE
+                `;
+                await executeQuery(updateStockQuery, [
+                    update.quantity,
+                    update.stock_id
+                ]);
 
                 const insertItemQuery = `
                     INSERT INTO transaction_items (
@@ -208,44 +170,25 @@ class StockService {
         const stockUpdates = [];
 
         for (const item of items) {
-            const { product_id, category_id, manufacturer_id, price_per_unit, quantity } = item;
+            const { stock_id, price_per_unit, quantity } = item;
             
-            const Id_product = await findIdProduct(product_id);
-            const Id_manufacturer = await findIdManu(manufacturer_id);
-            const Id_category = await findIdCategory(category_id);
+            const foundStock = await getStockById(stock_id);
 
-            if (!Id_product[0] || !Id_manufacturer[0] || !Id_category[0]) {
-                throw new NotFoundError("Không tìm thấy thông tin sản phẩm, nhà sản xuất hoặc danh mục!");
+            if (!foundStock[0]) {
+                throw new NotFoundError(`Không tìm thấy thông tin kho với stock_id: ${stock_id}!`);
             }
 
-
-            const foundProduct = await getStockId(
-                Id_product[0].product_id,
-                Id_manufacturer[0].manufacturer_id,
-                Id_category[0].category_id
-            );
-
-            if (!foundProduct[0]) {
-                throw new ConflictError("Sản phẩm không tồn tại trong kho!");
+            if (foundStock[0].stock_quantity < quantity) {
+                throw new ConflictError(`Số lượng sản phẩm trong kho không đủ! (Còn lại: ${foundStock[0].stock_quantity})`);
             }
-
-
-            if (foundProduct[0].stock_quantity < quantity) {
-                throw new ConflictError(`Số lượng sản phẩm trong kho không đủ! (Còn lại: ${foundProduct[0].stock_quantity})`);
-            }
-
 
             const itemTotal = Number(price_per_unit) * Number(quantity);
             totalAmount += itemTotal;
 
-
             stockUpdates.push({
-                product_id: Id_product[0].product_id,
-                manufacturer_id: Id_manufacturer[0].manufacturer_id,
-                category_id: Id_category[0].category_id,
+                stock_id,
                 quantity,
-                price_per_unit,
-                stock_id: foundProduct[0].stock_id
+                price_per_unit
             });
         }
 
@@ -256,7 +199,6 @@ class StockService {
         }
 
         try {
-
             const insertHeaderQuery = `
                 INSERT INTO transaction_headers (
                     action,
@@ -275,7 +217,6 @@ class StockService {
                 totalAmount,
                 time || new Date()
             ]);
-
 
             const getHeaderIdQuery = `
                 SELECT header_id 
@@ -303,12 +244,12 @@ class StockService {
             const results = [];
 
             for (const update of stockUpdates) {
-                const updateProductQuery = `
+                const updateStockQuery = `
                     UPDATE stock
                     SET stock_quantity = stock_quantity - ?
                     WHERE stock_id = ? AND is_deleted = FALSE
                 `;
-                await executeQuery(updateProductQuery, [
+                await executeQuery(updateStockQuery, [
                     update.quantity,
                     update.stock_id
                 ]);
@@ -625,6 +566,33 @@ class StockService {
         const result = await executeQuery(query);
         return result[0].total_items;
     };
+
+    updatePriceExport = async (payload) => {
+        const { stock_id, price_stock } = payload;
+
+        const foundStock = await getStockById(stock_id);
+
+        if (!foundStock[0]) {
+            throw new NotFoundError(`Không tìm thấy thông tin kho với stock_id: ${stock_id}!`);
+        }
+
+        const queryInsertPrice = `
+            INSERT INTO product_prices (stock_id, price_type, price, effective_date)
+            VALUES (?, ?, ?, ?)
+        `;
+
+        const result = await executeQuery(queryInsertPrice, [
+            stock_id,
+            'export',
+            price_stock,
+            new Date()
+        ]);
+
+        return result;
+
+
+    }
+
 }
 
 module.exports = new StockService();

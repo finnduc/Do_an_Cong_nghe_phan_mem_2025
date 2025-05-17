@@ -158,18 +158,6 @@ class ParameterController {
     }
   };
 
-  getParameterName = async (req, res, next) => {
-    try {
-      const responces = await ParameterService.getParameterName();
-      return new OK({
-        message: 'Get parameter name',
-        metadata: responces,
-      }).send(res);
-    } catch (error) {
-      next(error);
-    }
-  };
-
   searchParameter = async (req, res, next) => {
     try {
       const responces = await ParameterService.searchParameter(req.body, req.query);
@@ -181,6 +169,18 @@ class ParameterController {
       next(error);
     }
   };
+
+  getNameParameter = async (req, res, next) => {
+    try {
+      const responces = await ParameterService.getNameParameter();
+      return new OK({
+        message: 'Get name parameter success',
+        metadata: responces,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new ParameterController();
