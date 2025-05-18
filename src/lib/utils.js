@@ -93,3 +93,9 @@ export function formatDate(value) {
   const formatted = date.toISOString().split("T")[0];
   return formatted;
 }
+
+export function convertToMySQLDateTime(input) {
+  const [time, date] = input.split(' ');
+  const [day, month, year] = date.split('/');
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')} ${time}`;
+}

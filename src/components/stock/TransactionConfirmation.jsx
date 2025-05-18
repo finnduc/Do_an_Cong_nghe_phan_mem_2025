@@ -1,7 +1,11 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "../ui/button";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { Toaster } from "../ui/sonner";
+import { set } from "zod";
+import { createTransaction } from "@/lib/api/stock";
+import { toast } from "sonner";
 
 export default function TransactionConfirmation({
   transactionData,
@@ -13,10 +17,11 @@ export default function TransactionConfirmation({
 }) {
   const componentRef = useRef();
   const signatureRef = useRef();
+  const [isCreating, setIsCreating] = useState(false);
 
   const generateInvoice = async () => {
     if (signatureRef.current) {
-      signatureRef.current.style.display = "block";
+      signatureRef.current.style.display = "flex";
     }
 
     const canvas = await html2canvas(componentRef.current, {
@@ -53,17 +58,26 @@ export default function TransactionConfirmation({
     pdf.save("invoice.pdf");
   };
 
-  const handleConfirm = () => {
-    generateInvoice(); // Tạo và tải hóa đơn
+  const handleConfirm = async () => {
+    setIsCreating(true);
+    try {
+      await createTransaction(transactionData);
+      toast.success('Transaction created successfully.');
+      generateInvoice(); // Tạo và tải hóa đơn
+    } catch (error) {
+      toast.error('An error occur while creating the transaction. Please try again or contact the administrator.');
+    }
+    setIsCreating(false)
     onConfirm(); // Tiếp tục xử lý xác nhận giao dịch
   };
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+      <Toaster />
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl">
         <div ref={componentRef}>
           <h2 className="text-xl font-semibold mb-4 text-center">
-            Transaction Confirmation
+            Sale Invoice
           </h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -77,7 +91,7 @@ export default function TransactionConfirmation({
                 <p className="text-sm font-medium text-gray-600">
                   Transaction Date
                 </p>
-                <p className="text-base">{transactionData.transaction_date}</p>
+                <p className="text-base">{transactionData.time}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">
@@ -165,9 +179,9 @@ export default function TransactionConfirmation({
             <div
               ref={signatureRef}
               style={{ display: "none" }}
-              className="mt-6 grid grid-cols-2 gap-4"
+              className="mt-6 justify-between gap-4"
             >
-              <div>
+              <div >
                 <p className="text-sm font-medium text-gray-600">
                   {transactionData.action === "import"
                     ? "Supplier"
@@ -203,8 +217,9 @@ export default function TransactionConfirmation({
           <Button
             className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md"
             onClick={handleConfirm}
+            disabled={isCreating}
           >
-            Confirm
+            {isCreating ? "Creating..." : "Confirm"}
           </Button>
         </div>
       </div>

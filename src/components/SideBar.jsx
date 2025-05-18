@@ -54,6 +54,8 @@ export default async function SideBar() {
         )
       )
     : main;
+
+    console.log(filteredManagement)
   return (
     <div className="min-w-[225px] pt-3 h-full bg-white text-black flex flex-col gap-5 divide-y-[1px]">
       <div className="flex flex-col gap-2">

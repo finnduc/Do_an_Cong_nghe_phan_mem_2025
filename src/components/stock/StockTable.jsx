@@ -13,9 +13,8 @@ export default function StockTable({
   searchText,
   setSearchText,
   onEdit,
-  onDelete,
 }) {
-  const modifiedData = addEditButtons(currentData, onEdit, onDelete);
+  const modifiedData = addEditButtons(currentData, onEdit, null, true);
   const formattedData = jsonToTableFormat(modifiedData, currentPage);
   const handleSearchText = (e) => setSearchText(e.target.value);
   return (

@@ -9,11 +9,11 @@ export default async function StockPage() {
   const initialData = await fetchStock(1);
   const categories = await fetchCatetories();
   const manufacturers = await fetchManufacturers();
-  const partners = await fetchPartner(10, 1);
-  const employees = await fetchEmployees(1, 10)
+  const employees = await fetchEmployees(1, 10000);
+  const partners = await fetchPartner(10000, 1);
   return (
     <div className="overflow-auto">
-      <StockUI data={initialData?.metadata} manufacturers={manufacturers?.metadata} categories={categories?.metadata} partners={partners?.metadata.data} employees={employees?.metadata.data}/>
+      <StockUI data={initialData?.metadata} manufacturers={manufacturers?.metadata} categories={categories?.metadata} employees={employees?.metadata?.data} partners={partners?.metadata?.data}/>
     </div>
   );
 }

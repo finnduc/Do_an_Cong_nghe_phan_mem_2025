@@ -9,18 +9,20 @@ import {
 import { Button } from "../ui/button";
 import { Plus, X } from "lucide-react";
 import TransactionConfirmation from "./TransactionConfirmation";
+import TransactionFieldCombobox from "./TransactionFieldCombobox";
 
 export default function TransactionCreator({
   currentData,
   resetFilters,
-  partners,
-  employees,
   manufacturerFilter,
   setManufacturerFilter,
   categoryFilter,
   setCategoryFilter,
   manufacturers,
   categories,
+  onRefreshData,
+  employees,
+  partners
 }) {
   const [involvedProducts, setInvolvedProducts] = useState([]);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
@@ -32,7 +34,6 @@ export default function TransactionCreator({
   const [emptyMessage, setEmptyMessage] = useState("");
   const [requiredMessage, setRequiredMessage] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
-
   const handleQuantityInput = (e) => {
     const max = currentProduct ? currentProduct.quantity : 1000;
     const min = 1;
@@ -56,7 +57,7 @@ export default function TransactionCreator({
     const inputValue = e.target.value;
 
     if (inputValue === "") {
-      setPriceInput(0);
+      setPriceInput("");
       return;
     }
 
@@ -105,7 +106,7 @@ export default function TransactionCreator({
     items: involvedProducts,
     partner_id: partnerIdInput,
     employee_id: employeeIdInput,
-    transaction_date: new Date().toLocaleString(),
+    time: new Date().toLocaleString(),
   };
 
   const handleCreateTransaction = () => {
@@ -133,39 +134,16 @@ export default function TransactionCreator({
     setPartnerIdInput("");
     setEmployeeIdInput("");
     setTransactionType("export");
+    onRefreshData();
   };
 
-  const selectedPartner = partners.find((p) => p.partner_id === partnerIdInput);
-  const selectedEmployee = employees.find(
-    (e) => e.employee_id === employeeIdInput
-  );
+  const selectedPartner = partners.find((partner) => partner.partner_id === partnerIdInput);
+  const selectedEmployee = employees.find((employee) => employee.employee_id === employeeIdInput);
 
   return (
     <div className="space-y-4">
-      <Select onValueChange={setEmployeeIdInput} value={employeeIdInput}>
-        <SelectTrigger>
-          <SelectValue placeholder="Employee" />
-        </SelectTrigger>
-        <SelectContent>
-          {employees.map((employee) => (
-            <SelectItem key={employee.employee_id} value={employee.employee_id}>
-              {employee.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select onValueChange={setPartnerIdInput} value={partnerIdInput}>
-        <SelectTrigger>
-          <SelectValue placeholder="Partner" />
-        </SelectTrigger>
-        <SelectContent>
-          {partners.map((partner) => (
-            <SelectItem key={partner.partner_id} value={partner.partner_id}>
-              {partner.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <TransactionFieldCombobox items={employees} valueField="employee_id" labelField="name" placeholder="Select employee..." inputValue={employeeIdInput} setInputValue={setEmployeeIdInput} />
+      <TransactionFieldCombobox items={partners} valueField="partner_id" labelField="name" placeholder="Select partner..." inputValue={partnerIdInput} setInputValue={setPartnerIdInput} />
       <Select
         onValueChange={(value) => {
           setTransactionType(value);

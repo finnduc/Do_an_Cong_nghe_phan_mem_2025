@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { fetchStock } from '@/lib/api/stock';
 import { toast } from 'sonner';
+import { searchEmployees } from '@/lib/api/employee';
 
 export function useStockData(initialData) {
   const [currentData, setCurrentData] = useState(initialData.data || []);
@@ -33,11 +34,12 @@ export function useStockData(initialData) {
       setTotalRecords(data?.metadata?.totalItem || 0);
       setCurrentPage(page);
     } catch (e) {
-      toast.error('Có lỗi xảy ra khi lấy dữ liệu. Vui lòng thử lại.');
+      toast.error('An error occurred while fetching the stock. Please try again or contact the administrator.');
     }
   };
 
   const isFirstRun = useRef(true);
+
 
   useEffect(() => {
     if (isFirstRun.current) {
@@ -49,6 +51,7 @@ export function useStockData(initialData) {
     }, 300);
     return () => clearTimeout(timeout);
   }, [searchText, manufacturerFilter, categoryFilter]);
+
 
   const applyFilters = () => {
     fetchData(1, currentFilter);

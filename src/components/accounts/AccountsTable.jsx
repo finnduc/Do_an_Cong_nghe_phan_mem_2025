@@ -95,7 +95,7 @@ export default function AccountsTable({ data, totalPages, totalRecords, onSucces
       />
       {isEditOpen && formData && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg border shadow-md p-8">
+          <div className="bg-white rounded-lg border shadow-md py-8 px-10">
             <div className="text-center font-semibold text-xl mb-4">
               Edit Account
             </div>
@@ -104,7 +104,7 @@ export default function AccountsTable({ data, totalPages, totalRecords, onSucces
                 {successMessage}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-8">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Username</label>
                   <input
@@ -125,7 +125,7 @@ export default function AccountsTable({ data, totalPages, totalRecords, onSucces
                 </div>
               </div>
             )}
-            <div className="flex justify-end mt-4">
+            <div className="flex justify-end mt-8">
               {successMessage ? (
                 <button
                   className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
