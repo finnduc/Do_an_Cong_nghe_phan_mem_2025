@@ -42,7 +42,7 @@ Router.get(
   asyncHandler(EmployeeController.getEmployeeName)
 );
 
-Router.get(
+Router.delete(
   '/delete',
   hasRole('manager'),
   hasPermission({ permissions: ['delete'], resource: 'employees' }),

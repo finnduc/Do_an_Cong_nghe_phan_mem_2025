@@ -101,7 +101,7 @@ class UserService {
         const offset = (parsedPage - 1) * parsedLimit;
 
         const query = `
-                SELECT *,r.name
+                SELECT users.*, r.name as role, r.description
                 FROM users
                 JOIN user_roles ur ON users.user_id = ur.user_id
                 JOIN roles r ON ur.role_id = r.role_id

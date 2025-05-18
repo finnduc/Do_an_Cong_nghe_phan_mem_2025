@@ -15,7 +15,7 @@ Router.post(
   asyncHandler(ParameterController.createManu)
 );
 
-Router.post(
+Router.delete(
   '/deleteManu',
   hasRole('manager'),
   hasPermission({ permissions: ['delete'], resource: 'manufacturers' }),
@@ -44,7 +44,7 @@ Router.post(
   asyncHandler(ParameterController.createCate)
 );
 
-Router.post(
+Router.delete(
   '/deleteCate',
   hasRole('manager'),
   hasPermission({ permissions: ['delete'], resource: 'categories' }),
@@ -80,7 +80,7 @@ Router.post(
   asyncHandler(ParameterController.updateParameter)
 );
 
-Router.get(
+Router.delete(
   '/delete',
   hasRole('manager'),
   hasPermission({ permissions: ['delete'], resource: 'parameters' }),
