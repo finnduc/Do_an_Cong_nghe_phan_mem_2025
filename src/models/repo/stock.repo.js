@@ -58,6 +58,16 @@ const getStockById = async ( stock_id ) => {
     return await executeQuery( query , [ stock_id ])
 }
 
+const findStockByParams = async (product_id, manufacturer_id, category_id) => {
+    const query = `
+        SELECT * FROM stock 
+        WHERE product_id = ? 
+        AND manufacturer_id = ? 
+        AND category_id = ?
+    `;
+    return await executeQuery(query, [product_id, manufacturer_id, category_id]);
+};
+
 module.exports = {
     getStockId,
     checkProduct,
@@ -65,5 +75,6 @@ module.exports = {
     findManuStock,
     findCateStock,
     findProductStock,
-    getStockById
+    getStockById,
+    findStockByParams
 }

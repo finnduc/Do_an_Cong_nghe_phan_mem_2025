@@ -4,6 +4,7 @@ const { findIdProduct, findIdManu, findIdCategory } = require('../models/repo/pa
 const { getStockId, checkProduct, totalProduct, getStockById } = require('../models/repo/stock.repo');
 const { findPartnerByID } = require('../models/repo/partner.repo');
 const { findEmployeeByID } = require('../models/repo/employees.repo');
+const { v4: uuidv4 } = require('uuid');
 
 class StockService {
 
@@ -51,19 +52,21 @@ class StockService {
         }
 
         try {
-            // Create transaction header first
             const insertHeaderQuery = `
                 INSERT INTO transaction_headers (
+                    header_id,
                     action,
                     partner_id,
                     employee_id,
                     total_amount,
                     created_at
                 )
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?)
             `;
+            const header_id = uuidv4();
             
-            const headerResult = await executeQuery(insertHeaderQuery, [
+            await executeQuery(insertHeaderQuery, [
+                header_id,
                 action,
                 partner_id,
                 employee_id,
@@ -71,32 +74,6 @@ class StockService {
                 time || new Date()
             ]);
 
-            console.log("Nguyễn Văn Đức: f",headerResult[0].header_id);
-
-            // Get the inserted header_id
-            const getHeaderIdQuery = `
-                SELECT header_id 
-                FROM transaction_headers 
-                WHERE action = ? 
-                AND partner_id = ? 
-                AND employee_id = ? 
-                AND total_amount = ? 
-                ORDER BY created_at DESC 
-                LIMIT 1
-            `;
-            
-            const headerIdResult = await executeQuery(getHeaderIdQuery, [
-                action,
-                partner_id,
-                employee_id,
-                totalAmount
-            ]);
-
-            if (!headerIdResult || !headerIdResult[0] || !headerIdResult[0].header_id) {
-                throw new InternalServerError("Không thể lấy header_id sau khi tạo transaction");
-            }
-
-            const headerId = headerIdResult[0].header_id;
             const results = [];
 
             for (const update of stockUpdates) {
@@ -120,7 +97,7 @@ class StockService {
                     VALUES (?, ?, ?, ?)
                 `;
                 const insertItem = await executeQuery(insertItemQuery, [
-                    headerId,
+                    header_id,
                     update.stock_id,
                     update.quantity,
                     update.price_per_unit
@@ -145,7 +122,7 @@ class StockService {
             }
 
             return {
-                header_id: headerId,
+                header_id: header_id,
                 total_amount: totalAmount,
                 items: results
             };

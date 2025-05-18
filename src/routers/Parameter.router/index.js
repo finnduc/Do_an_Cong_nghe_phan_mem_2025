@@ -80,7 +80,7 @@ Router.post(
   asyncHandler(ParameterController.updateParameter)
 );
 
-Router.delete(
+Router.get(
   '/delete',
   hasRole('manager'),
   hasPermission({ permissions: ['delete'], resource: 'parameters' }),

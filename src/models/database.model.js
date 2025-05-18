@@ -123,10 +123,11 @@ const createAllTables = async () => {
         product_id CHAR(36),
         manufacturer_id CHAR(36),
         category_id CHAR(36),
+        is_deleted BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (product_id) REFERENCES products (product_id) ON DELETE SET NULL ON UPDATE CASCADE,
-        FOREIGN KEY (manufacturer_id) REFERENCES manufacturers (manufacturer_id) ON DELETE SET NULL ON UPDATE CASCADE,
-        FOREIGN KEY (category_id) REFERENCES categories (category_id) ON DELETE SET NULL ON UPDATE CASCADE
+        FOREIGN KEY (product_id) REFERENCES products (product_id) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY (manufacturer_id) REFERENCES manufacturers (manufacturer_id) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY (category_id) REFERENCES categories (category_id) ON DELETE CASCADE ON UPDATE CASCADE
     )`,
 
     `CREATE TABLE IF NOT EXISTS roles (

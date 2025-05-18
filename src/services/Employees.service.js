@@ -160,11 +160,6 @@ class EmployeeService {
                 `%${search}%`,
             ]);
 
-
-            if (employees.length === 0) {
-                throw new NotFoundError('Không tìm thấy nhân viên nào!');
-            }
-
             return employees;
         }
 

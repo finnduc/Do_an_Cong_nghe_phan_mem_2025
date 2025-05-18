@@ -2,9 +2,9 @@ const { executeQuery } = require("../../database/executeQuery");
 
 const findProductByName = async (name) => {
     const query = `
-        SELECT product_id
+        SELECT product_id, is_deleted
         FROM products
-        WHERE name = ? AND is_deleted = FALSE
+        WHERE name = ?
     `;
     return await executeQuery(query, [name]);
 }
@@ -20,9 +20,9 @@ const findManufacturer = async (name) => {
 
 const findCategory = async (name) => {
     const query = `
-        SELECT category_id
+        SELECT category_id , is_deleted
         FROM categories
-        WHERE name = ? AND is_deleted = FALSE
+        WHERE name = ?
     `;
     return await executeQuery(query, [name]);
 }
@@ -54,9 +54,9 @@ const findParameterById = async (id) => {
 
 const foundManufactuner = async ( manufacturer ) => {
     const query = `
-        SELECT manufacturer_id
+        SELECT manufacturer_id , is_deleted
         FROM manufacturers
-        WHERE name = ? AND is_deleted = FALSE
+        WHERE name = ?
     `;
 
     return await executeQuery(query, [manufacturer]);

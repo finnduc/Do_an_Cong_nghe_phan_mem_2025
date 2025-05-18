@@ -57,17 +57,16 @@ class TransactionService {
                 th.notes,
                 p.name AS partner_name,
                 e.name AS employee_name,
-                CAST(
-                    JSON_ARRAYAGG(
-                        JSON_OBJECT(
-                            'item_id', ti.item_id,
-                            'quantity', ti.quantity,
-                            'price_per_unit', ti.price_per_unit_snapshot,
-                            'product_name', pr.name,
-                            'manufacturer', m.name,
-                            'category', c.name
-                        )
-                    ) AS CHAR
+                JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                        'item_id', ti.item_id,
+                        'category', c.name,
+                        'quantity', ti.quantity,
+                        'manufacturer', m.name,
+                        'product_name', pr.name,
+                        'price_per_unit', ti.price_per_unit_snapshot,
+                        'total', (ti.quantity * ti.price_per_unit_snapshot)
+                    )
                 ) as items
             FROM transaction_headers th
                 LEFT JOIN partners p ON th.partner_id = p.partner_id
@@ -80,7 +79,7 @@ class TransactionService {
             WHERE 1=1
                 AND s.is_deleted = FALSE AND pr.is_deleted = FALSE AND m.is_deleted = FALSE AND (c.is_deleted = FALSE OR c.is_deleted IS NULL)
                 ${addQuery}
-            GROUP BY th.header_id
+            GROUP BY th.header_id, th.action, th.total_amount, th.created_at, th.notes, p.name, e.name
             ORDER BY th.created_at DESC
             LIMIT ${parsedLimit} OFFSET ${offset}
         `;
@@ -146,17 +145,16 @@ class TransactionService {
                 th.notes,
                 p.name AS partner_name,
                 e.name AS employee_name,
-                CAST(
-                    JSON_ARRAYAGG(
-                        JSON_OBJECT(
-                            'item_id', ti.item_id,
-                            'quantity', ti.quantity,
-                            'price_per_unit', ti.price_per_unit_snapshot,
-                            'product_name', pr.name,
-                            'manufacturer', m.name,
-                            'category', c.name
-                        )
-                    ) AS CHAR
+                JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                        'item_id', ti.item_id,
+                        'category', c.name,
+                        'quantity', ti.quantity,
+                        'manufacturer', m.name,
+                        'product_name', pr.name,
+                        'price_per_unit', ti.price_per_unit_snapshot,
+                        'total', (ti.quantity * ti.price_per_unit_snapshot)
+                    )
                 ) as items
             FROM transaction_headers th
                 LEFT JOIN partners p ON th.partner_id = p.partner_id
@@ -169,7 +167,7 @@ class TransactionService {
             WHERE 
                 (p.name LIKE ? OR e.name LIKE ? OR pr.name LIKE ? OR m.name LIKE ? OR c.name LIKE ?)
                 AND s.is_deleted = FALSE AND pr.is_deleted = FALSE AND m.is_deleted = FALSE AND (c.is_deleted = FALSE OR c.is_deleted IS NULL)
-            GROUP BY th.header_id
+            GROUP BY th.header_id, th.action, th.total_amount, th.created_at, th.notes, p.name, e.name
             ORDER BY th.created_at DESC
             LIMIT ${parsedLimit} OFFSET ${offset}
         `;
@@ -225,7 +223,7 @@ class TransactionService {
 
     totalTransactionsToday = async () => {
         const query = `
-            SELECT COUNT(*) AS total_transactions
+            SELECT COUNT(DISTINCT th.header_id) AS total_transactions
             FROM transaction_headers th
             LEFT JOIN transaction_items ti ON th.header_id = ti.header_id
             LEFT JOIN stock s ON ti.stock_id = s.stock_id
@@ -262,7 +260,7 @@ class TransactionService {
 
     getTodayCount = async () => {
         const query = `
-            SELECT COUNT(*) AS total_transactions
+            SELECT COUNT(DISTINCT th.header_id) AS total_transactions
             FROM transaction_headers th
             LEFT JOIN transaction_items ti ON th.header_id = ti.header_id
             LEFT JOIN stock s ON ti.stock_id = s.stock_id
