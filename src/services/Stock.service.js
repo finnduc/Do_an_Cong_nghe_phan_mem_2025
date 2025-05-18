@@ -71,6 +71,8 @@ class StockService {
                 time || new Date()
             ]);
 
+            console.log("Nguyễn Văn Đức: f",headerResult[0].header_id);
+
             // Get the inserted header_id
             const getHeaderIdQuery = `
                 SELECT header_id 
@@ -315,7 +317,7 @@ class StockService {
     }
 
     getStock = async (payload) => {
-        const { limit, page, category_name, product_name, manufacturer, priceMax, priceMin, quantityMax, quantityMin } = payload;
+        const { limit, page, category_name, product_name, manufacturer, priceExportMax, priceExportMin, priceImportMax, priceImportMin, quantityMax, quantityMin } = payload;
         const parsedLimit = parseInt(limit, 10);
         const parsedPage = parseInt(page, 10);
 
@@ -360,22 +362,39 @@ class StockService {
             param.push(parsedQuantityMin);
         }
 
-        const parsedPriceMax = priceMax !== undefined ? parseFloat(priceMax) : null;
-        const parsedPriceMin = priceMin !== undefined ? parseFloat(priceMin) : null;
+        const parsedPriceExportMax = priceExportMax !== undefined ? parseFloat(priceExportMax) : null;
+        const parsedPriceExportMin = priceExportMin !== undefined ? parseFloat(priceExportMin) : null;
+        const parsedPriceImportMax = priceImportMax !== undefined ? parseFloat(priceImportMax) : null;
+        const parsedPriceImportMin = priceImportMin !== undefined ? parseFloat(priceImportMin) : null;
 
-        if (parsedPriceMax !== null) {
-            if (isNaN(parsedPriceMax) || parsedPriceMax < 0) {
-                throw new BadRequestError("PriceMax phải là số không âm!");
+        if (parsedPriceExportMax !== null) {
+            if (isNaN(parsedPriceExportMax) || parsedPriceExportMax < 0) {
+                throw new BadRequestError("PriceExportMax phải là số không âm!");
             }
-            havingQuery += ' AND COALESCE(MAX(pp.price), 0) <= ?';
-            param.push(parsedPriceMax);
+            havingQuery += ' AND COALESCE(MAX(CASE WHEN pp.price_type = \'export\' THEN pp.price END), 0) <= ?';
+            param.push(parsedPriceExportMax);
         }
-        if (parsedPriceMin !== null) {
-            if (isNaN(parsedPriceMin) || parsedPriceMin < 0) {
-                throw new BadRequestError("PriceMin phải là số không âm!");
+        if (parsedPriceExportMin !== null) {
+            if (isNaN(parsedPriceExportMin) || parsedPriceExportMin < 0) {
+                throw new BadRequestError("PriceExportMin phải là số không âm!");
             }
-            havingQuery += ' AND COALESCE(MAX(pp.price), 0) >= ?';
-            param.push(parsedPriceMin);
+            havingQuery += ' AND COALESCE(MAX(CASE WHEN pp.price_type = \'export\' THEN pp.price END), 0) >= ?';
+            param.push(parsedPriceExportMin);
+        }
+
+        if (parsedPriceImportMax !== null) {
+            if (isNaN(parsedPriceImportMax) || parsedPriceImportMax < 0) {
+                throw new BadRequestError("PriceImportMax phải là số không âm!");
+            }
+            havingQuery += ' AND COALESCE(MAX(CASE WHEN pp.price_type = \'import\' THEN pp.price END), 0) <= ?';
+            param.push(parsedPriceImportMax);
+        }
+        if (parsedPriceImportMin !== null) {
+            if (isNaN(parsedPriceImportMin) || parsedPriceImportMin < 0) {
+                throw new BadRequestError("PriceImportMin phải là số không âm!");
+            }
+            havingQuery += ' AND COALESCE(MAX(CASE WHEN pp.price_type = \'import\' THEN pp.price END), 0) >= ?';
+            param.push(parsedPriceImportMin);
         }
 
         const query = `SELECT 

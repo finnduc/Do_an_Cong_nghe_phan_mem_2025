@@ -129,45 +129,46 @@ class EmployeeService {
         const { search } = body;
         const { limit, page } = query;
 
-        // Validate search input
-        if (!search || typeof search !== 'string') {
-            throw new BadRequestError('Search term is required and must be a string!');
-        }
+        if (search === '' || !search) {
+            return this.getAllEmployees(query);
+        } else {
+            // Validate pagination parameters
+            const parsedLimit = parseInt(limit, 10);
+            const parsedPage = parseInt(page, 10);
+            if (
+                isNaN(parsedLimit) ||
+                isNaN(parsedPage) ||
+                parsedLimit <= 0 ||
+                parsedPage <= 0
+            ) {
+                throw new BadRequestError('Limit and page must be positive integers!');
+            }
 
-        // Validate pagination parameters
-        const parsedLimit = parseInt(limit, 10);
-        const parsedPage = parseInt(page, 10);
-        if (
-            isNaN(parsedLimit) ||
-            isNaN(parsedPage) ||
-            parsedLimit <= 0 ||
-            parsedPage <= 0
-        ) {
-            throw new BadRequestError('Limit and page must be positive integers!');
-        }
+            // Calculate offset
+            const offset = (parsedPage - 1) * parsedLimit;
 
-        // Calculate offset
-        const offset = (parsedPage - 1) * parsedLimit;
-
-        // Use parameterized query to prevent SQL injection
-        const searchQuery = `
+            // Use parameterized query to prevent SQL injection
+            const searchQuery = `
                 SELECT * FROM employees 
                 WHERE (name LIKE ? OR email LIKE ? OR phone LIKE ?)
                 AND is_deleted = FALSE
                 LIMIT ${parsedLimit} OFFSET ${offset}
             `;
-        const employees = await executeQuery(searchQuery, [
-            `%${search}%`,
-            `%${search}%`,
-            `%${search}%`,
-        ]);
+            const employees = await executeQuery(searchQuery, [
+                `%${search}%`,
+                `%${search}%`,
+                `%${search}%`,
+            ]);
 
 
-        if (employees.length === 0) {
-            throw new NotFoundError('Không tìm thấy nhân viên nào!');
+            if (employees.length === 0) {
+                throw new NotFoundError('Không tìm thấy nhân viên nào!');
+            }
+
+            return employees;
         }
 
-        return employees;
+
     };
 }
 

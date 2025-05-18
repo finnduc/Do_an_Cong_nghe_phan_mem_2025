@@ -4,7 +4,7 @@ const { findEmployeeByID } = require('../models/repo/employees.repo');
 const { findPartnerByInfo, findPartnerByID } = require('../models/repo/partner.repo');
 
 class PartnerService {
-    
+
     createPartner = async (payload) => {
         const foundPartner = await findPartnerByInfo({ email: payload.email, phone: payload.phone });
 
@@ -67,7 +67,7 @@ class PartnerService {
     }
 
     // get Name of partner
-    getPartnerName = async ( payload ) => {
+    getPartnerName = async (payload) => {
         const { action } = payload;
         const query = `SELECT name, partner_id FROM partners WHERE partner_type = ? AND is_deleted = FALSE`;
         return await executeQuery(query, [action]);
@@ -118,17 +118,21 @@ class PartnerService {
         }
 
         const { search } = payload;
-        const searchQuery = `
+        if (search === '' || !search) {
+            return this.getAllPartners(query);
+        } else {
+            const searchQuery = `
                 SELECT * FROM partners
                 WHERE (name LIKE ? OR phone LIKE ? OR email LIKE ?)
                 AND is_deleted = FALSE
                 ORDER BY name ASC LIMIT ${parsedLimit} OFFSET ${offset};
             `;
-        const searchParams = [`%${search}%`, `%${search}%`, `%${search}%`];
+            const searchParams = [`%${search}%`, `%${search}%`, `%${search}%`];
 
-        const results = await executeQuery(searchQuery, searchParams);
+            const results = await executeQuery(searchQuery, searchParams);
 
-        return results;
+            return results;
+        }
     }
 }
 
