@@ -8,12 +8,12 @@ export default function StockFilter({
   setManufacturerFilter,
   categoryFilter,
   setCategoryFilter,
-  priceRange,
-  setPriceRange,
+  priceExportRange,
+  setPriceExportRange,
+  priceImportRange,
+  setPriceImportRange,
   quantityRange,
   setQuantityRange,
-  priceTypeFilter,
-  setPriceTypeFilter,
   applyFilters,
   resetFilters,
   manufacturers,
@@ -52,18 +52,13 @@ export default function StockFilter({
         <DualRangeSlider value={quantityRange} onValueChange={setQuantityRange} />
       </div>
       <div className="text-sm text-gray-600">
-        <div>Price range:</div>
-        <DualRangeSlider value={priceRange} onValueChange={setPriceRange} />
+        <div>Export price range:</div>
+        <DualRangeSlider value={priceExportRange} onValueChange={setPriceExportRange} />
       </div>
-      <Select onValueChange={setPriceTypeFilter} value={priceTypeFilter}>
-        <SelectTrigger>
-          <SelectValue placeholder="Price type" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="import">import price</SelectItem>
-          <SelectItem value="export">export price</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="text-sm text-gray-600">
+        <div>Import price range:</div>
+        <DualRangeSlider value={priceImportRange} onValueChange={setPriceImportRange} />
+      </div>
       <div className="flex flex-col gap-2">
         <Button className="text-white bg-blue-500 hover:bg-blue-700" onClick={applyFilters}>
           Apply

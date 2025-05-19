@@ -6,11 +6,15 @@ import { motion } from "motion/react";
 import { useState, useEffect } from "react";
 import { TriangleAlert } from "lucide-react";
 import { Button } from "./ui/button";
-import { redirect } from "next/navigation";
-import { logout } from "@/lib/auth/action";
+import { logout } from "@/lib/api/access";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth/authContext";
+import Link from "next/link";
 
 export default function TopBarButton() {
+  const { refreshAuth } = useAuth();
   const [user, setUser] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -28,6 +32,8 @@ export default function TopBarButton() {
     setIsLoggingOut(true);
     try {
       await logout();
+      await refreshAuth();
+      router.push("/login");
     } catch (error) {
       console.error("Lỗi khi đăng xuất:", error);
       // Không chuyển hướng nếu có lỗi, có thể thông báo cho người dùng
@@ -52,9 +58,9 @@ export default function TopBarButton() {
           >
             Logout
           </Button>
-          <div className="cursor-pointer self-end text-black hover:text-black/50 text-xs">
+          <Link href="/settings" className="cursor-pointer self-end text-black hover:text-black/50 text-xs">
             Change password
-          </div>
+          </Link>
         </HoverCardContent>
       </HoverCard>
       {isOpen && (
@@ -76,14 +82,14 @@ export default function TopBarButton() {
             </div>
             <div className="mt-12 self-end flex gap-4">
               <Button
-                className="text-lg bg-white border border-gray-300 text-black hover:bg-red-500 hover:text-white hover:border-red-400 w-[100px]"
+                className="bg-white border border-gray-300 text-black hover:bg-red-500 hover:text-white hover:border-red-400 w-[100px]"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
               >
-                <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
+                {isLoggingOut ? "Logging out..." : "Logout"}
               </Button>
               <Button
-                className="text-lg bg-blue-500 hover:bg-blue-700 w-[100px]"
+                className="bg-blue-500 hover:bg-blue-700 w-[100px]"
                 onClick={() => setIsOpen(false)}
                 disabled={isLoggingOut}
               >

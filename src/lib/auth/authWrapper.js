@@ -15,7 +15,6 @@ export async function addAuthHeaders(options = {}) {
         const refreshedAuth = await get_cookie();
 
         if (!refreshedAuth.accessToken || !refreshedAuth.user?.user_id) {
-          handleAuthError();
           throw new Error("Failed to get valid token after refresh");
         }
 
@@ -72,10 +71,10 @@ export async function authFetch(url, options = {}) {
           return data;
         } catch (error) {
           console.error("Error during retry:", error);
-          throw new Error("Failed to refresh token during retry");
+          redirect("/login"); // Redirect to login on retry failure
         }
       } else {
-        throw new Error("No refresh token available");
+        redirect("/login"); // No refresh token, redirect to login
       }
     }
 
@@ -85,7 +84,17 @@ export async function authFetch(url, options = {}) {
 
     return data;
   } catch (error) {
-    console.error("Auth fetch error:", error);
+    // Log the error for debugging but avoid exposing sensitive details
+    console.log("Auth fetch issue:", error.message);
+    // Redirect to login for authentication-related errors without re-throwing
+    if (
+      error.message === "No user information or access token" ||
+      error.message === "Unable to refresh token"
+    ) {
+      console.log("Redirecting to /login due to auth error:", error.message);
+      redirect("/login");
+    }
+    // Re-throw other errors for upstream handling
     throw error;
   }
 }

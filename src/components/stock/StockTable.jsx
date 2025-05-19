@@ -1,8 +1,8 @@
-// StockTable.js
 import ReuseTable from "../ReuseTable";
 import SearchBar from "../SearchBar";
 import { addEditButtons } from "../AddEditDeleteButtons";
 import { jsonToTableFormat } from "@/lib/utils";
+import { useAuth } from "@/lib/auth/authContext";
 
 export default function StockTable({
   currentData,
@@ -13,11 +13,21 @@ export default function StockTable({
   searchText,
   setSearchText,
   onEdit,
-  onDelete,
 }) {
-  const modifiedData = addEditButtons(currentData, onEdit, onDelete);
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="p-4 text-gray-500">Loading stock data...</div>; // hoặc một spinner
+  }
+
+  let modifiedData = currentData;
+  if (user && user.role !== "employee") {
+    modifiedData = addEditButtons(currentData, onEdit, null, true);
+  }
+
   const formattedData = jsonToTableFormat(modifiedData, currentPage);
   const handleSearchText = (e) => setSearchText(e.target.value);
+
   return (
     <div className="w-full">
       <div className="flex justify-between items-center">

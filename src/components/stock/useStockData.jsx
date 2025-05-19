@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { fetchStock } from '@/lib/api/stock';
 import { toast } from 'sonner';
+import { searchEmployees } from '@/lib/api/employee';
 
 export function useStockData(initialData) {
   const [currentData, setCurrentData] = useState(initialData.data || []);
@@ -10,34 +11,49 @@ export function useStockData(initialData) {
   const [searchText, setSearchText] = useState('');
   const [manufacturerFilter, setManufacturerFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [priceRange, setPriceRange] = useState([0, 100000]);
+  const [priceExportRange, setPriceExportRange] = useState([0, 100000]);
+  const [priceImportRange, setPriceImportRange] = useState([0, 100000]);
   const [quantityRange, setQuantityRange] = useState([0, 100000]);
-  const [priceTypeFilter, setPriceTypeFilter] = useState('import');
+  const [productFilter, setProductFilter] = useState('');
+  const [products, setProducts] = useState([]);
+  
 
   const currentFilter = {
     product_name: searchText,
     manufacturer: manufacturerFilter,
     category_name: categoryFilter,
-    priceMin: priceRange[0],
-    priceMax: priceRange[1],
+    priceExportMin: priceExportRange[0],
+    priceExportMax: priceExportRange[1],
+    priceImportMin: priceImportRange[0],
+    priceImportMax: priceImportRange[1],
     quantityMin: quantityRange[0],
     quantityMax: quantityRange[1],
-    action: priceTypeFilter,
   };
 
   const fetchData = async (page, filters) => {
     try {
       const data = await fetchStock(page, 8, filters);
+      setProducts(data?.metadata?.data || []);
       setCurrentData(data?.metadata?.data || []);
       setTotalPages(data?.metadata?.totalPage || 0);
       setTotalRecords(data?.metadata?.totalItem || 0);
       setCurrentPage(page);
     } catch (e) {
-      toast.error('Có lỗi xảy ra khi lấy dữ liệu. Vui lòng thử lại.');
+      toast.error('An error occurred while fetching the stock. Please try again or contact the administrator.');
     }
   };
 
+  const fetchProductByName = async () => {
+    try {
+      const data = await fetchStock(1, 8, { product_name: productFilter });
+      setProducts(data?.metadata?.data || []);
+    } catch (e) {
+      toast.error('An error occurred while fetching the stock. Please try again or contact the administrator.');
+    }
+  }
+
   const isFirstRun = useRef(true);
+
 
   useEffect(() => {
     if (isFirstRun.current) {
@@ -50,6 +66,14 @@ export function useStockData(initialData) {
     return () => clearTimeout(timeout);
   }, [searchText, manufacturerFilter, categoryFilter]);
 
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      fetchProductByName();
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [productFilter]);
+
+
   const applyFilters = () => {
     fetchData(1, currentFilter);
   };
@@ -58,18 +82,21 @@ export function useStockData(initialData) {
     setSearchText('');
     setManufacturerFilter('');
     setCategoryFilter('');
-    setPriceRange([0, 100000]);
+    setPriceExportRange([0, 100000]);
+    setProductFilter('');
+    setProductFilter([]);
+    setPriceImportRange([0, 100000]);
     setQuantityRange([0, 100000]);
-    setPriceTypeFilter('import');
     fetchData(1, {
       product_name: '',
       manufacturer: '',
       category_name: '',
-      priceMin: 0,
-      priceMax: 100000,
+      priceExportMin: 0,
+      priceExportMax: 100000,
+      priceImportMin: 0,
+      priceImportMax: 100000,
       quantityMin: 0,
       quantityMax: 100000,
-      action: 'import',
     });
   };
 
@@ -88,14 +115,18 @@ export function useStockData(initialData) {
     setManufacturerFilter,
     categoryFilter,
     setCategoryFilter,
-    priceRange,
-    setPriceRange,
+    priceExportRange,
+    setPriceExportRange,
+    priceImportRange,
+    setPriceImportRange,
     quantityRange,
     setQuantityRange,
-    priceTypeFilter,
-    setPriceTypeFilter,
     applyFilters,
     resetFilters,
     getNextPage,
+    productFilter,
+    setProductFilter,
+    products,
+    setProducts
   };
 }

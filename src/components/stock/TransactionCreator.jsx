@@ -9,18 +9,23 @@ import {
 import { Button } from "../ui/button";
 import { Plus, X } from "lucide-react";
 import TransactionConfirmation from "./TransactionConfirmation";
+import TransactionFieldCombobox from "./TransactionFieldCombobox";
+import ProductCombobox from "./ProductCombobox";
 
 export default function TransactionCreator({
-  currentData,
   resetFilters,
-  partners,
-  employees,
   manufacturerFilter,
   setManufacturerFilter,
   categoryFilter,
   setCategoryFilter,
   manufacturers,
   categories,
+  onRefreshData,
+  employees,
+  partners,
+  products,
+  setProductFilter,
+  productFilter,
 }) {
   const [involvedProducts, setInvolvedProducts] = useState([]);
   const [isAddingProduct, setIsAddingProduct] = useState(false);
@@ -32,7 +37,6 @@ export default function TransactionCreator({
   const [emptyMessage, setEmptyMessage] = useState("");
   const [requiredMessage, setRequiredMessage] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
-
   const handleQuantityInput = (e) => {
     const max = currentProduct ? currentProduct.quantity : 1000;
     const min = 1;
@@ -56,7 +60,7 @@ export default function TransactionCreator({
     const inputValue = e.target.value;
 
     if (inputValue === "") {
-      setPriceInput(0);
+      setPriceInput("");
       return;
     }
 
@@ -70,7 +74,7 @@ export default function TransactionCreator({
     if (
       !currentProduct ||
       !currentProduct.selectedQuantity ||
-      !priceInput ||
+      (priceInput === "" && transactionType === "import") ||
       !currentProduct.product_name ||
       !currentProduct.stock_id
     ) {
@@ -85,7 +89,10 @@ export default function TransactionCreator({
         stock_id: currentProduct.stock_id,
         product_name: currentProduct.product_name,
         quantity: currentProduct.selectedQuantity,
-        price_per_unit: Number(priceInput),
+        price_per_unit:
+          transactionType === "import"
+            ? Number(priceInput)
+            : Number(currentProduct.product_price_export),
       },
     ]);
     resetFilters();
@@ -105,7 +112,7 @@ export default function TransactionCreator({
     items: involvedProducts,
     partner_id: partnerIdInput,
     employee_id: employeeIdInput,
-    transaction_date: new Date().toLocaleString(),
+    time: new Date().toLocaleString(),
   };
 
   const handleCreateTransaction = () => {
@@ -133,43 +140,40 @@ export default function TransactionCreator({
     setPartnerIdInput("");
     setEmployeeIdInput("");
     setTransactionType("export");
+    onRefreshData();
   };
 
-  const selectedPartner = partners.find((p) => p.partner_id === partnerIdInput);
+  const selectedPartner = partners.find(
+    (partner) => partner.partner_id === partnerIdInput
+  );
   const selectedEmployee = employees.find(
-    (e) => e.employee_id === employeeIdInput
+    (employee) => employee.employee_id === employeeIdInput
   );
 
   return (
-    <div className="space-y-4">
-      <Select onValueChange={setEmployeeIdInput} value={employeeIdInput}>
-        <SelectTrigger>
-          <SelectValue placeholder="Employee" />
-        </SelectTrigger>
-        <SelectContent>
-          {employees.map((employee) => (
-            <SelectItem key={employee.employee_id} value={employee.employee_id}>
-              {employee.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select onValueChange={setPartnerIdInput} value={partnerIdInput}>
-        <SelectTrigger>
-          <SelectValue placeholder="Partner" />
-        </SelectTrigger>
-        <SelectContent>
-          {partners.map((partner) => (
-            <SelectItem key={partner.partner_id} value={partner.partner_id}>
-              {partner.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="space-y-4 pb-8">
+      <TransactionFieldCombobox
+        items={employees}
+        valueField="employee_id"
+        labelField="name"
+        placeholder="Select employee..."
+        inputValue={employeeIdInput}
+        setInputValue={setEmployeeIdInput}
+      />
+      <TransactionFieldCombobox
+        items={partners}
+        valueField="partner_id"
+        labelField="name"
+        placeholder="Select partner..."
+        inputValue={partnerIdInput}
+        setInputValue={setPartnerIdInput}
+      />
       <Select
         onValueChange={(value) => {
           setTransactionType(value);
           setInvolvedProducts([]);
+          resetFilters();
+          setCurrentProduct(null);
         }}
         value={transactionType}
       >
@@ -219,55 +223,53 @@ export default function TransactionCreator({
         <div className="rounded-lg border p-2 flex flex-col gap-2">
           <button
             className="self-end text-end text-xs text-red-500 cursor-pointer"
-            onClick={resetFilters}
+            onClick={() => {
+              resetFilters();
+              setCurrentProduct(null);
+            }}
           >
             Reset
           </button>
-          <Select onValueChange={setCategoryFilter} value={categoryFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.category_id} value={cat.name}>
-                  {cat.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            onValueChange={setManufacturerFilter}
-            value={manufacturerFilter}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Manufacturer" />
-            </SelectTrigger>
-            <SelectContent>
-              {manufacturers.map((man) => (
-                <SelectItem key={man.manufacturer_id} value={man.name}>
-                  {man.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            onValueChange={(product) => {
-              setCurrentProduct({ ...product, selectedQuantity: 1 });
-              if (transactionType !== "import")
-                setPriceInput(product.product_price_export);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Product" />
-            </SelectTrigger>
-            <SelectContent>
-              {currentData.map((product) => (
-                <SelectItem key={product.stock_id} value={product}>
-                  {product.product_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <Select onValueChange={setCategoryFilter} value={categoryFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.category_id} value={cat.name}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              onValueChange={setManufacturerFilter}
+              value={manufacturerFilter}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Manufacturer" />
+              </SelectTrigger>
+              <SelectContent>
+                {manufacturers.map((man) => (
+                  <SelectItem key={man.manufacturer_id} value={man.name}>
+                    {man.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <ProductCombobox
+            items={products}
+            valueField="stock_id"
+            labelField="product_name"
+            inputValue={currentProduct?.stock_id}
+            setInputValue={setCurrentProduct}
+            searchValue={productFilter}
+            setSearchValue={setProductFilter}
+            setCategoryFilter={setCategoryFilter}
+            setManufacturerFilter={setManufacturerFilter}
+          />
           <label htmlFor="quantity" className="text-sm">
             Quantity:
           </label>

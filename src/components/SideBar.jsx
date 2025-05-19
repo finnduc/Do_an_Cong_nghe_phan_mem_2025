@@ -31,7 +31,7 @@ const main = {
 };
 
 const other = {
-  Setting: [<Settings size={20} />, "/setting"],
+  Settings: [<Settings size={20} />, "/settings"],
 };
 
 
@@ -43,7 +43,7 @@ export default async function SideBar() {
     ? Object.fromEntries(
         Object.entries(management).filter(
           ([_, [, route]]) =>
-            !["/parameters", "/accounts"].includes(route)
+            !["/parameters", "/accounts", '/employees'].includes(route)
         )
       )
     : management;
@@ -54,8 +54,10 @@ export default async function SideBar() {
         )
       )
     : main;
+
+    console.log(filteredManagement)
   return (
-    <div className="min-w-[225px] pt-3 h-full bg-white text-black flex flex-col gap-5 divide-y-[1px]">
+    <div className="min-w-[225px] pt-3 h-full bg-white text-black flex flex-col gap-5 divide-y-[1px] border-r">
       <div className="flex flex-col gap-2">
         {Object.entries(filteredManagement).map(([title, other], id) => (
           <SideBarButton
