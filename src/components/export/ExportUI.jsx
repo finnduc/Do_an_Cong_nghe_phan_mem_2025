@@ -15,7 +15,7 @@ export default function ExportUI({ data, customers, employees }) {
     applyFilters,
     resetFilters,
     getNextPage,
-  } = useExportData(data);
+  } = useExportData(data, 9);
 
   return (
     <div>

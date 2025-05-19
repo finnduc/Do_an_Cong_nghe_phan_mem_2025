@@ -4,7 +4,7 @@ import { fetchEmployees } from "@/lib/api/employee";
 import { fetchPartner } from "@/lib/api/partner";
 
 export default async function ImportPage() {
-  const initialResponse = await fetchImportTransaction({ page: 1, limit: 6, action: "import" });
+  const initialResponse = await fetchImportTransaction({ page: 1, limit: 9, action: "import" });
   const initialData = initialResponse?.metadata || {};
 
   const employeeResponse = await fetchEmployees(1, 100);

@@ -1,6 +1,6 @@
 import { authFetch } from "../auth/authWrapper";
 
-export async function fetchImportTransaction({ page, limit = 6, ...extraParams }) {
+export async function fetchImportTransaction({ page, limit = 9, ...extraParams }) {
   const payload = {
     page,
     limit,

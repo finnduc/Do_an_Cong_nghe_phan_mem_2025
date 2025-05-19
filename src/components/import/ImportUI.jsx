@@ -15,7 +15,7 @@ export default function ImportUI({ data, suppliers, employees }) {
     applyFilters,
     resetFilters,
     getNextPage,
-  } = useImportData(data);
+  } = useImportData(data, 9);
 
   return (
     <div>
