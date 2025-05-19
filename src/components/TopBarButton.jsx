@@ -9,6 +9,7 @@ import { Button } from "./ui/button";
 import { logout } from "@/lib/api/access";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/authContext";
+import Link from "next/link";
 
 export default function TopBarButton() {
   const { refreshAuth } = useAuth();
@@ -57,9 +58,9 @@ export default function TopBarButton() {
           >
             Logout
           </Button>
-          <div className="cursor-pointer self-end text-black hover:text-black/50 text-xs">
+          <Link href="/settings" className="cursor-pointer self-end text-black hover:text-black/50 text-xs">
             Change password
-          </div>
+          </Link>
         </HoverCardContent>
       </HoverCard>
       {isOpen && (

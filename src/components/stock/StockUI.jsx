@@ -74,7 +74,7 @@ export default function StockUI({
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold mb-2">Stock Management</h1>
       </div>
-      <div className="px-4 pt-4 flex gap-10 bg-white rounded-lg border shadow-lg min-h-[570px]">
+      <div className="px-4 pt-4 flex gap-10 bg-white rounded-lg border shadow-md min-h-[570px]">
         <Tabs
           defaultValue="filter"
           className="min-w-[300px] flex flex-col gap-2"
@@ -136,13 +136,12 @@ export default function StockUI({
       </div>
       {isEditOpen && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg border shadow-md p-4">
+          <div className="bg-white rounded-lg border shadow-md p-6">
             <div className="text-center font-semibold text-xl">
               Edit stock export price
             </div>
-            <label htmlFor="exportPrice">Enter the new export price:</label>
+            <div className=" font-medium text-gray-600 mt-4">New export price</div>
             <input
-              id="exportPrice"
               type="number"
               className="border border-gray-300 rounded-md p-2"
               min={0}
