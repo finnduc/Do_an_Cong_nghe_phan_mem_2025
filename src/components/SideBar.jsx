@@ -43,7 +43,7 @@ export default async function SideBar() {
     ? Object.fromEntries(
         Object.entries(management).filter(
           ([_, [, route]]) =>
-            !["/parameters", "/accounts"].includes(route)
+            !["/parameters", "/accounts", '/employees'].includes(route)
         )
       )
     : management;

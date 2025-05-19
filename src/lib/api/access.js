@@ -1,4 +1,3 @@
-"use server";
 import { redirect } from "next/navigation";
 import { delete_cookie, get_cookie, set_cookie } from "../cookie/action";
 export const logout = async () => {
@@ -7,22 +6,17 @@ export const logout = async () => {
 
   try {
     await fetch("http://localhost:3000/v1/api/access/logout", {
-      method: "POST",
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
         "x-client-id": user?.user_id || "",
         authorization: `Bearer ${accessToken || ""}`,
       },
-      body: JSON.stringify({
-        user_id: user?.user_id || "",
-      }),
     });
+    await delete_cookie();
   } catch (err) {
     console.error("Logout failed:", err);
   }
-
-  await delete_cookie();
-  redirect('/login')
 };
 
 export const login = async (userName, password) => {
@@ -34,12 +28,11 @@ export const login = async (userName, password) => {
     });
     const data = await res.json();
     if (res.status !== 200) {
-      throw new Error(data.metadata?.error || "Đăng nhập thất bại");
+      throw new Error(data.metadata?.error || "Login failed");
     }
     const { user, tokens } = data.metadata;
     const { accessToken, refreshToken } = tokens;
     await set_cookie({ accessToken, refreshToken, user });
-    redirect('/')
   } catch (error) {
     throw error;
   }

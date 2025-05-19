@@ -1,19 +1,25 @@
 "use client";
-
+import { CogIcon } from "lucide-react";
 import { Button } from "../ui/button";
 
 export default function SettingUI({ user }) {
   return (
-    <div>
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold mb-2">Setting</h1>
+    <div className="max-w-md mx-auto bg-white rounded-xl shadow-md p-8 space-y-6">
+      <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+        <CogIcon className="w-6 h-6" /> Setting
+      </h2>
+      <div>
+        <p className="text-gray-600 mb-2">
+          <strong>Username:</strong> {user.userName}
+        </p>
+        <p className="text-gray-600">
+          <strong>Password:</strong> **********
+        </p>
       </div>
-      <div className="px-4 pt-4 flex gap-10 bg-white rounded-lg border shadow-lg min-h-[570px] flex-col">
-        <div>Username: {user.userName}</div>
-        <div>Password: ***********</div>
-        <Button className="text-blue-500 border bg-white border-blue-500 hover:bg-blue-500 hover:text-white">
+      <div className="text-center">
+        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
           Change password
-        </Button>
+        </button>
       </div>
     </div>
   );

@@ -14,24 +14,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { motion } from "framer-motion";
-import { login } from "@/lib/auth/action"; 
-import { useState} from "react";
+import { login } from "@/lib/api/access";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth/authContext";
 
 const formSchema = z.object({
   userName: z.string().min(1, "Username is required"),
   password: z
     .string()
     .regex(/[a-zA-Z]/, "Password must contain at least one letter"),
-  remember: z.boolean().optional(),
 });
 
 export default function LoginForm() {
+  const { refreshAuth } = useAuth()
+  const router = useRouter();
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       userName: "",
       password: "",
-      remember: false,
     },
   });
   const [error, setError] = useState(null);
@@ -42,6 +44,8 @@ export default function LoginForm() {
     setIsLoading(true);
     try {
       await login(values.userName, values.password);
+      await refreshAuth()
+      router.push("/");
     } catch (error) {
       setError(error.message || "Đăng nhập thất bại");
     } finally {
@@ -53,7 +57,7 @@ export default function LoginForm() {
     <motion.div
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
-      className="w-[450px] min-h-[480px] text-black mx-auto bg-white rounded-xl px-10 py-14 flex flex-col items-center shadow-md"
+      className="w-[430px] min-h-[450px] text-black mx-auto bg-white rounded-xl px-10 py-14 flex flex-col items-center shadow-md"
     >
       <div className="text-2xl font-semibold mb-2">Login to Account</div>
       <div className="text-sm font-medium text-gray-600 mb-6">
@@ -87,25 +91,6 @@ export default function LoginForm() {
                   <Input placeholder="********" {...field} type="password" />
                 </FormControl>
                 <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="remember"
-            render={({ field }) => (
-              <FormItem className="flex items-center gap-1">
-                <FormControl>
-                  <Checkbox
-                    id="remember"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    className="border-blue-200 data-[state=checked]:bg-blue-500"
-                  />
-                </FormControl>
-                <FormLabel htmlFor="remember" className="text-xs text-gray-500">
-                  Remember password
-                </FormLabel>
               </FormItem>
             )}
           />

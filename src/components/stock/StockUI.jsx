@@ -29,17 +29,19 @@ export default function StockUI({
     setManufacturerFilter,
     categoryFilter,
     setCategoryFilter,
-    priceRange,
-    setPriceRange,
+    priceExportRange,
+    setPriceExportRange,
+    priceImportRange,
+    setPriceImportRange,
     quantityRange,
     setQuantityRange,
-    priceTypeFilter,
-    setPriceTypeFilter,
     applyFilters,
     resetFilters,
     getNextPage,
     setEmployeeFilter,
-    employeeFilter
+    products,
+    setProductFilter,
+    productFilter,
   } = useStockData(data);
 
   const [selectedItem, setSelectedItem] = useState(null);
@@ -67,7 +69,7 @@ export default function StockUI({
   };
 
   return (
-    <div>
+    <div className="pb-4">
       <Toaster />
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold mb-2">Stock Management</h1>
@@ -79,7 +81,7 @@ export default function StockUI({
         >
           <TabsList className="self-center">
             <TabsTrigger value="filter">
-              <ListFilterPlus size={25} /> <div>Filter</div>
+              <ListFilterPlus size={20} /> <div>Filter</div>
             </TabsTrigger>
             <TabsTrigger value="create">Create Transaction</TabsTrigger>
           </TabsList>
@@ -89,12 +91,12 @@ export default function StockUI({
               setManufacturerFilter={setManufacturerFilter}
               categoryFilter={categoryFilter}
               setCategoryFilter={setCategoryFilter}
-              priceRange={priceRange}
-              setPriceRange={setPriceRange}
+              priceExportRange={priceExportRange}
+              setPriceExportRange={setPriceExportRange}
+              priceImportRange={priceImportRange}
+              setPriceImportRange={setPriceImportRange}
               quantityRange={quantityRange}
               setQuantityRange={setQuantityRange}
-              priceTypeFilter={priceTypeFilter}
-              setPriceTypeFilter={setPriceTypeFilter}
               applyFilters={applyFilters}
               resetFilters={resetFilters}
               manufacturers={manufacturers}
@@ -115,6 +117,9 @@ export default function StockUI({
               categories={categories}
               onRefreshData={resetFilters}
               partners={partners}
+              products={products}
+              setProductFilter={setProductFilter}
+              productFilter={productFilter}
             />
           </TabsContent>
         </Tabs>
