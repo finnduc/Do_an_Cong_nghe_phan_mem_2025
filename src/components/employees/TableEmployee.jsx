@@ -10,10 +10,12 @@ import {
 import { toast } from "sonner";
 import { Toaster } from "../ui/sonner";
 import { addEditButtons } from "../../components/AddEditDeleteButtons";
-function removeRoleId(data) {
+
+function removeRoleIdAndIsDeleted(data) {
+  // Đổi tên hàm cho rõ nghĩa hơn
   if (!data) return [];
   return data.map((item) => {
-    const { role_id, ...rest } = item;
+    const { role_id, is_deleted, ...rest } = item; // Loại bỏ cả role_id và is_deleted
     return rest;
   });
 }
@@ -38,7 +40,6 @@ export default function EmployeeUI({
 
   const limit = 9;
 
-
   const getNextPage = async (page) => {
     try {
       const result = await fetchEmployees(page, limit);
@@ -62,44 +63,46 @@ export default function EmployeeUI({
     }
   };
 
-  const handleDeleteOnRow = async (item , index) => {
+  const handleDeleteOnRow = async (item) => {
     if (!item?.employee_id) {
-      toast.error("Không tìm thấy nhân viên để xóa" )
+      toast.error("No employee found to delete");
       return;
     }
-    const confirmed = window.confirm(`Bạn có chắc chắn muốn xóa nhân viên ?`);
+    const confirmed = window.confirm(
+      `Are you sure you want to delete the employee? ?`
+    );
     if (!confirmed) {
       return;
     }
     try {
       await deleteEmployees(item.employee_id);
-      toast.success("Đã xóa thành công nhân viên")
+      toast.success("Đã xóa thành công nhân viên");
     } catch (error) {
       console.error("Error deleting employee:", error);
     }
   };
 
-
   const handleEditOnRow = async (item) => {
     if (!item?.employee_id) {
-      toast.error("Không tìm thấy nhân viên " )
+      toast.error("Không tìm thấy nhân viên ");
       return;
     }
     try {
-      await updateEmployee(item.employee_id)
-    } catch (error) {
-      
-    }
+      await updateEmployee(item.employee_id);
+    } catch (error) {}
   };
-  const dataProcessed = removeRoleId(currentData);
-  const dataWithActionButtons = addEditButtons(dataProcessed, handleEditOnRow, handleDeleteOnRow);
+  const dataProcessed = removeRoleIdAndIsDeleted(currentData);
+  const dataWithActionButtons = addEditButtons(
+    dataProcessed,
+    handleEditOnRow,
+    handleDeleteOnRow
+  );
 
   const formattedTableData = jsonToTableFormat(
-    dataWithActionButtons, 
+    dataWithActionButtons,
     currentPage,
     limit
   );
-
 
   return (
     <div>

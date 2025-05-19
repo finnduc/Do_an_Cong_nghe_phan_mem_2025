@@ -21,7 +21,7 @@ export default function StockTable({
   return (
     <div className="w-full">
       <div className="flex justify-between items-center">
-        <SearchBar value={searchText} onValueChange={handleSearchText} />
+        <SearchBar value={searchText} placeholderText="Product name" onValueChange={handleSearchText} />
       </div>
       <ReuseTable
         columns={formattedData.columns}

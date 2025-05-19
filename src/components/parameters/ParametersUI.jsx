@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect, useCallback } from "react"; // Đảm bảo useCallback đã được import
-import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import ParametersTable from "./ParametersTable";
 import {
@@ -24,6 +23,7 @@ import {
   fetchCatetories,
   fetchManufacturers,
 } from "@/lib/api/parameters";
+import { toast } from "sonner";
 
 // --- Wrapper Component cho Form Category (Giữ nguyên logic, không có label) ---
 const CategoryFormContent = ({
@@ -190,8 +190,6 @@ export default function ParametersUI({
     }
   };
 
-  // --- Handlers CRUD (Giữ nguyên logic) ---
-  // --- Handlers for Category ---
   const handleCreateCategory = async () => {
     if (!categoryName) return;
     try {
@@ -285,23 +283,51 @@ export default function ParametersUI({
       !selectedCategoryId ||
       !selectedManufacturerId ||
       !item?.parameter_id
-    )
+    ) {
+      // Có thể thêm toast thông báo ở đây nếu các trường form chưa được điền
+      console.error("Form data is incomplete.");
       return;
+    }
+
     const originalProduct = products.find(
       (p) => p.parameter_id === item.parameter_id
     );
-    const productIdToUpdate = originalProduct?.product_id;
-    if (!productIdToUpdate) {
+
+    // Kiểm tra xem originalProduct có tồn tại không
+    if (!originalProduct) {
       console.error(
-        "Could not find product_id for the item being edited:",
-        item
+        "Could not find the original product in the local state for parameter_id:",
+        item.parameter_id,
+        "Current item:",
+        item,
+        "Current products state:",
+        products // Log thêm state products để debug
       );
+      // Hiển thị thông báo lỗi cho người dùng, ví dụ dùng toast
+      // toast.error("Không tìm thấy thông tin sản phẩm gốc. Vui lòng thử làm mới trang.");
       return;
     }
+
+    const productIdToUpdate = originalProduct.product_id; // Bây giờ originalProduct chắc chắn tồn tại
+
+    // Kiểm tra productIdToUpdate (quan trọng!)
+    if (!productIdToUpdate) {
+      console.error(
+        "Could not find product_id for the item being edited (originalProduct found but product_id is missing):",
+        "Original Product:",
+        originalProduct,
+        "Current item:",
+        item
+      );
+      // Hiển thị thông báo lỗi cho người dùng
+      // toast.error("Sản phẩm gốc thiếu thông tin product_id. Không thể cập nhật.");
+      return;
+    }
+
     try {
       const productData = {
         parameter_id: item.parameter_id,
-        product_id: productIdToUpdate,
+        product_id: productIdToUpdate, // Đã được kiểm tra
         name_product: productName,
         category_id: selectedCategoryId,
         manufacturer_id: selectedManufacturerId,
@@ -310,14 +336,17 @@ export default function ParametersUI({
       setProductName("");
       setSelectedCategoryId("");
       setSelectedManufacturerId("");
-      refreshProducts();
+      refreshProducts(); // Đảm bảo refreshProducts hoạt động đúng và cập nhật state products
+      // với dữ liệu mới nhất và đầy đủ từ API
+      // toast.success("Sản phẩm đã được cập nhật thành công!");
     } catch (error) {
       console.error("Error updating product:", error);
+      // toast.error(error.message || "Có lỗi xảy ra khi cập nhật sản phẩm.");
     }
   };
 
   const handleDeleteProduct = async (item) => {
-    if (!item?.parameter_id) return;
+    if (!item?.parameter_id) return toast.message("loi load id");
     try {
       await deleteProduct(item.parameter_id);
       refreshProducts();
