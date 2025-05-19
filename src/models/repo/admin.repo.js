@@ -2,7 +2,6 @@ const { executeQuery } = require('../../database/executeQuery');
 
 const addInfo = async () => {
   const defaultDataQueries = [
-    // Insert superadmin if users table is empty
     {
       query: `INSERT INTO users (username, password)
               SELECT 'superadmin', 'superadmin'
@@ -42,7 +41,7 @@ const addInfo = async () => {
       params: []
     },
 
-    // Insert update permission if it doesn't exist
+
     {
       query: `INSERT INTO permissions (name, description)
               SELECT 'update', 'Update existing resources'
@@ -213,6 +212,17 @@ const addInfo = async () => {
               FROM roles r
               JOIN permissions p ON p.name = 'update'
               JOIN resources res ON res.name = 'stock'
+              WHERE r.name = 'employee'
+              ON DUPLICATE KEY UPDATE role_id = r.role_id`,
+      params: []
+    },
+
+    {
+      query: `INSERT INTO role_permissions (role_id, permission_id, resource_id)
+              SELECT r.role_id, p.permission_id, res.resource_id
+              FROM roles r
+              JOIN permissions p ON p.name = 'update'
+              JOIN resources res ON res.name = 'users'
               WHERE r.name = 'employee'
               ON DUPLICATE KEY UPDATE role_id = r.role_id`,
       params: []

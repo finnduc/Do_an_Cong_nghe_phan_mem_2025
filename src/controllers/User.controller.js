@@ -26,6 +26,18 @@ class UserController {
     }
   };
 
+  updateUserSetting = async (req, res, next) => {
+    try {
+      const responces = await UserService.updateUserSetting(req.body);
+      return new OK({
+        message: 'Update user setting success',
+        metadata: responces,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   GetAllUser = async (req, res, next) => {
     try {
       const responces = await UserService.getAllUsers(req.query);

@@ -23,6 +23,14 @@ Router.post(
   asyncHandler(UserController.UpdateUser)
 );
 
+// Update user setting
+Router.post(
+  '/updateSetting',
+  hasRole(['manager', 'employee']),
+  hasPermission({ permissions: ['update'], resource: 'users' }),
+  asyncHandler(UserController.updateUserSetting)
+);
+
 // Delete user
 Router.delete(
   '/delete',

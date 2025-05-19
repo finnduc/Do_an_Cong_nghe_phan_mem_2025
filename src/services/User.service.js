@@ -4,13 +4,13 @@ const { BadRequestError, ConflictError, InternalServerError, NotFoundError } = r
 
 class UserService {
     createrUser = async (payload) => {
-        const { userName, role_id , password } = payload;
+        const { userName, role_id, password } = payload;
         const foundUser = await getUserByUserName(userName);
 
         if (foundUser[0]) {
             throw new ConflictError("Người dùng này đã tồn tại!");
         }
-            
+
         const query = `
                 INSERT INTO users (username, password)
                 VALUES (?, ?);
@@ -31,7 +31,7 @@ class UserService {
     }
 
     updateUser = async (payload) => {
-        const { user_id, userName, role_id , password } = payload;
+        const { user_id, userName, password } = payload;
 
         const foundUser = await findUserById(user_id);
         if (!foundUser[0]) {
@@ -44,105 +44,48 @@ class UserService {
                 SET username = ?, password = ?
                 WHERE user_id = ?;
             `;
-        
-        const queryUpdateRole = `
-            UPDATE user_roles
-            SET role_id = ?
-            WHERE user_id = ?
-            `;
 
-        
-        const updateUser =  await executeQuery(query, [userName, password, user_id]);
-        const updateRole = await executeQuery(queryUpdateRole, [role_id, user_id]);
+        const updateUser = await executeQuery(query, [userName, password, user_id]);
 
-        return {
-            user_id: user_id,
-            role_id: role_id
-        }
+        return updateUser;
     }
 
-    /**
-     * Delete one or multiple users by their IDs
-     * @param {Object} payload - The payload containing user_id(s)
-     * @param {number|number[]} payload.user_id - Single user ID or array of user IDs
-     * @returns {Promise<Object>} Result of the deletion operation
-     * @throws {BadRequestError} If user_id is invalid
-     * @throws {NotFoundError} If any user_id is not found
-     * @throws {InternalServerError} If database operation fails
-     */
-    deleteUser = async (payload) => {
-        try {
-            const { user_id } = payload;
-            
-            // Validate input
-            if (!user_id) {
-                throw new BadRequestError("user_id is required");
-            }
+    updateUserSetting = async (payload) => {
+        const { user_id, userName, password_old, password_new } = payload;
 
-            const userIds = Array.isArray(user_id) ? user_id : [user_id];
-            
-            if (userIds.length === 0) {
-                throw new BadRequestError("Danh sách user_id không hợp lệ!");
-            }
-
-            // Validate that all IDs are numbers
-            if (!userIds.every(id => Number.isInteger(Number(id)))) {
-                throw new BadRequestError("Tất cả user_id phải là số nguyên!");
-            }
-
-            const placeholders = userIds.map(() => '?').join(', ');
-
-            // Start transaction
-            await executeQuery('START TRANSACTION');
-
-            try {
-                // Check if users exist
-                const findQuery = `
-                    SELECT user_id FROM users
-                    WHERE user_id IN (${placeholders});
-                `;
-                const foundUsers = await executeQuery(findQuery, userIds);
-                const foundIds = foundUsers.map(user => user.user_id);
-
-                const notFoundIds = userIds.filter(id => !foundIds.includes(Number(id)));
-
-                if (notFoundIds.length > 0) {
-                    throw new NotFoundError(`Không tìm thấy các user_id sau: ${notFoundIds.join(', ')}`);
-                }
-
-                // Delete from user_roles first (due to foreign key constraint)
-                const deleteRolesQuery = `
-                    DELETE FROM user_roles
-                    WHERE user_id IN (${placeholders});
-                `;
-                await executeQuery(deleteRolesQuery, userIds);
-
-                // Delete from users table
-                const deleteUsersQuery = `
-                    DELETE FROM users
-                    WHERE user_id IN (${placeholders});
-                `;
-                const result = await executeQuery(deleteUsersQuery, userIds);
-
-                // Commit transaction
-                await executeQuery('COMMIT');
-
-                return {
-                    success: true,
-                    deletedCount: result.affectedRows,
-                    deletedIds: userIds
-                };
-            } catch (error) {
-                // Rollback transaction on error
-                await executeQuery('ROLLBACK');
-                throw error;
-            }
-        } catch (error) {
-            if (error instanceof BadRequestError || error instanceof NotFoundError) {
-                throw error;
-            }
-            throw new InternalServerError(`Lỗi khi xóa người dùng: ${error.message}`);
+        const foundUser = await findUserById(user_id);
+        if (!foundUser[0]) {
+            throw new NotFoundError("Không tìm thấy người dùng!");
         }
+
+        if (password_old !== foundUser[0].password) {
+            throw new BadRequestError("Mật khẩu cũ không chính xác!");
+        }
+
+        const query = `
+                UPDATE users
+                SET username = ?, password = ?
+                WHERE user_id = ?;
+            `;
+
+        const updateUser = await executeQuery(query, [userName, password_new, user_id]);
+
+        return updateUser;
+    }
+
+    deleteUser = async (payload) => {
+        const { user_id } = payload;
+
+        if (!user_id) {
+            throw new BadRequestError("user_id is required");
+        }
+
+        const query = `
+            DELETE FROM users
+            WHERE user_id = ?;
+        `;
+        await executeQuery(query, [user_id]);
+
     };
 
     getAllUsers = async (payload) => {
@@ -155,7 +98,7 @@ class UserService {
         const offset = (parsedPage - 1) * parsedLimit;
 
         const query = `
-                SELECT users.*, r.name as role, r.description
+                SELECT users.*, r.name as role
                 FROM users
                 JOIN user_roles ur ON users.user_id = ur.user_id
                 JOIN roles r ON ur.role_id = r.role_id
