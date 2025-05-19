@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import TransactionTable from "@/components/export/TransactionTable";
+import TransactionTable from "@/components/export/ExportTransactionTable";
 
 const mockData = [
   {
@@ -19,6 +19,7 @@ const mockData = [
         manufacturer: "Apple",
         product_name: "Iphone 15",
         price_per_unit: 1500,
+        total: 15000,
       },
       {
         item_id: "b5a087e2",
@@ -27,6 +28,7 @@ const mockData = [
         manufacturer: "Apple",
         product_name: "Iphone 16",
         price_per_unit: 1600,
+        total: 19200,
       },
     ],
   },
@@ -36,36 +38,39 @@ const TestTransactionTable = () => {
   const [page, setPage] = useState(1);
 
   const columns = [
-    "Mã giao dịch",
-    "Tổng tiền",
-    "Ngày tạo",
-    "Ghi chú",
-    "Đối tác",
-    "Nhân viên",
+    "Transaction id",
+    "Employee",
+    "Partner",
+    "Note",
+    "Total amount",
+    "Created at",
   ];
 
   const itemColumns = [
-    "Loại",
-    "Số lượng",
-    "Hãng sản xuất",
-    "Tên sản phẩm",
-    "Đơn giá",
+    "Product name",
+    "Category",
+    "Manufacturer",
+    "Quantity",
+    "Price",
+    "Total",
   ];
 
   const rows = mockData.map((d) => ({
     data: [
       d.header_id,
-      d.total_amount,
-      d.notes || "-",
-      d.partner_name,
       d.employee_name,
+      d.partner_name,
+      d.notes || "-",
+      d.total_amount,
+      d.created_at,  
     ],
     items: d.items.map((item) => [
-      item.category,
-      item.quantity.toString(),
-      item.manufacturer,
       item.product_name,
+      item.category,
+      item.manufacturer,
+      item.quantity.toString(),
       item.price_per_unit.toString(),
+      item.total.toString(),
     ]),
   }));
 
