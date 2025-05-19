@@ -61,35 +61,89 @@ class UserService {
         }
     }
 
+    /**
+     * Delete one or multiple users by their IDs
+     * @param {Object} payload - The payload containing user_id(s)
+     * @param {number|number[]} payload.user_id - Single user ID or array of user IDs
+     * @returns {Promise<Object>} Result of the deletion operation
+     * @throws {BadRequestError} If user_id is invalid
+     * @throws {NotFoundError} If any user_id is not found
+     * @throws {InternalServerError} If database operation fails
+     */
     deleteUser = async (payload) => {
-        const { user_id } = payload;
-        const userIds = Array.isArray(user_id) ? user_id : [user_id];
+        try {
+            const { user_id } = payload;
+            
+            // Validate input
+            if (!user_id) {
+                throw new BadRequestError("user_id is required");
+            }
 
-        if (userIds.length === 0) {
-            throw new BadRequestError("Danh sách user_id không hợp lệ!");
+            const userIds = Array.isArray(user_id) ? user_id : [user_id];
+            
+            if (userIds.length === 0) {
+                throw new BadRequestError("Danh sách user_id không hợp lệ!");
+            }
+
+            // Validate that all IDs are numbers
+            if (!userIds.every(id => Number.isInteger(Number(id)))) {
+                throw new BadRequestError("Tất cả user_id phải là số nguyên!");
+            }
+
+            const placeholders = userIds.map(() => '?').join(', ');
+
+            // Start transaction
+            await executeQuery('START TRANSACTION');
+
+            try {
+                // Check if users exist
+                const findQuery = `
+                    SELECT user_id FROM users
+                    WHERE user_id IN (${placeholders});
+                `;
+                const foundUsers = await executeQuery(findQuery, userIds);
+                const foundIds = foundUsers.map(user => user.user_id);
+
+                const notFoundIds = userIds.filter(id => !foundIds.includes(Number(id)));
+
+                if (notFoundIds.length > 0) {
+                    throw new NotFoundError(`Không tìm thấy các user_id sau: ${notFoundIds.join(', ')}`);
+                }
+
+                // Delete from user_roles first (due to foreign key constraint)
+                const deleteRolesQuery = `
+                    DELETE FROM user_roles
+                    WHERE user_id IN (${placeholders});
+                `;
+                await executeQuery(deleteRolesQuery, userIds);
+
+                // Delete from users table
+                const deleteUsersQuery = `
+                    DELETE FROM users
+                    WHERE user_id IN (${placeholders});
+                `;
+                const result = await executeQuery(deleteUsersQuery, userIds);
+
+                // Commit transaction
+                await executeQuery('COMMIT');
+
+                return {
+                    success: true,
+                    deletedCount: result.affectedRows,
+                    deletedIds: userIds
+                };
+            } catch (error) {
+                // Rollback transaction on error
+                await executeQuery('ROLLBACK');
+                throw error;
+            }
+        } catch (error) {
+            if (error instanceof BadRequestError || error instanceof NotFoundError) {
+                throw error;
+            }
+            throw new InternalServerError(`Lỗi khi xóa người dùng: ${error.message}`);
         }
-
-        const placeholders = userIds.map(() => '?').join(', ');
-        const findQuery = `
-            SELECT user_id FROM users
-            WHERE user_id IN (${placeholders});
-        `;
-        const foundUsers = await executeQuery(findQuery, userIds);
-        const foundIds = foundUsers.map(user => user.user_id);
-
-        const notFoundIds = userIds.filter(id => !foundIds.includes(id));
-
-        if (notFoundIds.length > 0) {
-            throw new NotFoundError(`Không tìm thấy các user_id sau: ${notFoundIds.join(', ')}`);
-        }
-
-        const deleteQuery = `
-            DELETE FROM users
-            WHERE user_id IN (${placeholders});
-        `;
-        return await executeQuery(deleteQuery, userIds);
     };
-
 
     getAllUsers = async (payload) => {
         const { limit, page } = payload;
