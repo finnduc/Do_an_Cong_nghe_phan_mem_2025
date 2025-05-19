@@ -172,6 +172,8 @@ export default function TransactionCreator({
         onValueChange={(value) => {
           setTransactionType(value);
           setInvolvedProducts([]);
+          resetFilters();
+          setCurrentProduct(null);
         }}
         value={transactionType}
       >
