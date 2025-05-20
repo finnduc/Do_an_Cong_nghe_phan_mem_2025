@@ -24,12 +24,21 @@ export default function TransactionFieldCombobox({
   inputValue,
   setInputValue,
   placeholder = "Select item...",
+  autoSubmitOnSelect, 
 }) {
   const [open, setOpen] = useState(false);
 
   const selectedItem = items.find(
     (item) => String(item[valueField]) === String(inputValue)
   );
+
+  const handleSelect = (val) => {
+    setInputValue(val);
+    if (typeof autoSubmitOnSelect === 'function') {
+      autoSubmitOnSelect(val);
+    }
+    setOpen(false);
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -54,11 +63,8 @@ export default function TransactionFieldCombobox({
               {items.map((item) => (
                 <CommandItem
                   key={item[valueField]}
-                  value={item[labelField]} // Tìm kiếm theo nhãn
-                  onSelect={() => {
-                    setInputValue(String(item[valueField])); // Cập nhật giá trị
-                    setOpen(false);
-                  }}
+                  value={item[labelField]}
+                  onSelect={() => handleSelect(String(item[valueField]))}
                 >
                   {item[labelField]}
                   <Check

@@ -50,6 +50,12 @@ export default function ExportFilter({
     onReset();
   };
 
+  const handleQuickChange = (field, value) => {
+    form.setValue(field, value);
+    const currentValues = { ...form.getValues(), [field]: value };
+    onFilterSubmit(currentValues);
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 w-full max-w-full pb-4">
@@ -67,6 +73,7 @@ export default function ExportFilter({
                   labelField="name"
                   inputValue={field.value}
                   setInputValue={field.onChange}
+                  autoSubmitOnSelect={(val) => handleQuickChange("employeeId", val)}
                   placeholder="Select employee"
                 />
               </FormControl>
@@ -81,7 +88,7 @@ export default function ExportFilter({
           name="partnerId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Partner</FormLabel>
+              <FormLabel>Customer</FormLabel>
               <FormControl>
                 <TransactionFieldCombobox
                   items={customers}
@@ -89,6 +96,7 @@ export default function ExportFilter({
                   labelField="name"
                   inputValue={field.value}
                   setInputValue={field.onChange}
+                  autoSubmitOnSelect={(val) => handleQuickChange("partnerId", val)}
                   placeholder="Select partner"
                 />
               </FormControl>

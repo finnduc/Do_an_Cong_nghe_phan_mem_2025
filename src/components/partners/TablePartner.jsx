@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import ReuseTable from "../ReuseTable";
 import { jsonToTableFormat } from "@/lib/utils";
-import { fetchPartner , updatePartner , deletePartner } from "@/lib/api/partner";
+import { fetchPartner, updatePartner, deletePartner } from "@/lib/api/partner";
 import { toast } from "sonner";
 import { Toaster } from "../ui/sonner";
 import { addEditButtons } from "../../components/AddEditDeleteButtons";
@@ -24,7 +24,6 @@ export default function TablePartner({
     setTotalRecords(initialTotalRecords);
     setCurrentPage(1);
   }, [initialData, initialTotalPages, initialTotalRecords]);
-
 
   const getNextPage = async (page) => {
     try {
@@ -49,9 +48,9 @@ export default function TablePartner({
     }
   };
 
-  const handleDeleteOnRow = async (item ) => {
+  const handleDeleteOnRow = async (item) => {
     if (!item?.partner_id) {
-      toast.error("Không tìm thấy nhân viên để xóa" )
+      toast.error("Không tìm thấy nhân viên để xóa");
       return;
     }
     const confirmed = window.confirm(`Bạn có chắc chắn muốn xóa nhân viên ?`);
@@ -60,7 +59,7 @@ export default function TablePartner({
     }
     try {
       await deletePartner(item.partner_id);
-      toast.success("Đã xóa thành công nhân viên")
+      toast.success("Đã xóa thành công nhân viên");
     } catch (error) {
       console.error("Error deleting employee:", error);
     }
@@ -68,24 +67,28 @@ export default function TablePartner({
 
   const handleEditOnRow = async (item) => {
     if (!item?.partner_id) {
-      toast.error("Không tìm thấy nhân viên " )
+      toast.error("Không tìm thấy nhân viên ");
       return;
     }
     try {
-      await updatePartner(item.partner_id)
-    } catch (error) {
-      
-    }
+      await updatePartner(item.partner_id);
+    } catch (error) {}
   };
-  const processedData = currentData.map(item => {
-    const { created_at,  ...rest } = item; 
-    return rest; 
+  const processedData = currentData.map((item) => {
+    const { created_at, is_deleted, ...rest } = item; // Loại bỏ created_at và is_deleted
+    return rest;
   });
-                                             // currentData
-  const dataWithActionButtons = addEditButtons(processedData, handleEditOnRow, handleDeleteOnRow);
-  const formattedData = jsonToTableFormat(dataWithActionButtons, currentPage, limit);
-
-
+  // currentData
+  const dataWithActionButtons = addEditButtons(
+    processedData,
+    handleEditOnRow,
+    handleDeleteOnRow
+  );
+  const formattedData = jsonToTableFormat(
+    dataWithActionButtons,
+    currentPage,
+    limit
+  );
 
   return (
     <div>

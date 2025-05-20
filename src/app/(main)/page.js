@@ -23,8 +23,8 @@ const kpiData = {
 };
 
 export default function DashboardHomePage() {
-  const [count, setCount] = useState(null);
-  const [transaction, setTransaction] = useState(null);
+  const [count, setCount] = useState(0);
+  const [transaction, setTransaction] = useState(0);
   const [DeadStock, setDeadStock] = useState(null);
   const [num , setNum] = useState(null);
   const [loading, setLoading] = useState(true);

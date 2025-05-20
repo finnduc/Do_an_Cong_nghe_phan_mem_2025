@@ -172,9 +172,9 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
             />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <Button
+          <Button 
             type="submit"
-            className="mt-auto bg-blue-500 hover:bg-blue-700 text-white"
+            className="mt-auto bg-blue-500 hover:bg-blue-700 text-white "
             disabled={isLoading}
           >
             {isLoading ? "Loading..." : "Create"}
