@@ -33,6 +33,7 @@ export function useStockData(initialData) {
   const fetchData = async (page, filters) => {
     try {
       const data = await fetchStock(page, 8, filters);
+      setProducts(data?.metadata?.data || []);
       setCurrentData(data?.metadata?.data || []);
       setTotalPages(data?.metadata?.totalPage || 0);
       setTotalRecords(data?.metadata?.totalItem || 0);
@@ -82,6 +83,8 @@ export function useStockData(initialData) {
     setManufacturerFilter('');
     setCategoryFilter('');
     setPriceExportRange([0, 100000]);
+    setProductFilter('');
+    setProductFilter([]);
     setPriceImportRange([0, 100000]);
     setQuantityRange([0, 100000]);
     fetchData(1, {

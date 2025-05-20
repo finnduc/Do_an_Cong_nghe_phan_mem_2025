@@ -151,7 +151,7 @@ export default function TransactionCreator({
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-8">
       <TransactionFieldCombobox
         items={employees}
         valueField="employee_id"
@@ -172,6 +172,8 @@ export default function TransactionCreator({
         onValueChange={(value) => {
           setTransactionType(value);
           setInvolvedProducts([]);
+          resetFilters();
+          setCurrentProduct(null);
         }}
         value={transactionType}
       >
@@ -228,33 +230,35 @@ export default function TransactionCreator({
           >
             Reset
           </button>
-          <Select onValueChange={setCategoryFilter} value={categoryFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat.category_id} value={cat.name}>
-                  {cat.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            onValueChange={setManufacturerFilter}
-            value={manufacturerFilter}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Manufacturer" />
-            </SelectTrigger>
-            <SelectContent>
-              {manufacturers.map((man) => (
-                <SelectItem key={man.manufacturer_id} value={man.name}>
-                  {man.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <Select onValueChange={setCategoryFilter} value={categoryFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.category_id} value={cat.name}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              onValueChange={setManufacturerFilter}
+              value={manufacturerFilter}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Manufacturer" />
+              </SelectTrigger>
+              <SelectContent>
+                {manufacturers.map((man) => (
+                  <SelectItem key={man.manufacturer_id} value={man.name}>
+                    {man.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <ProductCombobox
             items={products}
             valueField="stock_id"
