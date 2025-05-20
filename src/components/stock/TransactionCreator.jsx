@@ -151,7 +151,7 @@ export default function TransactionCreator({
   );
 
   return (
-    <div className="space-y-4 pb-8">
+    <div className="pb-8 flex flex-col gap-4">
       <TransactionFieldCombobox
         items={employees}
         valueField="employee_id"
