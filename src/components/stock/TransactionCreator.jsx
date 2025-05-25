@@ -49,8 +49,10 @@ export default function TransactionCreator({
 
     let value = Number(inputValue);
     if (isNaN(value)) value = min;
-    else if (value > max) value = max;
-    else if (value < min) value = min;
+    if (transactionType === 'export'){
+      if (value > max) value = max;
+    }
+    if (value < min) value = min;
 
     setCurrentProduct({ ...currentProduct, selectedQuantity: value });
   };
