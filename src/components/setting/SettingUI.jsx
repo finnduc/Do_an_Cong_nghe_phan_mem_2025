@@ -1,6 +1,9 @@
 "use client";
 import { Settings } from "lucide-react";
 import { useState } from "react";
+import { Toaster } from "../ui/sonner";
+import { toast } from "sonner";
+import { updateAccountPassword } from "@/lib/api/setting";
 
 export default function SettingUI({ user }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -8,7 +11,7 @@ export default function SettingUI({ user }) {
   const [error, setError] = useState(null);
 
   const handleChangePassword = async () => {
-        console.log(formData);
+    console.log(formData);
     if (
       !formData.oldPassword ||
       !formData.newPassword ||
@@ -25,11 +28,26 @@ export default function SettingUI({ user }) {
       setError("New password cannot be the same as the old password.");
       return;
     }
-
+    try {
+      await updateAccountPassword(
+        user.user_id,
+        user.userName,
+        formData.oldPassword,
+        formData.newPassword
+      );
+      setIsOpen(false);
+      setError(null);
+      setFormData({});
+      toast.success("Password updated successfully.");
+    } catch (e) {
+      setError(e.message);
+      toast.error(e.message);
+    }
   };
 
   return (
     <div className="max-w-md mx-auto bg-white rounded-xl shadow-md p-8">
+      <Toaster />
       <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2 mb-4">
         <Settings size={20} /> Settings
       </h2>
@@ -78,17 +96,19 @@ export default function SettingUI({ user }) {
               />
             </div>
             <div>
-              <div
-                className="text-gray-600 text-sm font-medium"
-                
-              >
+              <div className="text-gray-600 text-sm font-medium">
                 Confirm Password
               </div>
-              <input className="border rounded-md p-2" onChange={(e) =>
+              <input
+                className="border rounded-md p-2"
+                onChange={(e) =>
                   setFormData({ ...formData, confirmPassword: e.target.value })
-                }/>
+                }
+              />
             </div>
-            {error && <div className="text-red-500 w-[200px] text-xs">{error}</div>}
+            {error && (
+              <div className="text-red-500 w-[200px] text-xs">{error}</div>
+            )}
             <div className="flex justify-end gap-2 mt-4">
               <button
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"

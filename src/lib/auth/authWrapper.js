@@ -84,14 +84,11 @@ export async function authFetch(url, options = {}) {
 
     return data;
   } catch (error) {
-    // Log the error for debugging but avoid exposing sensitive details
-    console.log("Auth fetch issue:", error.message);
     // Redirect to login for authentication-related errors without re-throwing
     if (
       error.message === "No user information or access token" ||
       error.message === "Unable to refresh token"
     ) {
-      console.log("Redirecting to /login due to auth error:", error.message);
       redirect("/login");
     }
     // Re-throw other errors for upstream handling
