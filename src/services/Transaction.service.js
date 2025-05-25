@@ -50,40 +50,43 @@ class TransactionService {
 
         let query = `
             SELECT 
-                th.header_id,
-                th.action,
-                th.total_amount,
-                th.created_at,
-                th.notes,
-                p.name AS partner_name,
-                e.name AS employee_name,
-                JSON_ARRAYAGG(
-                    JSON_OBJECT(
-                        'item_id', ti.item_id,
-                        'category', c.name,
-                        'quantity', ti.quantity,
-                        'manufacturer', m.name,
-                        'product_name', pr.name,
-                        'price_per_unit', ti.price_per_unit_snapshot,
-                        'total', (ti.quantity * ti.price_per_unit_snapshot)
-                    )
-                ) AS items
-            FROM transaction_headers th
-                LEFT JOIN partners p ON th.partner_id = p.partner_id
-                LEFT JOIN employees e ON th.employee_id = e.employee_id
-                LEFT JOIN transaction_items ti ON th.header_id = ti.header_id
-                LEFT JOIN stock s ON ti.stock_id = s.stock_id
-                LEFT JOIN products pr ON s.product_id = pr.product_id
-                LEFT JOIN manufacturers m ON s.manufacturer_id = m.manufacturer_id
-                LEFT JOIN categories c ON s.category_id = c.category_id
-            WHERE 1=1
-                AND s.is_deleted = FALSE 
-                AND pr.is_deleted = FALSE 
-                AND m.is_deleted = FALSE 
-                AND (c.is_deleted = FALSE OR c.is_deleted IS NULL)
-                ${addQuery}
-            GROUP BY th.header_id, th.action, th.total_amount, th.created_at, th.notes, p.name, e.name
-            ORDER BY th.created_at DESC
+        th.header_id,
+        th.action,
+        th.total_amount,
+        th.created_at,
+        th.notes,
+        p.name AS partner_name,
+        e.name AS employee_name,
+        COALESCE(
+          JSON_ARRAYAGG(
+            JSON_OBJECT(
+              'item_id', ti.item_id,
+              'category', c.name,
+              'quantity', ti.quantity,
+              'manufacturer', m.name,
+              'product_name', pr.name,
+              'price_per_unit', ti.price_per_unit_snapshot,
+              'total', (ti.quantity * ti.price_per_unit_snapshot)
+            )
+          ),
+          JSON_ARRAY()
+        ) AS items
+      FROM transaction_headers th
+        LEFT JOIN partners p ON th.partner_id = p.partner_id
+        LEFT JOIN employees e ON th.employee_id = e.employee_id
+        LEFT JOIN transaction_items ti ON th.header_id = ti.header_id
+        LEFT JOIN stock s ON ti.stock_id = s.stock_id
+        LEFT JOIN products pr ON s.product_id = pr.product_id
+        LEFT JOIN manufacturers m ON s.manufacturer_id = m.manufacturer_id
+        LEFT JOIN categories c ON s.category_id = c.category_id
+      WHERE 1=1
+        AND s.is_deleted = FALSE 
+        AND pr.is_deleted = FALSE 
+        AND m.is_deleted = FALSE 
+        AND (c.is_deleted = FALSE OR c.is_deleted IS NULL)
+        ${addQuery}
+      GROUP BY th.header_id, th.action, th.total_amount, th.created_at, th.notes, p.name, e.name
+      ORDER BY th.created_at DESC
             LIMIT ${parsedLimit} OFFSET ${offset}
         `;
 
@@ -107,17 +110,23 @@ class TransactionService {
         const results = await executeQuery(query, params);
 
         results.forEach(result => {
-            if (result.items) {
-                try {
-                    result.items = JSON.parse(result.items);
-                } catch (error) {
-                    console.error('Error parsing items JSON:', error);
-                    result.items = [];
-                }
-            } else {
-                result.items = [];
+        console.log('items before processing:', result.items, typeof result.items); // Debug
+        if (result.items) {
+          if (typeof result.items === 'string') {
+            try {
+              result.items = JSON.parse(result.items);
+            } catch (error) {
+              console.error(`Error parsing items JSON for header_id ${result.header_id}:`, error.message);
+              result.items = [];
             }
-        });
+          } else if (!Array.isArray(result.items)) {
+            console.warn(`Items is not an array for header_id ${result.header_id}:`, result.items);
+            result.items = [];
+          }
+        } else {
+          result.items = [];
+        }
+      });
 
         return {
             total: total,
