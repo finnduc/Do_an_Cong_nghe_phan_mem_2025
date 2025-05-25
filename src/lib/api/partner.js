@@ -42,17 +42,25 @@ export async function updatePartner(PartnerData) {
 }
 
 export async function deletePartner(PartnerIds) {
+  // 1. Xử lý PartnerIds:
   const ids = Array.isArray(PartnerIds) ? PartnerIds : [PartnerIds];
   if (ids.length === 0) {
-    throw new Error("Chưa chọn nhân viên để xóa.");
+    throw new Error("Chưa chọn đối tác để xóa.");
   }
+
+  // 2. Tạo query parameters:
   const params = new URLSearchParams();
-  ids.forEach((id) => params.append("partner_id", id));
+  ids.forEach((id) => params.append("partner_id", id)); // Đúng key "partner_id"
+
+  // 3. Thiết lập options với phương thức DELETE:
+  const options = {
+    method: "DELETE", // Đúng phương thức
+  };
+
+  // 4. Gọi API:
   const data = await authFetch(
-    `http://localhost:3000/v1/api/partner/delete?${params.toString()}`,
-    {
-      method: "GET",
-    }
+    `http://localhost:3000/v1/api/partner/delete?${params.toString()}`, // URL với query string đúng
+    options
   );
 
   return data;

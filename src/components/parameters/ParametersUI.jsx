@@ -369,7 +369,6 @@ export default function ParametersUI({
         }
         return;
       }
-      // Set state for Edit modal
       if (type === "category") {
         setCategoryName(item?.name || "");
       } else if (type === "manufacturer") {
@@ -438,6 +437,8 @@ export default function ParametersUI({
         <ParametersTable
           title="Product"
           data={products}
+          scrollAble={true}
+          //onPageChange={getNexPage}
           handleCreateParameters={handleCreateProduct}
           handleEditParameters={handleEditProduct}
           handleDeleteParameters={handleDeleteProduct}

@@ -16,7 +16,7 @@ export async function fetchManufacturers() {
   return data;
 }
 
-export async function fetchProducts(page, limit = 8) {
+export async function fetchProducts(page, limit=1000 ) {
   const payload = {
     page: page,
     limit: limit,

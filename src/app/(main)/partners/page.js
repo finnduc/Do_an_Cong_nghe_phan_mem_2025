@@ -7,6 +7,7 @@ import TablePartner from "../../../components/partners/TablePartner";
 import CreatePartnerForm from "../../../components/partners/CreatePartner";
 import { fetchPartner } from "../../../lib/api/partner";
 import SearchBar from "../../../components/SearchBar";
+import EditPartnerForm from "../../../components/partners/EditPartnerForm";
 import { toast } from "sonner";
 // Các import Button, Input, ChevronLeft, ChevronRight không cần nữa nếu không dùng pagination ở đây
 // import { Button } from "@/components/ui/button";
@@ -91,7 +92,12 @@ export default function PartnerPage() {
 
   const handleCreateSuccess = () => {
     setSearchTerm("");
+    loadPartners(1, "");
   };
+
+  const handleActionSuccess = () => {
+  loadPartners(1, "");
+};
 
   const handlePageChange = (newPage) => {
     // Hàm này sẽ được truyền xuống TablePartner -> ReuseTable
@@ -143,6 +149,7 @@ export default function PartnerPage() {
               currentPage={currentPage}
               initialTotalPages={totalPages} // ReuseTable có thể cần initialTotalPages và initialTotalRecords
               initialTotalRecords={totalRecords} // để hiển thị thông tin "Showing x of y pages"
+              onActionSuccess={handleActionSuccess}
               onPageChange={handlePageChange} // Truyền hàm này xuống
             />
           ) : !isLoading && !error && partnerData.length === 0 ? (

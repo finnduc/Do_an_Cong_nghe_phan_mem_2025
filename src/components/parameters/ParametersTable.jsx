@@ -20,7 +20,7 @@ export default function ParametersTable({
   const [selectedItem, setSelectedItem] = useState(null); // Track selected item for edit/delete
   const [selectedIndex, setSelectedIndex] = useState(null); // Track index for edit/delete
 
-  // Handlers for edit and delete actions
+
   const handleEdit = (item, index) => {
     setSelectedItem(item);
     setSelectedIndex(index);
@@ -33,10 +33,9 @@ export default function ParametersTable({
     setIsDeleteOpen(true);
   };
 
-  // Add edit and delete buttons to data
   const modifiedData = addEditButtons(data, handleEdit, handleDelete);
   const formattedData = jsonToTableFormat(modifiedData);
-  // Handle create submission
+
   const handleCreateSubmit = () => {
     if (handleCreateParameters) {
       handleCreateParameters();

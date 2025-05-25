@@ -9,7 +9,7 @@ export default function SearchBar({value, onValueChange, placeholderText = "Sear
         type="text"
         className="border-input border rounded-r-sm p-2 focus:outline-none font-light text-sm"
         placeholder={placeholderText} 
-        value={value}
+        value={value || ""}
         onChange={onValueChange}
       />
     </div>

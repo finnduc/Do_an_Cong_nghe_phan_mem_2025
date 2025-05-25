@@ -3,7 +3,6 @@
 
 // --- Thêm import ---
 import React, { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import EmployeeUI from "../../../components/employees/TableEmployee"; // Component bảng
 import { fetchEmployees } from "../../../lib/api/employee"; // API lấy danh sách
 import CreateEmployeeForm from "../../../components/employees/CreateEmployee"; // Component form
@@ -18,8 +17,8 @@ export default function EmployeePage() {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const limit = 9;
-  const router = useRouter();
-
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const loadEmployees = useCallback(
     async (page = 1) => {
       if (page === 1) setIsLoading(true); // Chỉ hiện loading xoay tròn khi load trang đầu
@@ -55,17 +54,26 @@ export default function EmployeePage() {
     loadEmployees(1);
   }, [loadEmployees]); // Thêm loadEmployees vào dependency array
   // -----------------------------------------
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500); // Thời gian debounce 500ms
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [searchTerm]);
 
   // --- Hàm xử lý khi tạo nhân viên thành công ---
   const handleCreateSuccess = () => {
     console.log("Employee created successfully, refreshing list...");
     // Dùng router.refresh() để yêu cầu Next.js fetch lại data cho route này
-    router.refresh();
-    // Hoặc gọi lại loadEmployees(1); nếu bạn muốn kiểm soát state chi tiết hơn
-    // loadEmployees(1);
+    loadEmployees(1, "");
   };
   // -----------------------------------------
-
+  const handleActionSuccess = () => {
+    loadEmployees(1, ""); // Tải lại từ trang đầu tiên
+  };
   // --- Hàm xử lý chuyển trang (nếu bảng EmployeeUI cần) ---
   const handlePageChange = (newPage) => {
     loadEmployees(newPage);
@@ -120,6 +128,7 @@ export default function EmployeePage() {
               // Nếu EmployeeUI/TableEmployee cần 2 props này để phân trang đúng, hãy bỏ comment
               // currentPage={currentPage}
               // onPageChange={handlePageChange}
+              onActionSuccess={handleActionSuccess}
             />
           ) : null}{" "}
           {/* Không hiển thị gì nếu lỗi và không loading */}
