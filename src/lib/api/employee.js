@@ -40,16 +40,17 @@ export async function updateEmployee(employeeData) {
 
 export async function deleteEmployees(employeeIds) {
   const ids = Array.isArray(employeeIds) ? employeeIds : [employeeIds];
-  if (ids.length === 0) {
-    throw new Error("Chưa chọn nhân viên để xóa.");
-  }
   const params = new URLSearchParams();
   ids.forEach((id) => params.append("employee_id", id));
+  const options = {
+    method: "DELETE", 
+  };
   const data = await authFetch(
     `http://localhost:3000/v1/api/employee/delete?${params.toString()}`,
-    { method: "GET" }
+    options
   );
-  return data;
+
+  return data; 
 }
 
 export async function searchEmployees(searchTerm, page, limit = 10) {
