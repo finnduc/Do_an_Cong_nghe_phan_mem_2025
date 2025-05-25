@@ -59,12 +59,14 @@ export async function createCategory(name) {
 
 export async function deleteCategory(category_id) {
   const options = {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ category_id }),
+    method: "DELETE", // Đổi thành DELETE
+    headers: {
+      "Content-Type": "application/json", // Vẫn cần header này vì gửi body JSON
+    },
+    body: JSON.stringify({ category_id }), // Truyền category_id trong body
   };
   const data = await authFetch(
-    `http://localhost:3000/v1/api/parameter/deleteCate`,
+    `http://localhost:3000/v1/api/parameter/deleteCate`, // URL giữ nguyên
     options
   );
   return data;
@@ -98,7 +100,7 @@ export async function updateManufacturer(manufacturer_id, name) {
 
 export async function deleteManufacturer(manufacturer_id) {
   const options = {
-    method: "POST",
+    method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ manufacturer_id }),
   };
