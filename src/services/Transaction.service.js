@@ -67,7 +67,7 @@ class TransactionService {
                         'price_per_unit', ti.price_per_unit_snapshot,
                         'total', (ti.quantity * ti.price_per_unit_snapshot)
                     )
-                ) as items
+                ) AS items
             FROM transaction_headers th
                 LEFT JOIN partners p ON th.partner_id = p.partner_id
                 LEFT JOIN employees e ON th.employee_id = e.employee_id
@@ -77,7 +77,10 @@ class TransactionService {
                 LEFT JOIN manufacturers m ON s.manufacturer_id = m.manufacturer_id
                 LEFT JOIN categories c ON s.category_id = c.category_id
             WHERE 1=1
-                AND s.is_deleted = FALSE AND pr.is_deleted = FALSE AND m.is_deleted = FALSE AND (c.is_deleted = FALSE OR c.is_deleted IS NULL)
+                AND s.is_deleted = FALSE 
+                AND pr.is_deleted = FALSE 
+                AND m.is_deleted = FALSE 
+                AND (c.is_deleted = FALSE OR c.is_deleted IS NULL)
                 ${addQuery}
             GROUP BY th.header_id, th.action, th.total_amount, th.created_at, th.notes, p.name, e.name
             ORDER BY th.created_at DESC
