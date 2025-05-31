@@ -132,7 +132,6 @@ class EmployeeService {
         if (search === '' || !search) {
             return this.getAllEmployees(query);
         } else {
-            // Validate pagination parameters
             const parsedLimit = parseInt(limit, 10);
             const parsedPage = parseInt(page, 10);
             if (
@@ -144,10 +143,8 @@ class EmployeeService {
                 throw new BadRequestError('Limit and page must be positive integers!');
             }
 
-            // Calculate offset
             const offset = (parsedPage - 1) * parsedLimit;
 
-            // Use parameterized query to prevent SQL injection
             const searchQuery = `
                 SELECT * FROM employees 
                 WHERE (name LIKE ? OR email LIKE ? OR phone LIKE ?)

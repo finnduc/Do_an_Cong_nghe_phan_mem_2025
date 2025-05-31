@@ -121,6 +121,20 @@ class PartnerService {
         if (search === '' || !search) {
             return this.getAllPartners(query);
         } else {
+            
+            const parsedLimit = parseInt(limit, 10);
+            const parsedPage = parseInt(page, 10);
+            if (
+                isNaN(parsedLimit) ||
+                isNaN(parsedPage) ||
+                parsedLimit <= 0 ||
+                parsedPage <= 0
+            ) {
+                throw new BadRequestError('Limit and page must be positive integers!');
+            }
+
+            const offset = (parsedPage - 1) * parsedLimit;
+            
             const searchQuery = `
                 SELECT * FROM partners
                 WHERE (name LIKE ? OR phone LIKE ? OR email LIKE ?)
