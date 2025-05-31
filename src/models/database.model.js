@@ -1,4 +1,4 @@
-const pool = require('../database/init.mysql');
+const pool = require("../database/init.mysql");
 
 const createAllTables = async () => {
   const queries = [
@@ -58,7 +58,6 @@ const createAllTables = async () => {
         FOREIGN KEY (manufacturer_id) REFERENCES manufacturers (manufacturer_id) ON UPDATE CASCADE,
         FOREIGN KEY (category_id) REFERENCES categories (category_id) ON UPDATE CASCADE
     )`,
-
 
     `CREATE TABLE IF NOT EXISTS product_prices (
         price_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
@@ -168,7 +167,6 @@ const createAllTables = async () => {
         FOREIGN KEY (permission_id) REFERENCES permissions (permission_id) ON DELETE CASCADE,
         FOREIGN KEY (resource_id) REFERENCES resources (resource_id) ON DELETE CASCADE
     )`,
-
   ];
 
   for (const [index, query] of queries.entries()) {
@@ -182,5 +180,5 @@ const createAllTables = async () => {
 };
 
 module.exports = {
-  createAllTables
+  createAllTables,
 };
