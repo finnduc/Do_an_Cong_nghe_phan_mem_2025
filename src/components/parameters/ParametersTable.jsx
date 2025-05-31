@@ -34,7 +34,14 @@ export default function ParametersTable({
   };
 
   const modifiedData = addEditButtons(data, handleEdit, handleDelete);
-  const formattedData = jsonToTableFormat(modifiedData);
+  let dataForDisplay = modifiedData;
+  if (title === "Product") {
+    dataForDisplay = modifiedData.map(item => {
+      const { product_id, ...rest } = item; // Loại bỏ trường product_id
+      return rest; // Trả về object không có product_id
+    });
+  }
+  const formattedData = jsonToTableFormat(dataForDisplay);
 
   const handleCreateSubmit = () => {
     if (handleCreateParameters) {

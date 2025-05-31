@@ -65,3 +65,18 @@ export async function deletePartner(PartnerIds) {
 
   return data;
 }
+export async function searchPartners(searchTerm, page, limit = 11) {
+    const queryParams = new URLSearchParams({ page, limit }).toString();
+    
+    const data = await authFetch(
+        `http://localhost:3000/v1/api/partner/search?${queryParams}`, 
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name: searchTerm }), // Gửi search term trong body
+        }
+    );
+    return data;
+}

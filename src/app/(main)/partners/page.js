@@ -2,33 +2,24 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-// import { useRouter } from "next/navigation"; // Bỏ nếu không dùng
 import TablePartner from "../../../components/partners/TablePartner";
 import CreatePartnerForm from "../../../components/partners/CreatePartner";
-import { fetchPartner } from "../../../lib/api/partner";
+import { fetchPartner, searchPartners } from "../../../lib/api/partner";
 import SearchBar from "../../../components/SearchBar";
-import EditPartnerForm from "../../../components/partners/EditPartnerForm";
-import { toast } from "sonner";
-// Các import Button, Input, ChevronLeft, ChevronRight không cần nữa nếu không dùng pagination ở đây
-// import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input";
-// import { ChevronLeft, ChevronRight } from "lucide-react";
+import Loading from "../loading";
 
 export default function PartnerPage() {
   const [partnerData, setPartnerData] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  // const [inputPage, setInputPage] = useState(1); // Không cần nếu pagination do ReuseTable quản lý
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const limit = 11;
 
-  const limit = 11; // Hoặc 8 nếu bạn muốn đồng nhất
-  // const router = useRouter(); // Bỏ nếu không dùng
-
+  // 1. Debounce search term để tránh gọi API liên tục
   useEffect(() => {
     const timerId = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -36,87 +27,75 @@ export default function PartnerPage() {
     return () => clearTimeout(timerId);
   }, [searchTerm]);
 
-  const loadPartners = useCallback(
-    async (page = 1, search = debouncedSearchTerm) => {
-      if (
-        page !== currentPage ||
-        (search !== debouncedSearchTerm && search !== "") ||
-        (page === 1 && search === "" && !partnerData.length)
-      ) {
-        setIsLoading(true);
+  // 2. Hàm load dữ liệu chính, có thể xử lý cả fetch-all và search
+  const loadPartners = useCallback(async (page, search) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      let response;
+      
+      // Phân tách logic: gọi API search hoặc fetch-all
+      if (search) {
+        response = await searchPartners(search, page, limit);
+      } else {
+        response = await fetchPartner(limit, page);
       }
-      setError(null);
-      try {
-        const extraParams = search.trim() !== "" ? { name: search.trim() } : {};
-        const response = await fetchPartner(limit, page, extraParams);
 
-        if (response && response.metadata) {
-          setPartnerData(response.metadata.data || []);
-          setTotalPages(response.metadata.totalPage || 1);
-          setTotalRecords(response.metadata.total || 0);
-          setCurrentPage(page);
-          // setInputPage(page); // Không cần nữa
-        } else {
-          setPartnerData([]);
-          setTotalPages(1);
-          setTotalRecords(0);
-          setCurrentPage(1);
-          // setInputPage(1); // Không cần nữa
-          throw new Error("Failed to fetch partner data or invalid format.");
-        }
-      } catch (err) {
-        console.error(
-          `Error fetching partners (page ${page}, search '${search}'):`,
-          err
-        );
-        setError(err.message || "Could not load partner data.");
-        setPartnerData([]);
-        setTotalPages(1);
-        setTotalRecords(0);
-        setCurrentPage(1);
-        // setInputPage(1); // Không cần nữa
-      } finally {
-        setIsLoading(false);
+      if (response && response.metadata && response.metadata.data) {
+        const partners = response.metadata.data || [];
+
+        // Chuẩn hóa dữ liệu để chỉ lấy các trường cần thiết, bỏ is_deleted và created_at
+        const normalizedPartners = partners.map(p => ({
+          partner_id: p.partner_id,
+          name: p.name,
+          partner_type: p.partner_type,
+          phone: p.phone,
+          email: p.email,
+          address: p.address
+        }));
+        
+        setPartnerData(normalizedPartners);
+        setTotalPages(response.metadata.totalPage || 1);
+        setTotalRecords(response.metadata.total || 0);
+        setCurrentPage(page);
+      } else {
+        throw new Error("Failed to fetch partner data or invalid format.");
       }
-    },
-    [limit, currentPage, debouncedSearchTerm, partnerData.length]
-  );
+    } catch (err) {
+      setError(err.message || "Could not load partner data.");
+      setPartnerData([]);
+      setTotalPages(1);
+      setTotalRecords(0);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [limit]);
 
+  // 3. useEffect để kích hoạt tìm kiếm hoặc tải dữ liệu ban đầu
   useEffect(() => {
     loadPartners(1, debouncedSearchTerm);
   }, [debouncedSearchTerm, loadPartners]);
 
-  // useEffect(() => { // Không cần inputPage nữa
-  //   setInputPage(currentPage);
-  // }, [currentPage]);
-
-  const handleCreateSuccess = () => {
-    setSearchTerm("");
-    loadPartners(1, "");
-  };
-
+  // 4. Hàm được gọi khi có hành động (tạo/sửa/xóa) thành công
   const handleActionSuccess = () => {
-  loadPartners(1, "");
-};
-
+    loadPartners(currentPage, debouncedSearchTerm);
+  };
+  
+  // 5. Hàm xử lý khi người dùng thay đổi trang
   const handlePageChange = (newPage) => {
-    // Hàm này sẽ được truyền xuống TablePartner -> ReuseTable
-    if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
+    if (newPage !== currentPage) {
       loadPartners(newPage, debouncedSearchTerm);
     }
   };
-
+  
+  // 6. Hàm xử lý khi gõ vào thanh tìm kiếm
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
   };
 
-  // Các hàm handleInputPageChange, handleGoToPage không cần nữa nếu pagination do ReuseTable quản lý
-  // const handleInputPageChange = (e) => { ... };
-  // const handleGoToPage = () => { ... };
-
   return (
     <div className="flex flex-col">
-      <div className="flex items-center gap-x-4 mb-1">
+      <div className="flex items-center gap-x-4 mb-2">
         <h1 className="text-2xl font-semibold text-gray-800 mr-16">
           Partner Management
         </h1>
@@ -137,20 +116,19 @@ export default function PartnerPage() {
 
       <div className="flex flex-col md:flex-row flex-grow gap-4 md:gap-2 md:items-start">
         <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 shadow-md">
-          <CreatePartnerForm onSuccess={handleCreateSuccess} />
+          <CreatePartnerForm onSuccess={() => loadPartners(1, "")} />
         </div>
         <div className="flex-grow overflow-hidden flex flex-col">
           {isLoading ? (
-            <div className="p-4 text-center text-lg">Loading partners...</div>
+            <Loading />
           ) : !error && partnerData.length > 0 ? (
             <TablePartner
-              initialData={partnerData}
-              // Truyền các props cho pagination của ReuseTable bên trong TablePartner
+              data={partnerData}
               currentPage={currentPage}
-              initialTotalPages={totalPages} // ReuseTable có thể cần initialTotalPages và initialTotalRecords
-              initialTotalRecords={totalRecords} // để hiển thị thông tin "Showing x of y pages"
+              totalPages={totalPages}
+              totalRecords={totalRecords}
               onActionSuccess={handleActionSuccess}
-              onPageChange={handlePageChange} // Truyền hàm này xuống
+              onPageChange={handlePageChange}
             />
           ) : !isLoading && !error && partnerData.length === 0 ? (
             <div className="p-4 text-center text-gray-500 text-lg">
@@ -158,7 +136,6 @@ export default function PartnerPage() {
               {debouncedSearchTerm && ` for "${debouncedSearchTerm}"`}.
             </div>
           ) : null}
-          {/* KHỐI JSX PAGINATION ĐÃ BỊ XÓA KHỎI ĐÂY */}
         </div>
       </div>
     </div>
