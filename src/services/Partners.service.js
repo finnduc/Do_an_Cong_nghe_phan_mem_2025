@@ -49,7 +49,9 @@ class PartnerService {
                     partner_id,
                     name,
                     phone,
-                    email
+                    email,
+                    partner_type,
+                    address,
                 FROM partners WHERE is_deleted = FALSE ORDER BY name ASC LIMIT ${parsedLimit} OFFSET ${offset};`;
         const countQuery = `SELECT COUNT(*) AS total FROM partners WHERE is_deleted = FALSE`;
         const countResult = await executeQuery(countQuery);
@@ -145,7 +147,9 @@ class PartnerService {
                     partner_id,
                     name,
                     phone,
-                    email
+                    email,
+                    address,
+                    partner_type
                 FROM partners
                 WHERE (name LIKE ? OR phone LIKE ? OR email LIKE ?)
                 AND is_deleted = FALSE
