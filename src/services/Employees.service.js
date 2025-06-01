@@ -146,9 +146,17 @@ class EmployeeService {
             const offset = (parsedPage - 1) * parsedLimit;
 
             const searchQuery = `
-                SELECT * FROM employees 
-                WHERE (name LIKE ? OR email LIKE ? OR phone LIKE ?)
-                AND is_deleted = FALSE
+                SELECT 
+                    e.employee_id,
+                    e.name,
+                    e.email,
+                    e.phone,
+                    e.created_at,
+                    COALESCE(u.username, '') AS username
+                FROM employees e
+                LEFT JOIN users u ON e.user_id = u.user_id
+                WHERE (e.name LIKE ? OR e.email LIKE ? OR e.phone LIKE ?)
+                AND e.is_deleted = FALSE
                 LIMIT ${parsedLimit} OFFSET ${offset}
             `;
             const employees = await executeQuery(searchQuery, [

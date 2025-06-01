@@ -45,7 +45,12 @@ class PartnerService {
             throw new BadRequestError("Limit và page phải là số nguyên dương!");
         }
 
-        const query = `SELECT * FROM partners WHERE is_deleted = FALSE ORDER BY name ASC LIMIT ${parsedLimit} OFFSET ${offset};`;
+        const query = `SELECT
+                    partner_id,
+                    name,
+                    phone,
+                    email
+                FROM partners WHERE is_deleted = FALSE ORDER BY name ASC LIMIT ${parsedLimit} OFFSET ${offset};`;
         const countQuery = `SELECT COUNT(*) AS total FROM partners WHERE is_deleted = FALSE`;
         const countResult = await executeQuery(countQuery);
         const total = countResult[0].total;
@@ -136,7 +141,12 @@ class PartnerService {
             const offset = (parsedPage - 1) * parsedLimit;
             
             const searchQuery = `
-                SELECT * FROM partners
+                SELECT
+                    partner_id,
+                    name,
+                    phone,
+                    email
+                FROM partners
                 WHERE (name LIKE ? OR phone LIKE ? OR email LIKE ?)
                 AND is_deleted = FALSE
                 ORDER BY name ASC LIMIT ${parsedLimit} OFFSET ${offset};
