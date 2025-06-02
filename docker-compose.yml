@@ -1,0 +1,85 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    ports:
+      - "${MYSQL_PORT:-3307}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -P 3306 -u root -p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  ai_backend:
+    build: ./ai_backend
+    ports:
+      - "${FASTAPI_PORT:-8000}:8000"
+    environment:
+      - FRONTEND_URL=http://frontend:${FRONTEND_PORT:-3000}
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  backend:
+    build: ./backend
+    ports:
+      - "${EXPRESS_PORT:-4000}:4000"
+    environment:
+      - FRONTEND_URL=http://frontend:${FRONTEND_PORT:-3000}
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "4000"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - EXPRESS_URL=http://backend:${EXPRESS_PORT:-4000}
+        - FASTAPI_URL=http://ai_backend:${FASTAPI_PORT:-8000}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - EXPRESS_URL=http://backend:${EXPRESS_PORT:-4000}
+      - FASTAPI_URL=http://ai_backend:${FASTAPI_PORT:-8000}
+    env_file:
+      - .env
+    networks:
+      - app-network
+    depends_on:
+      backend:
+        condition: service_healthy
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
