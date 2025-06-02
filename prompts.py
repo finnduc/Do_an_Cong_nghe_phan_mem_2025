@@ -1,93 +1,123 @@
 sql_prompt = """You are a SQL expert. Convert the following natural language question to SQL based on the schema below.
 ### SCHEMA:
-CREATE TABLE categories (
-    category_id CHAR(36) PRIMARY KEY DEFAULT (UUID()), 
-    name VARCHAR(100) NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS categories (
+    category_id CHAR(36) PRIMARY KEY,
+    name VARCHAR(100),
+    is_deleted BOOLEAN,
+    created_at TIMESTAMP
 );
 
-CREATE TABLE manufacturers (
-    manufacturer_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    name VARCHAR(100) NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS manufacturers (
+    manufacturer_id CHAR(36) PRIMARY KEY,
+    name VARCHAR(100),
+    is_deleted BOOLEAN,
+    created_at TIMESTAMP
 );
 
-CREATE TABLE products (
-    product_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    name VARCHAR(100) NOT NULL UNIQUE, 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS products (
+    product_id CHAR(36) PRIMARY KEY,
+    name VARCHAR(100),
+    is_deleted BOOLEAN,
+    created_at TIMESTAMP
 );
 
-CREATE TABLE stock (
-    stock_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    product_id CHAR(36) NOT NULL,
-    stock_quantity INT NOT NULL CHECK (stock_quantity >= 0),
-    manufacturer_id CHAR(36) NOT NULL,
+CREATE TABLE IF NOT EXISTS stock (
+    stock_id CHAR(36) PRIMARY KEY,
+    product_id CHAR(36),
+    stock_quantity INT,
+    manufacturer_id CHAR(36),
     category_id CHAR(36),
-    FOREIGN KEY (product_id) REFERENCES products (product_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (manufacturer_id) REFERENCES manufacturers (manufacturer_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES categories (category_id) ON DELETE SET NULL ON UPDATE CASCADE
+    is_deleted BOOLEAN,
+    FOREIGN KEY (product_id) REFERENCES products (product_id),
+    FOREIGN KEY (manufacturer_id) REFERENCES manufacturers (manufacturer_id),
+    FOREIGN KEY (category_id) REFERENCES categories (category_id)
 );
 
-CREATE TABLE product_prices (
-    price_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    stock_id CHAR(36) NOT NULL,
-    price_type ENUM('import', 'export') NOT NULL,
-    price DECIMAL(10, 2) NOT NULL CHECK (price > 0),
-    effective_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (stock_id) REFERENCES stock (stock_id) ON DELETE CASCADE ON UPDATE CASCADE
+CREATE TABLE IF NOT EXISTS product_prices (
+    price_id CHAR(36) PRIMARY KEY,
+    stock_id CHAR(36),
+    price_type ENUM('import', 'export'),
+    price DECIMAL(10, 2),
+    effective_date TIMESTAMP,
+    is_deleted BOOLEAN,
+    FOREIGN KEY (stock_id) REFERENCES stock (stock_id)
 );
 
-CREATE TABLE partners (
-    partner_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    name VARCHAR(100) NOT NULL UNIQUE,
-    partner_type ENUM('supplier', 'customer') NOT NULL,
+CREATE TABLE IF NOT EXISTS partners (
+    partner_id CHAR(36) PRIMARY KEY,
+    name VARCHAR(100),
+    partner_type ENUM('supplier', 'customer'),
     address TEXT,
-    phone VARCHAR(15) NOT NULL,
-    email VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE employees (
-    employee_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
     phone VARCHAR(15),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    email VARCHAR(100),
+    is_deleted BOOLEAN,
+    created_at TIMESTAMP
 );
 
-CREATE TABLE transactions (
-    transaction_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    action ENUM('import', 'export') NOT NULL,
-    stock_id CHAR(36) NOT NULL,
-    partner_id CHAR(36) NOT NULL,
-    employee_id CHAR(36) NOT NULL,
-    price_per_unit DECIMAL(10, 2) NOT NULL,
-    quantity INT NOT NULL CHECK (quantity > 0),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (stock_id) REFERENCES stock (stock_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (partner_id) REFERENCES partners (partner_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (employee_id) REFERENCES employees (employee_id) ON DELETE CASCADE ON UPDATE CASCADE
+CREATE TABLE IF NOT EXISTS employees (
+    employee_id CHAR(36) PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100),
+    phone VARCHAR(15),
+    is_deleted BOOLEAN,
+    created_at TIMESTAMP
 );
 
-### QUESTION:
-{}
+CREATE TABLE IF NOT EXISTS transaction_headers (
+    header_id CHAR(36) PRIMARY KEY,
+    action ENUM('import', 'export'),
+    partner_id CHAR(36),
+    employee_id CHAR(36),
+    total_amount DECIMAL(10, 2),
+    created_at TIMESTAMP,
+    notes TEXT,
+    FOREIGN KEY (partner_id) REFERENCES partners (partner_id),
+    FOREIGN KEY (employee_id) REFERENCES employees (employee_id)
+);
 
-### RESPONSE:
-{}
+CREATE TABLE IF NOT EXISTS transaction_items (
+    item_id CHAR(36) PRIMARY KEY,
+    header_id CHAR(36),
+    stock_id CHAR(36),
+    quantity INT,
+    price_per_unit_snapshot DECIMAL(10, 2),
+    created_at TIMESTAMP,
+    FOREIGN KEY (header_id) REFERENCES transaction_headers (header_id),
+    FOREIGN KEY (stock_id) REFERENCES stock (stock_id)
+);
+### INSTRUCTION:
+- Use only MySQL-compatible functions and date/time expressions.
+- If the table contains a column named "is_deleted", its value must be FALSE.
+
+### OUTPUT FORMAT:
+- Output the SQL query in a single line. Do not include any explaination.
+
+### Example:
+Example 1:
+Question: Show the names and creation dates of all active products.
+Your response: SELECT name, created_at FROM products WHERE is_deleted = FALSE;
+
+Example 2:
+Question: Find all export transactions handled by the employee named "Nguyen Van A".
+Your response: SELECT th.header_id, th.created_at, th.total_amount FROM transaction_headers th JOIN employees e ON th.employee_id = e.employee_id WHERE th.action = 'export' AND e.name = 'Nguyen Van A';
+
+Now convert the following question to SQL based on the provided schema:
+QUESTION: {question}
 """
 
 validate_question_prompt="""You are an AI that classifies whether a question is related to the following database schema and allowed by the system:
 
 # DATABASE SCHEMA:
-- categories(category_id, name, created_at)
-- manufacturers(manufacturer_id, name, created_at)
-- products(product_id, name, created_at)
-- stock(stock_id, product_id, stock_quantity, manufacturer_id, category_id)
-- product_prices(price_id, stock_id, price_type, price, effective_date)
-- partners(partner_id, name, partner_type, address, phone, email, created_at)
-- employees(employee_id, name, email, phone, created_at)
-- transactions(transaction_id, action, stock_id, partner_id, employee_id, price_per_unit, quantity, created_at)
+- categories(category_id, name, is_deleted, created_at)
+- manufacturers(manufacturer_id, name, is_deleted, created_at)
+- products(product_id, name, is_deleted, created_at)
+- stock(stock_id, product_id, stock_quantity, manufacturer_id, category_id, is_deleted)
+- product_prices(price_id, stock_id, price_type, price, effective_date, is_deleted)
+- partners(partner_id, name, partner_type, address, phone, email, is_deleted, created_at)
+- employees(employee_id, name, email, phone, is_deleted, created_at)
+- transaction_headers(header_id, action, partner_id, employee_id, total_amount, created_at, notes)
+- transaction_items(item_id, header_id, stock_id, quantity, price_per_unit_snapshot, created_at)
+
 
 # INSTRUCTION:
 - Answer "yes" if the question is related to querying or analyzing data from the schema and only involves reading data (e.g. SELECT).
@@ -123,14 +153,15 @@ Your task is to evaluate whether the SQL query correctly and fully answers the u
 - Never leave the output empty and never explain your answer. Only return YES or the correct SQL query.
 
 # DATABASE SCHEMA:
-- categories(category_id, name, created_at)
-- manufacturers(manufacturer_id, name, created_at)
-- products(product_id, name, created_at)
-- stock(stock_id, product_id, stock_quantity, manufacturer_id, category_id)
-- product_prices(price_id, stock_id, price_type, price, effective_date)
-- partners(partner_id, name, partner_type, address, phone, email, created_at)
-- employees(employee_id, name, email, phone, created_at)
-- transactions(transaction_id, action, stock_id, partner_id, employee_id, price_per_unit, quantity, created_at)
+- categories(category_id, name, is_deleted, created_at)
+- manufacturers(manufacturer_id, name, is_deleted, created_at)
+- products(product_id, name, is_deleted, created_at)
+- stock(stock_id, product_id, stock_quantity, manufacturer_id, category_id, is_deleted)
+- product_prices(price_id, stock_id, price_type, price, effective_date, is_deleted)
+- partners(partner_id, name, partner_type, address, phone, email, is_deleted, created_at)
+- employees(employee_id, name, email, phone, is_deleted, created_at)
+- transaction_headers(header_id, action, partner_id, employee_id, total_amount, created_at, notes)
+- transaction_items(item_id, header_id, stock_id, quantity, price_per_unit_snapshot, created_at)
 
 # EXAMPLES:
 Example 1: 
@@ -164,14 +195,15 @@ correcting_syntax_prompt = """Given an SQL query and an error message, you must 
 - Use only MySQL-compatible functions and date/time expressions.
 
 # DATABASE SCHEMA:
-- categories(category_id, name, created_at)
-- manufacturers(manufacturer_id, name, created_at)
-- products(product_id, name, created_at)
-- stock(stock_id, product_id, stock_quantity, manufacturer_id, category_id)
-- product_prices(price_id, stock_id, price_type, price, effective_date)
-- partners(partner_id, name, partner_type, address, phone, email, created_at)
-- employees(employee_id, name, email, phone, created_at)
-- transactions(transaction_id, action, stock_id, partner_id, employee_id, price_per_unit, quantity, created_at)
+- categories(category_id, name, is_deleted, created_at)
+- manufacturers(manufacturer_id, name, is_deleted, created_at)
+- products(product_id, name, is_deleted, created_at)
+- stock(stock_id, product_id, stock_quantity, manufacturer_id, category_id, is_deleted)
+- product_prices(price_id, stock_id, price_type, price, effective_date, is_deleted)
+- partners(partner_id, name, partner_type, address, phone, email, is_deleted, created_at)
+- employees(employee_id, name, email, phone, is_deleted, created_at)
+- transaction_headers(header_id, action, partner_id, employee_id, total_amount, created_at, notes)
+- transaction_items(item_id, header_id, stock_id, quantity, price_per_unit_snapshot, created_at)
 
 # EXAMPLES:
 Example 1: 

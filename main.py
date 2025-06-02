@@ -214,6 +214,7 @@ async def get_data(
         result = sql_generator.invoke(
             {"question": question_request.question, "max_retries": 2}
         )
+        print(result)
         return {
             "detail": "success",
             "data": result["received_data"],

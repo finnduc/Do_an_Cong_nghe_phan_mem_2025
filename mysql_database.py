@@ -9,6 +9,7 @@ class MySQLDatabase:
         Args:
             config (dict): A dictionary containing optional MySQL connection parameters.
         """
+        self.config = config
         self.connection_pool = MySQLConnectionPool(
             pool_name="my_pool",
             pool_size=5,
@@ -42,11 +43,11 @@ class MySQLDatabase:
             # Cấp quyền SELECT cho app_user trên các bảng không nhạy cảm
             non_sensitive_tables = [
                 'categories', 'manufacturers', 'products', 'stock', 'product_prices',
-                'partners', 'employees', 'transactions', 'parameters'
+                'partners', 'employees', 'transaction_headers', 'transaction_items', 'parameters'
             ]
             for table in non_sensitive_tables:
                 cursor.execute(f"""
-                    GRANT SELECT ON thuctapcoso.{table} TO 'app_user'@'localhost';
+                    GRANT SELECT ON {self.config.get('database')}.{table} TO 'app_user'@'localhost';
                 """)
             
             
@@ -127,11 +128,26 @@ class MySQLDatabase:
         description = cursor.description
 
         # Định dạng kết quả
-        columns = ["No"] + [des[0] for des in description]
-        rows = [
-            [idx + 1 + offset_value] + list(row)
-            for idx, row in enumerate(result)
+        column_names = [des[0] for des in description]
+
+        # Tìm index của cột 'is_deleted', nếu có
+        try:
+            is_delete_idx = column_names.index('is_deleted')
+        except ValueError:
+            is_delete_idx = None
+
+        # Tạo danh sách cột, bỏ qua 'is_delete' nếu tồn tại
+        columns = ["No"] + [
+            name for idx, name in enumerate(column_names) if idx != is_delete_idx
         ]
+
+        # Tạo hàng dữ liệu, loại bỏ dữ liệu ở vị trí 'is_delete' nếu tồn tại
+        rows = [
+            [idx + 1 + offset_value] + [
+                col for i, col in enumerate(row) if i != is_delete_idx
+            ]
+            for idx, row in enumerate(result)
+]
         cursor.close()
         connection.close()
         return {

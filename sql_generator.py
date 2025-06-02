@@ -1,16 +1,14 @@
 from langchain_core.prompts import ChatPromptTemplate
 from typing_extensions import TypedDict, Literal
-from mysql_database import MySQLDatabase
 from langgraph.types import Command
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import StateGraph, START, END
 from prompts import (
-    sql_prompt,
     validate_question_prompt,
     correcting_semantic_prompt,
     correcting_syntax_prompt,
+    sql_prompt
 )
-from load_model import model, tokenizer
 import re
 
 
@@ -57,8 +55,6 @@ class SQLGenerator:
         Returns:
             None
         """
-        self.model = model
-        self.tokenizer = tokenizer
         self.llm = ChatGoogleGenerativeAI(**llm_config)
         self.database = database
     def validate_question(self, state: State) -> Command[Literal[END, "generate_sql"]]:  # type: ignore
@@ -83,24 +79,14 @@ class SQLGenerator:
 
     def generate_sql(self, state: State):
         question = state["question"]
-        inputs = self.tokenizer(
-            [sql_prompt.format(question, "")], return_tensors="pt"
-        ).to("cuda")
-        input_ids = inputs.input_ids  # Lấy token IDs của prompt
-        attention_mask = inputs.attention_mask # Lấy attention mask của prompt
-        # Generate response từ model
-        output_ids = self.model.generate(
-            input_ids,
-            attention_mask=attention_mask,
-            max_new_tokens=256,
-            eos_token_id=self.tokenizer.eos_token_id,
-            do_sample=False,
+        prompt = ChatPromptTemplate.from_messages(
+            {
+                ("human", sql_prompt),
+            }
         )
-        # Loại bỏ phần prompt khỏi output để chỉ lấy phần response
-        response_ids = output_ids[:, input_ids.shape[1] :]  # Cắt bỏ token đầu vào
-        # Giải mã phần response thành text
-        sql_text = self.tokenizer.decode(response_ids[0], skip_special_tokens=True)
-        sql_text = sql_text.replace("<|im_end|>", "").strip()
+        chain = prompt | self.llm
+        result = chain.invoke({"question": question})
+        sql_text = extract_select_sql(result.content)
         return {"sql_query": sql_text}
 
     def correcting_semantic(self, state: State) -> Command[Literal[END, "adjust_limit_and_execute_sql"]]:  # type: ignore
