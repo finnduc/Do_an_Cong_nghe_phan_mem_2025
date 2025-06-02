@@ -28,48 +28,59 @@ export default function PartnerPage() {
   }, [searchTerm]);
 
   // 2. Hàm load dữ liệu chính, có thể xử lý cả fetch-all và search
-  const loadPartners = useCallback(async (page, search) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      let response;
-      
-      // Phân tách logic: gọi API search hoặc fetch-all
-      if (search) {
-        response = await searchPartners(search, page, limit);
-      } else {
-        response = await fetchPartner(limit, page);
-      }
+  const loadPartners = useCallback(
+    async (page, search) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        let response;
 
-      if (response && response.metadata && response.metadata.data) {
-        const partners = response.metadata.data || [];
+        if (search) {
+          response = await searchPartners(search, page, limit);
+        } else {
+          response = await fetchPartner(limit, page);
+        }
 
-        // Chuẩn hóa dữ liệu để chỉ lấy các trường cần thiết, bỏ is_deleted và created_at
-        const normalizedPartners = partners.map(p => ({
-          partner_id: p.partner_id,
-          name: p.name,
-          partner_type: p.partner_type,
-          phone: p.phone,
-          email: p.email,
-          address: p.address
-        }));
-        
-        setPartnerData(normalizedPartners);
-        setTotalPages(response.metadata.totalPage || 1);
-        setTotalRecords(response.metadata.total || 0);
-        setCurrentPage(page);
-      } else {
-        throw new Error("Failed to fetch partner data or invalid format.");
+        if (response && response.metadata) {
+          // ---- PHẦN SỬA LỖI BẮT ĐẦU TỪ ĐÂY ----
+          const isSearchResponse = Array.isArray(response.metadata);
+
+          const partners = isSearchResponse
+            ? response.metadata
+            : response.metadata.data || [];
+          const pages = isSearchResponse ? 1 : response.metadata.totalPage || 1;
+          const records = isSearchResponse
+            ? partners.length
+            : response.metadata.total || 0;
+          // ---- KẾT THÚC PHẦN SỬA LỖI ----
+
+          const normalizedPartners = partners.map((p) => ({
+            partner_id: p.partner_id,
+            name: p.name,
+            partner_type: p.partner_type,
+            phone: p.phone,
+            email: p.email,
+            address: p.address,
+          }));
+
+          setPartnerData(normalizedPartners);
+          setTotalPages(pages); // Cập nhật state với biến 'pages'
+          setTotalRecords(records); // Cập nhật state với biến 'records'
+          setCurrentPage(page);
+        } else {
+          throw new Error("Failed to fetch partner data or invalid format.");
+        }
+      } catch (err) {
+        setError(err.message || "Could not load partner data.");
+        setPartnerData([]);
+        setTotalPages(1);
+        setTotalRecords(0);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      setError(err.message || "Could not load partner data.");
-      setPartnerData([]);
-      setTotalPages(1);
-      setTotalRecords(0);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [limit]);
+    },
+    [limit]
+  );
 
   // 3. useEffect để kích hoạt tìm kiếm hoặc tải dữ liệu ban đầu
   useEffect(() => {
@@ -80,14 +91,14 @@ export default function PartnerPage() {
   const handleActionSuccess = () => {
     loadPartners(currentPage, debouncedSearchTerm);
   };
-  
+
   // 5. Hàm xử lý khi người dùng thay đổi trang
   const handlePageChange = (newPage) => {
     if (newPage !== currentPage) {
       loadPartners(newPage, debouncedSearchTerm);
     }
   };
-  
+
   // 6. Hàm xử lý khi gõ vào thanh tìm kiếm
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
