@@ -1,0 +1,93 @@
+import { get_cookie } from "@/lib/cookie/action";
+import SideBarButton from "./SideBarButton";
+import {
+  House,
+  UserRoundSearch,
+  Building2,
+  PackageSearch,
+  ArrowRightFromLine,
+  Import,
+  Bot,
+  Settings,
+  History,
+  ChartBarStacked,
+  UserRoundPen,
+} from "lucide-react";
+
+const management = {
+  Home: [<House size={20} />, "/"],
+  Employees: [<UserRoundSearch size={20} />, "/employees"],
+  Partners: [<Building2 size={20} />, "/partners"],
+  Parameters: [<ChartBarStacked size={20} />, "/parameters"],
+  Accounts: [<UserRoundPen size={20} />, "/accounts"],
+};
+
+const main = {
+  Stock: [<PackageSearch size={20} />, "/stock"],
+  Exports: [<ArrowRightFromLine size={20} />, "/exports"],
+  Imports: [<Import size={20} />, "/imports"],
+  History: [<History size={20} />, "/history"],
+  AI: [<Bot size={20} />, "/ai"],
+};
+
+const other = {
+  Settings: [<Settings size={20} />, "/settings"],
+};
+
+
+export default async function SideBar() {
+  const { user } = await get_cookie();
+  const isEmployee = user?.role === "employee";
+  // Lọc các mục trong management nếu user là employee
+  const filteredManagement = isEmployee
+    ? Object.fromEntries(
+        Object.entries(management).filter(
+          ([_, [, route]]) =>
+            !["/parameters", "/accounts", '/employees'].includes(route)
+        )
+      )
+    : management;
+  const filteredMain = isEmployee
+    ? Object.fromEntries(
+        Object.entries(main).filter(
+          ([_, [, route]]) => !["/ai"].includes(route)
+        )
+      )
+    : main;
+
+    console.log(filteredManagement)
+  return (
+    <div className="min-w-[225px] pt-3 h-full bg-white text-black flex flex-col gap-5 divide-y-[1px] border-r">
+      <div className="flex flex-col gap-2">
+        {Object.entries(filteredManagement).map(([title, other], id) => (
+          <SideBarButton
+            key={id}
+            title={title}
+            icon={other[0]}
+            route={other[1]}
+          />
+        ))}
+      </div>
+      <div className="flex flex-col gap-2 pt-4">
+        {Object.entries(filteredMain).map(([title, other], id) => (
+          <SideBarButton
+            key={id}
+            title={title}
+            icon={other[0]}
+            route={other[1]}
+          />
+        ))}
+      </div>
+      <div className="flex flex-col gap-2 pt-4">
+        {Object.entries(other).map(([title, other], id) => (
+          <SideBarButton
+            key={id}
+            title={title}
+            icon={other[0]}
+            route={other[1]}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
