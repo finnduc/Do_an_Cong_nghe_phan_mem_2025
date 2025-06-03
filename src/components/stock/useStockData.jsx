@@ -84,7 +84,6 @@ export function useStockData(initialData) {
     setCategoryFilter('');
     setPriceExportRange([0, 100000]);
     setProductFilter('');
-    setProductFilter([]);
     setPriceImportRange([0, 100000]);
     setQuantityRange([0, 100000]);
     fetchData(1, {

@@ -48,10 +48,19 @@ export async function addAuthHeaders(options = {}) {
 }
 
 const isServer = typeof window === 'undefined';
+
+
 // Function to handle auth and response errors
-export async function authFetch(endpoint, options = {}) {
-  const baseUrl = isServer ? process.env.EXPRESS_URL : '';
-  const url = `${baseUrl}${endpoint}`;
+export async function authFetch(endpoint, options = {},  isExpress = true) {
+  let url = ''
+  if (isExpress){
+    const baseUrl = isServer ? process.env.EXPRESS_URL : process.env.NEXT_PUBLIC_EXPRESS_URL;
+    url = `${baseUrl}${endpoint}`;
+  }
+  else{
+    const baseUrl = isServer ? process.env.FASTAPI_URL : process.env.NEXT_PUBLIC_FASTAPI_URL;
+    url = `${baseUrl}${endpoint}`;
+  }
   try {
     // Add auth headers to the request
     const authOptions = await addAuthHeaders(options);
