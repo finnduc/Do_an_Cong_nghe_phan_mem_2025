@@ -4,17 +4,12 @@ import { fetchEmployees } from "@/lib/api/employee";
 import { fetchPartner } from "@/lib/api/partner";
 
 export default async function ExportPage() {
-  const initialResponse = await fetchExportTransaction({ page: 1, limit: 9, action: "export" });
-  const initialData = initialResponse?.metadata || {};
-
-  const employeeResponse = await fetchEmployees(1, 100);
-  const customerResponse = await fetchPartner(100, 1, { partner_type: "customer" });
-
-  return (
-    <ExportUI
-      data={initialData}
-      employees={employeeResponse?.metadata?.data || []}
-      customers={customerResponse?.metadata?.data || []}
-    />
-  );
-}
+  const initialData = await fetchExportTransaction(1);    
+    const employees = await fetchEmployees(1, 10000);
+    const partners = await fetchPartner(10000, 1);
+    return (
+      <div className="overflow-auto">
+        <ExportUI data={initialData?.metadata} employees={employees?.metadata?.data} partners={partners?.metadata?.data}/>
+      </div>
+    );
+  }

@@ -1,21 +1,32 @@
 "use client";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListFilterPlus } from "lucide-react";
 import { Toaster } from "../ui/sonner";
 import { useImportData } from "./useImportData";
 import ImportFilter from "./ImportFilter";
-import ImportTransactionTable from "./ImportTransactionTable";
+import ImportTable from "./ImportTable";
 
-export default function ImportUI({ data, suppliers, employees }) {
+export default function ImportUI({ data, employees, partners }) {
   const {
     currentData,
     totalPages,
     totalRecords,
     currentPage,
+    searchText,
+    setSearchText,
+    employeeFilter,
+    setEmployeeFilter,
+    partnerFilter,
+    setPartnerFilter,
+    priceRange,
+    setPriceRange,
+    dateFilter,
+    setDateFilter,
     applyFilters,
     resetFilters,
     getNextPage,
-  } = useImportData(data, 9);
+  } = useImportData(data);
 
   return (
     <div>
@@ -33,23 +44,32 @@ export default function ImportUI({ data, suppliers, employees }) {
             </TabsList>
             <TabsContent value="filter">
               <ImportFilter
+                employeeFilter={employeeFilter}
+                setEmployeeFilter={setEmployeeFilter}
+                partnerFilter={partnerFilter}
+                setPartnerFilter={setPartnerFilter}
+                priceRange={priceRange}
+                setPriceRange={setPriceRange}
+                dateFilter={dateFilter}
+                setDateFilter={setDateFilter}
+                applyFilters={applyFilters}
+                resetFilters={resetFilters}
                 employees={employees}
-                suppliers={suppliers} // suppliers = partner_type: 'supplier'
-                onFilterSubmit={applyFilters}
-                onReset={resetFilters}
-                disabled={false}
+                partners={partners}
               />
             </TabsContent>
           </Tabs>
         </div>
 
         <div className="flex-1">
-          <ImportTransactionTable
-            data={currentData}
-            currentPage={currentPage}
+          <ImportTable
+            currentData={currentData}
             totalPages={totalPages}
             totalRecords={totalRecords}
-            onPageChange={getNextPage}
+            currentPage={currentPage}
+            getNextPage={getNextPage}
+            searchText={searchText}
+            setSearchText={setSearchText}
           />
         </div>
       </div>

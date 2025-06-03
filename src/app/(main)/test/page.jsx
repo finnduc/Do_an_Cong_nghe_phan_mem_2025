@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import TransactionTable from "@/components/export/ExportTransactionTable";
+import TransactionTable from "@/components/export/ExportTable";
 
 const mockData = [
   {
