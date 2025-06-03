@@ -29,7 +29,7 @@ services:
     ports:
       - "${FASTAPI_PORT:-8000}:8000"
     environment:
-      - FRONTEND_URL=http://frontend:${FRONTEND_PORT:-3000}
+      - FRONTEND_URL=http://localhost:${NEXTJS_PORT:-3000}
     env_file:
       - .env
     depends_on:
@@ -43,7 +43,7 @@ services:
     ports:
       - "${EXPRESS_PORT:-4000}:4000"
     environment:
-      - FRONTEND_URL=http://frontend:${FRONTEND_PORT:-3000}
+      - FRONTEND_URL=http://localhost:${NEXTJS_PORT:-3000}
     env_file:
       - .env
     depends_on:
@@ -63,12 +63,14 @@ services:
       context: ./frontend
       args:
         - EXPRESS_URL=http://backend:${EXPRESS_PORT:-4000}
-        - FASTAPI_URL=http://ai_backend:${FASTAPI_PORT:-8000}
+        - NEXT_PUBLIC_EXPRESS_URL=http://localhost:${EXPRESS_PORT:-4000}
+        - NEXT_PUBLIC_FASTAPI_URL=http://localhost:${FASTAPI_PORT:-8000}
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "${NEXTJS_PORT:-3000}:3000"
     environment:
       - EXPRESS_URL=http://backend:${EXPRESS_PORT:-4000}
-      - FASTAPI_URL=http://ai_backend:${FASTAPI_PORT:-8000}
+      - NEXT_PUBLIC_EXPRESS_URL=http://localhost:${EXPRESS_PORT:-4000}
+      - NEXT_PUBLIC_FASTAPI_URL=http://localhost:${FASTAPI_PORT:-8000}
     env_file:
       - .env
     networks:
