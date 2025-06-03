@@ -37,12 +37,14 @@ class MySQLDatabase:
         try:
             # Lấy mật khẩu từ biến môi trường
             app_user_password = os.environ.get("DB_APP_USER_PASSWORD")
+            db_host = os.environ.get("DB_HOST")
+            user_host = '%' if db_host != "localhost" else 'localhost'
             if not app_user_password:
                 raise ValueError("DB_APP_USER_PASSWORD environment variable is not set")
             
             # Tạo app_user với host '%'
-            cursor.execute("""
-                CREATE USER IF NOT EXISTS 'app_user'@'%' IDENTIFIED BY %s;
+            cursor.execute(f"""
+                CREATE USER IF NOT EXISTS 'app_user'@'{user_host}' IDENTIFIED BY %s;
             """, (app_user_password,))
             
             # Cấp quyền SELECT cho app_user trên các bảng không nhạy cảm
@@ -52,7 +54,7 @@ class MySQLDatabase:
             ]
             for table in non_sensitive_tables:
                 cursor.execute(f"""
-                    GRANT SELECT ON {self.config.get('database')}.{table} TO 'app_user'@'%';
+                    GRANT SELECT ON {self.config.get('database')}.{table} TO 'app_user'@'{user_host}';
                 """)
             
             # Áp dụng quyền
