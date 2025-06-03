@@ -1,29 +1,29 @@
 import { authFetch } from "../auth/authWrapper";
 
-export async function fetchCatetories() {
+export async function fetchCatetories(options={}) {
   const data = await authFetch(
-    `/v1/api/parameter/getCate`
+    `/v1/api/parameter/getCate`, options
   );
 
   return data;
 }
 
-export async function fetchManufacturers() {
+export async function fetchManufacturers(options={}) {
   const data = await authFetch(
-    `/v1/api/parameter/getManu`
+    `/v1/api/parameter/getManu`, options
   );
 
   return data;
 }
 
-export async function fetchProducts(page, limit=1000 ) {
+export async function fetchProducts(page, limit=1000, options={}) {
   const payload = {
     page: page,
     limit: limit,
   };
   const query = new URLSearchParams(payload).toString();
   const data = await authFetch(
-    `/v1/api/parameter/getAll?${query}`
+    `/v1/api/parameter/getAll?${query}`, options
   );
 
   return data;

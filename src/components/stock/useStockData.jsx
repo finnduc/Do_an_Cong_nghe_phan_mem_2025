@@ -13,7 +13,7 @@ export function useStockData(initialData) {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [priceExportRange, setPriceExportRange] = useState([0, 100000]);
   const [priceImportRange, setPriceImportRange] = useState([0, 100000]);
-  const [quantityRange, setQuantityRange] = useState([0, 100000]);
+  const [quantityRange, setQuantityRange] = useState([0, 1000]);
   const [productFilter, setProductFilter] = useState('');
   const [products, setProducts] = useState([]);
   
@@ -85,7 +85,7 @@ export function useStockData(initialData) {
     setPriceExportRange([0, 100000]);
     setProductFilter('');
     setPriceImportRange([0, 100000]);
-    setQuantityRange([0, 100000]);
+    setQuantityRange([0, 1000]);
     fetchData(1, {
       product_name: '',
       manufacturer: '',
@@ -95,7 +95,7 @@ export function useStockData(initialData) {
       priceImportMin: 0,
       priceImportMax: 100000,
       quantityMin: 0,
-      quantityMax: 100000,
+      quantityMax: 1000,
     });
   };
 

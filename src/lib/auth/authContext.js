@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { get_cookie } from "../cookie/action";
+import { set } from "zod";
 
 const AuthContext = createContext();
 
@@ -11,6 +12,7 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   
   const checkAuth = async () => {
+      setIsLoading(true);
       const { accessToken, user: storedUser } = await get_cookie();
 
       if (accessToken && storedUser) {
