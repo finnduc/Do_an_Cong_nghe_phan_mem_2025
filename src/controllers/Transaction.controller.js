@@ -17,7 +17,6 @@ class TransactionController {
   searchTransaction = async (req, res, next) => {
     try {
       const respone = await TransactionService.searchTransaction(
-        req.body,
         req.query
       );
       return new OK({
