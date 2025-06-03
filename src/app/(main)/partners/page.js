@@ -1,4 +1,3 @@
-// src/app/(main)/partners/page.js
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -19,7 +18,6 @@ export default function PartnerPage() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const limit = 11;
 
-  // 1. Debounce search term để tránh gọi API liên tục
   useEffect(() => {
     const timerId = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -27,7 +25,6 @@ export default function PartnerPage() {
     return () => clearTimeout(timerId);
   }, [searchTerm]);
 
-  // 2. Hàm load dữ liệu chính, có thể xử lý cả fetch-all và search
   const loadPartners = useCallback(
     async (page, search) => {
       setIsLoading(true);
@@ -42,7 +39,6 @@ export default function PartnerPage() {
         }
 
         if (response && response.metadata) {
-          // ---- PHẦN SỬA LỖI BẮT ĐẦU TỪ ĐÂY ----
           const isSearchResponse = Array.isArray(response.metadata);
 
           const partners = isSearchResponse
@@ -52,7 +48,6 @@ export default function PartnerPage() {
           const records = isSearchResponse
             ? partners.length
             : response.metadata.total || 0;
-          // ---- KẾT THÚC PHẦN SỬA LỖI ----
 
           const normalizedPartners = partners.map((p) => ({
             partner_id: p.partner_id,
@@ -64,14 +59,14 @@ export default function PartnerPage() {
           }));
 
           setPartnerData(normalizedPartners);
-          setTotalPages(pages); // Cập nhật state với biến 'pages'
-          setTotalRecords(records); // Cập nhật state với biến 'records'
+          setTotalPages(pages); 
+          setTotalRecords(records); 
           setCurrentPage(page);
         } else {
-          throw new Error("Failed to fetch partner data or invalid format.");
+          toast.error("Failed to fetch partner data or invalid format.")
         }
       } catch (err) {
-        setError(err.message || "Could not load partner data.");
+        toast.error("Could not load partner data.")
         setPartnerData([]);
         setTotalPages(1);
         setTotalRecords(0);
@@ -82,24 +77,20 @@ export default function PartnerPage() {
     [limit]
   );
 
-  // 3. useEffect để kích hoạt tìm kiếm hoặc tải dữ liệu ban đầu
   useEffect(() => {
     loadPartners(1, debouncedSearchTerm);
   }, [debouncedSearchTerm, loadPartners]);
 
-  // 4. Hàm được gọi khi có hành động (tạo/sửa/xóa) thành công
   const handleActionSuccess = () => {
     loadPartners(currentPage, debouncedSearchTerm);
   };
 
-  // 5. Hàm xử lý khi người dùng thay đổi trang
   const handlePageChange = (newPage) => {
     if (newPage !== currentPage) {
       loadPartners(newPage, debouncedSearchTerm);
     }
   };
 
-  // 6. Hàm xử lý khi gõ vào thanh tìm kiếm
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
   };

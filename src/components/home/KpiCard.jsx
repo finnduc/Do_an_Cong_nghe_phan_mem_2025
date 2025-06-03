@@ -1,13 +1,7 @@
 "use client";
-
 import React from 'react';
-import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
 
-const KpiCard = ({ title, value, icon: IconComponent, iconBgColor, iconColor, changePercent, changeText, isPositiveChange }) => {
-  const changeColor = isPositiveChange ? 'text-green-600' : 'text-red-600';
-  const changeColorHover = 'group-hover:text-white';
-  const ChangeIcon = isPositiveChange ? FaArrowUp : FaArrowDown;
-
+const KpiCard = ({ title, value, icon: IconComponent, iconBgColor, iconColor,  changeText,  }) => {
   return (
     <div className={`
         bg-white px-6 py-8 rounded-lg shadow 
@@ -15,6 +9,7 @@ const KpiCard = ({ title, value, icon: IconComponent, iconBgColor, iconColor, ch
         transition-all duration-200 ease-in-out
         cursor-pointer group
     `}>
+      
       <div className="flex justify-between items-start mb-3"> 
         <p className="text-sm font-medium text-gray-500 group-hover:text-white">{title}</p>
         {IconComponent && (
@@ -24,13 +19,9 @@ const KpiCard = ({ title, value, icon: IconComponent, iconBgColor, iconColor, ch
         )}
       </div>
       <p className="text-3xl font-bold text-gray-900 group-hover:text-white mb-4">{value}</p> 
-      {changePercent !== undefined && changeText && (
         <div className="flex items-center text-xs">
-          <ChangeIcon className={`mr-1 ${changeColor} ${changeColorHover}`} />
-          <span className={`font-semibold ${changeColor} ${changeColorHover}`}>{changePercent}%</span>
           <span className="text-gray-500 group-hover:text-white ml-1">{changeText}</span>
         </div>
-      )}
     </div>
   );
 };

@@ -1,4 +1,3 @@
-// src/components/partners/EditPartnerForm.jsx
 "use client";
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -11,43 +10,38 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button"; // Import Button
-import { updatePartner } from "@/lib/api/partner"; // Import API update
-import { toast } from "sonner"; // Import toast (nếu chưa có)
+import { Button } from "@/components/ui/button"; 
+import { updatePartner } from "@/lib/api/partner";
+import { toast } from "sonner";
 import { DialogFooter } from "@/components/ui/dialog";
 export default function EditPartnerForm({
-  partnerDataToEdit, // Dữ liệu partner cần sửa
-  onSuccess = () => {}, // Callback khi cập nhật thành công
-  onClose = () => {}, // Callback để đóng form/modal
+  partnerDataToEdit,
+  onSuccess = () => {},
+  onClose = () => {}, 
 }) {
   const [name, setName] = useState("");
-  const [partnerType, setPartnerType] = useState("supplier"); // Mặc định là supplier
+  const [partnerType, setPartnerType] = useState("supplier"); 
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  // Bỏ các props không cần thiết: item, setPartnerName, ... handleFormStateUpdate
 
   useEffect(() => {
     if (partnerDataToEdit) {
       setName(partnerDataToEdit.name || "");
       setPartnerType(partnerDataToEdit.partner_type || "supplier");
       setPhone(partnerDataToEdit.phone || "");
-      setEmail(partnerDataToEdit.email || ""); // API trả về null nếu không có email
-      setAddress(partnerDataToEdit.address || ""); // API trả về null nếu không có địa chỉ
+      setEmail(partnerDataToEdit.email || ""); 
+      setAddress(partnerDataToEdit.address || ""); 
     }
-  }, [partnerDataToEdit]); // Chỉ phụ thuộc vào partnerDataToEdit
+  }, [partnerDataToEdit]); 
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!name || !partnerType || !phone) {
       toast.error(
-        "Vui lòng điền đầy đủ các trường bắt buộc: Tên, Loại, Điện thoại."
+        "Please fill in all required fields: Name, Type, Phone."
       );
-      return;
-    }
-    if (!partnerDataToEdit || !partnerDataToEdit.partner_id) {
-      toast.error("Không có thông tin đối tác để cập nhật.");
       return;
     }
 
@@ -57,28 +51,26 @@ export default function EditPartnerForm({
       name: name,
       partner_type: partnerType,
       phone: phone,
-      email: email || null, // Gửi null nếu email rỗng
-      address: address || null, // Gửi null nếu address rỗng
+      email: email || null, 
+      address: address || null, 
     };
 
     try {
       await updatePartner(updatedPartnerData);
-      // toast.success("Cập nhật đối tác thành công!"); // Toast sẽ được gọi ở TablePartner
-      onSuccess(); // Gọi callback onSuccess
+      toast.success("Partner update successful")
+      onSuccess();
     } catch (err) {
-      console.error("Error updating partner:", err);
-      toast.error(err.message || "Đã xảy ra lỗi khi cập nhật đối tác.");
+      toast.error("An error occurred while updating the partner.");
     } finally {
       setIsLoading(false);
     }
   };
 
   if (!partnerDataToEdit) {
-    return null; // Không render gì nếu không có dữ liệu
+    return null; 
   }
 
   return (
-    // Không cần Toaster ở đây nếu đã có ở TablePartner hoặc layout cha
     <form onSubmit={handleSubmit} className="flex flex-col space-y-4 py-4">
       <div>
         <Label htmlFor="edit-partner-name">
@@ -142,16 +134,14 @@ export default function EditPartnerForm({
         <Label htmlFor="edit-partner-address">Address:</Label>
         <Textarea
           id="edit-partner-address"
-          rows={3} // Tăng số dòng cho dễ nhìn
+          rows={3} 
           placeholder="Enter address (Optional)"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           disabled={isLoading}
         />
       </div>
-      <DialogFooter className="mt-4">
-        {" "}
-        {/* Thêm DialogFooter cho các nút */}
+      <DialogFooter className="mt-6 pt-4 border-t">
         <Button
           type="button"
           variant="outline"

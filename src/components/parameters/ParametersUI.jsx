@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react"; // Đảm bảo useCallback đã được import
+import { useState, useEffect, useCallback } from "react";
 import { Input } from "../ui/input";
 import ParametersTable from "./ParametersTable";
 import {
@@ -24,8 +24,8 @@ import {
   fetchManufacturers,
 } from "@/lib/api/parameters";
 import { toast } from "sonner";
+import { Toaster } from "../ui/sonner";
 
-// --- Wrapper Component cho Form Category (Giữ nguyên logic, không có label) ---
 const CategoryFormContent = ({
   item,
   categoryName,
@@ -38,9 +38,8 @@ const CategoryFormContent = ({
 
   return (
     <div>
-      {/* Không có label */}
       <Input
-        id="category-name" // Giữ id để liên kết (dù label bị ẩn)
+        id="category-name"
         type="text"
         placeholder="Enter category name"
         value={categoryName}
@@ -50,7 +49,6 @@ const CategoryFormContent = ({
   );
 };
 
-// --- Wrapper Component cho Form Manufacturer (Giữ nguyên logic, không có label) ---
 const ManufacturerFormContent = ({
   item,
   manufacturerName,
@@ -63,9 +61,8 @@ const ManufacturerFormContent = ({
 
   return (
     <div>
-      {/* Không có label */}
       <Input
-        id="manufacturer-name" // Giữ id
+        id="manufacturer-name"
         type="text"
         placeholder="Enter manufacturer name"
         value={manufacturerName}
@@ -75,7 +72,6 @@ const ManufacturerFormContent = ({
   );
 };
 
-// --- Wrapper Component cho Form Product (Giữ nguyên logic, không có label) ---
 const ProductFormContent = ({
   item,
   categories,
@@ -93,10 +89,8 @@ const ProductFormContent = ({
   }, [item, handleFormStateUpdate]);
 
   return (
-    // Sử dụng cấu trúc div cũ của bạn
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
-        {/* Category Select */}
         <Select
           value={selectedCategoryId}
           onValueChange={setSelectedCategoryId}
@@ -131,7 +125,7 @@ const ProductFormContent = ({
       </div>
       {/* Product Name Input */}
       <Input
-        id="product-name" // Giữ id
+        id="product-name"
         type="text"
         placeholder="Enter product name"
         value={productName}
@@ -216,12 +210,11 @@ export default function ParametersUI({
     if (!item?.category_id) return;
     try {
       await deleteCategory(item.category_id);
+      toast.success("Category deleted successfully!");
       refreshCategories();
     } catch (error) {
-      console.error(
-        "Error deleting category:",
-        error
-      ); /* TODO: Handle DB constraint error */
+      console.error("Error deleting category:", error);
+      toast.error("cannot be deleted");
     }
   };
 
@@ -252,9 +245,11 @@ export default function ParametersUI({
     if (!item?.manufacturer_id) return;
     try {
       await deleteManufacturer(item.manufacturer_id);
+      toast.success("Manufacturer deleted successfully!");
       refreshManufacturers();
     } catch (error) {
       console.error("Error deleting manufacturer:", error);
+      toast.error("cannot be deleted");
     }
   };
 
@@ -390,7 +385,7 @@ export default function ParametersUI({
   return (
     // Sử dụng class gốc bạn cung cấp
     <div className="flex flex-col lg:flex-row gap-6 p-4 bg-white rounded-lg border">
-      {/* Category Table (Không có flex-1, min-w-0) */}
+      <Toaster />
       <div>
         <ParametersTable
           title="Category"

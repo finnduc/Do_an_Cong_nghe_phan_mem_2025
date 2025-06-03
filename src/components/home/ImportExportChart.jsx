@@ -105,11 +105,11 @@ export default function ImportExportChart() {
       }
     };
     fetch_data();
-  }, []);
+  }, [] ); // [] dùng để đảm bảo chạy 1 lần sau lần render đầu tiên
 
   const options = {
-    responsive: true,
-    maintainAspectRatio: false,
+    responsive: true, // set len theo component cha
+    maintainAspectRatio: false,  // lấp đầy component cha mà k cần giữ tỉ lệ khung cố định
      plugins: {
       legend: {
         position: 'bottom',
@@ -122,7 +122,7 @@ export default function ImportExportChart() {
       },
       title: {
         display: true,
-        text: 'Thống Kê Nhập/Xuất Hàng (12 Tháng)',
+        text: 'Import/Export Statistics (12 Months)',
         font: { size: 16 },
         padding: { top: 10, bottom: 20 }
       },

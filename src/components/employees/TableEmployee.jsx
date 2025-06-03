@@ -1,4 +1,3 @@
-// src/components/employees/TableEmployee.jsx
 "use client";
 import { useState } from "react";
 import ReuseTable from "../ReuseTable";
@@ -15,14 +14,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-function removeRoleId(data) {
-  if (!data) return [];
-  return data.map((item) => {
-    const { role_id, ...rest } = item;
-    return rest;
-  });
-}
-
 export default function EmployeeUI({
   initialData = [],
   initialTotalPages = 1,
@@ -34,32 +25,32 @@ export default function EmployeeUI({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [employeeToEdit, setEmployeeToEdit] = useState(null);
 
-  const handleDeleteOnRow = (item) => {
+  const handleDeleteClick = (item) => {
     if (!item?.employee_id) {
-      toast.error("Không tìm thấy nhân viên để xóa");
+      toast.error("No employee found to delete");
       return;
     }
 
-    // Sử dụng toast thay cho window.confirm
     toast.warning(
-      `Bạn có chắc chắn muốn xóa nhân viên "${item.name || item.employee_id}"?`,
+      `Are you sure you want to delete the employee? "${
+        item.name || item.employee_id
+      }"?`,
       {
         position: "top-center",
         action: {
-          label: "Xóa",
+          label: "Delete",
           onClick: async () => {
             try {
               await deleteEmployees(item.employee_id);
-              toast.success("Đã xóa thành công nhân viên");
+              toast.success("Employee successfully deleted");
               onActionSuccess();
             } catch (error) {
-              console.error("Error deleting employee:", error);
-              toast.error(error.message || "Lỗi khi xóa nhân viên.");
+              toast.error("Error while deleting employee");
             }
           },
         },
         cancel: {
-          label: "Hủy",
+          label: "Cancel",
         },
       }
     );
@@ -76,11 +67,10 @@ export default function EmployeeUI({
     onActionSuccess();
   };
 
-  const dataProcessed = removeRoleId(initialData);
   const dataWithActionButtons = addEditButtons(
-    dataProcessed,
+    initialData,
     handleEditClick,
-    handleDeleteOnRow
+    handleDeleteClick
   );
 
   const limit = 9;
@@ -92,7 +82,7 @@ export default function EmployeeUI({
 
   return (
     <div>
-      <Toaster position="top-right" richColors />
+      <Toaster /> 
       <ReuseTable
         columns={formattedTableData.columns}
         rows={formattedTableData.rows}

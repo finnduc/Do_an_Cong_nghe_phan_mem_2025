@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { createPartner } from "@/lib/api/partner";
 import { toast } from "sonner";
-import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,16 +49,11 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
 
     try {
       const response = await createPartner(partnerData);
-
       toast.success(response?.message || "Partner added successfully.!");
       resetForm();
       onSuccess();
     } catch (err) {
-      console.error("Error creating partner:", err);
-      const errorMessage =
-        err.message || "An error occurred while adding the partner.";
-      setError(errorMessage);
-      toast.error(errorMessage);
+      toast.error("An error occurred while adding the partner.");
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +61,6 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
 
   return (
     <div className="font-sans h-full">
-      <Toaster position="top-right" richColors />
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6   md:p-8 max-w-md h-full flex flex-col">
         <h2 className="text-center text-xl md:text-2xl font-semibold text-gray-800 mb-1">
           Create Partner
@@ -172,7 +165,7 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
             />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <Button 
+          <Button
             type="submit"
             className="mt-auto bg-blue-500 hover:bg-blue-700 text-white "
             disabled={isLoading}

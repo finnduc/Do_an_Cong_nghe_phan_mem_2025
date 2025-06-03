@@ -7,6 +7,13 @@ export async function Total_Product() {
   return response;
 }
 
+export async function Total_Partner() {
+  const response = await authFetch(
+    `/v1/api/partner/getTotal`
+  );
+  return response;
+}
+
 export async function Transaction_Today() {
   const response = await authFetch(
     `/v1/api/transaction/today-count`

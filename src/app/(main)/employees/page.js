@@ -55,7 +55,7 @@ export default function EmployeePage() {
         throw new Error("Failed to fetch employee data or invalid format.");
       }
     } catch (err) {
-      setError(err.message || "Could not load employee data.");
+      toast.error("Could not load employee data.")
       setEmployeeData([]);
       setTotalPages(1);
       setTotalRecords(0);

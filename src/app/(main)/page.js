@@ -12,21 +12,20 @@ import ImportExportChart from "../../components/home/ImportExportChart.jsx";
 import { Total_Product } from "../../lib/api/home.js";
 import { Transaction_Today } from "../../lib/api/home.js";
 import { Dead_Stock } from "../../lib/api/home.js";
-import { Chart } from "../../lib/api/home.js";
-
+import { Total_Partner } from "../../lib/api/home.js";
 
 const kpiData = {
-  totalProducts: {change: +2.5, text: "so với tháng trước" },
-  lowStockProducts: {value: "5",  change: -5, text: "so với tháng trước" },
-  transactionsToday: { change: +10, text: "so với tháng trước" },
-  totalPartners: {  change: +1.1, text: "so với tháng trước" },
+  totalProducts: {text: "Total number of items in stock" },
+  lowStockProducts: {text: "Products not exported in the past 3 months" },
+  transactionsToday: {text: "Number of transactions today" },
+  totalPartners: {text: "Number of partners available" },
 };
 
 export default function DashboardHomePage() {
   const [count, setCount] = useState(0);
   const [transaction, setTransaction] = useState(0);
-  const [DeadStock, setDeadStock] = useState(null);
-  const [num , setNum] = useState(null);
+  const [DeadStock, setDeadStock] = useState(0);
+  const [Partner, setPartner] = useState(0);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState();
   useEffect(() => {
@@ -34,25 +33,25 @@ export default function DashboardHomePage() {
       setLoading(true);
       setErr(null);
       try {
-        const [data_product, data_transaction, data_stock ] = await Promise.all([
+        const [data_product, data_transaction, data_stock , data_partner ] = await Promise.all([
           Total_Product(),
           Transaction_Today(),
           Dead_Stock(),
-          //Chart(),
+          Total_Partner(),
         ]);
         setCount(data_product.metadata);
         setTransaction(data_transaction.metadata);
         setDeadStock(data_stock.metadata);
+        setPartner(data_partner.metadata);
+        setLoading(false);
       } catch (error) {
-        console.error("Lỗi trong Promise.all:", error);
-        setErr(error.message || "Có lỗi xảy ra khi tải dữ liệu");
+        console.error("ERR on Promise.all:", error);
+        setErr(error.message || "An error occurred while loading data.");
         setCount(null);
         setTransaction(null);
         setDeadStock(null);
-      } finally {
-        console.log("Promise.all: vào finally, gọi setLoading(false)");
         setLoading(false);
-      }
+      } 
     };
 
     loadAllData();
@@ -62,7 +61,7 @@ export default function DashboardHomePage() {
     return <Loading/>
   }
   if (err) {
-    return <div>Lỗi </div>;
+    return <div>Error </div>;
   }
   return (
     <div className="bg-gray-100 mb-6">
@@ -76,39 +75,31 @@ export default function DashboardHomePage() {
           icon={FaBoxes}
           iconBgColor="bg-blue-100"
           iconColor="text-blue-700"
-          changePercent={Math.abs(kpiData.totalProducts.change)}
           changeText={kpiData.totalProducts.text}
-          isPositiveChange={kpiData.totalProducts.change >= 0}
         />
         <KpiCard
-          title="Nearly Out of Stock Items"
-          value={kpiData.lowStockProducts.value}
+          title="Unsold Items"
+          value={DeadStock}
           icon={FaExclamationTriangle}
           iconBgColor="bg-yellow-100"
           iconColor="text-yellow-700"
-          changePercent={Math.abs(kpiData.lowStockProducts.change)}
           changeText={kpiData.lowStockProducts.text}
-          isPositiveChange={kpiData.lowStockProducts.change >= 0}
         />
         <KpiCard
           title="Transaction Today"
           value={transaction}
           icon={FaExchangeAlt}
-          iconBgColor="bg-green-100" // Nền nhạt
-          iconColor="text-green-700" // Icon đậm
-          changePercent={Math.abs(kpiData.transactionsToday.change)}
+          iconBgColor="bg-green-100"
+          iconColor="text-green-700"
           changeText={kpiData.transactionsToday.text}
-          isPositiveChange={kpiData.transactionsToday.change >= 0}
         />
         <KpiCard
-          title="Slow-moving Inventory "
-          value={DeadStock}
+          title="Partner "
+          value={Partner}
           icon={FaUsers}
           iconBgColor="bg-purple-100"
           iconColor="text-purple-700"
-          changePercent={Math.abs(kpiData.totalPartners.change)}
           changeText={kpiData.totalPartners.text}
-          isPositiveChange={kpiData.totalPartners.change >= 0}
         />
       </div>
       <div className="bg-white p-4 rounded-lg shadow">
