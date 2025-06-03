@@ -55,8 +55,6 @@ export async function deleteEmployees(employeeIds) {
 
 export async function searchEmployees(searchTerm, page, limit = 10) {
   const queryParams = new URLSearchParams({ page, limit }).toString();
-  
-
   const data = await authFetch(
     `/v1/api/employee/search?${queryParams}`,
     {

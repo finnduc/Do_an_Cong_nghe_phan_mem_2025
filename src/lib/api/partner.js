@@ -75,7 +75,7 @@ export async function searchPartners(searchTerm, page, limit = 11) {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ name: searchTerm }), // Gửi search term trong body
+            body: JSON.stringify({ search: searchTerm }), // Gửi search term trong body
         }
     );
     return data;

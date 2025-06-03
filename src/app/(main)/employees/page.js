@@ -35,6 +35,7 @@ export default function EmployeePage() {
       let response;
       if (search) {
         response = await searchEmployees(search, page, limit);
+        console.log("Search API Response:", response);
       } else {
         response = await fetchEmployees(page, limit);
       }
