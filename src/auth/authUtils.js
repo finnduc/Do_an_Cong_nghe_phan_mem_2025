@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const  asyncHandler  = require('../helpers/asyncHandle');
 const keyTokenService = require('../services/ApiKey.service');
-const { BadRequestError, NotFoundError, ForbiddenError } = require('../core/error');
+const { BadRequestError, NotFoundError, ForbiddenError, UnauthorizedError } = require('../core/error');
 
 
 const HEADERS = {
@@ -69,7 +69,7 @@ const authentication = asyncHandler ( async (req, res, next) => {
         const keyStore = await keyTokenService.findByUserId(user_id);
 
         if(!keyStore[0]) {
-            throw new NotFoundError('KeyStore not found!');
+            throw new UnauthorizedError('Unauthorized!');
         }
 
         const accessToken = req.headers[HEADERS.AUTHORIZATION].split(' ')[1];
