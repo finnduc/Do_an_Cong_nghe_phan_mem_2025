@@ -1,3 +1,4 @@
+import os
 import mysql.connector
 from mysql.connector.pooling import MySQLConnectionPool
 import re
@@ -24,9 +25,8 @@ class MySQLDatabase:
         
     def create_mysql_users(self):
         """
-        Creates two MySQL users: app_user (for T2SQL) and api_user (for api_keys.public_key).
+        Creates MySQL user: app_user (for T2SQL).
         - app_user: SELECT on non-sensitive tables (categories, stock, etc.).
-        - api_user: SELECT on api_keys.public_key only.
         
         Returns:
             dict: Status of user creation and permission granting.
@@ -35,10 +35,15 @@ class MySQLDatabase:
         cursor = connection.cursor()
         
         try:
-            # Tạo app_user
+            # Lấy mật khẩu từ biến môi trường
+            app_user_password = os.environ.get("DB_APP_USER_PASSWORD")
+            if not app_user_password:
+                raise ValueError("DB_APP_USER_PASSWORD environment variable is not set")
+            
+            # Tạo app_user với host '%'
             cursor.execute("""
-                CREATE USER IF NOT EXISTS 'app_user'@'localhost' IDENTIFIED BY 'secure_password';
-            """)
+                CREATE USER IF NOT EXISTS 'app_user'@'%' IDENTIFIED BY %s;
+            """, (app_user_password,))
             
             # Cấp quyền SELECT cho app_user trên các bảng không nhạy cảm
             non_sensitive_tables = [
@@ -47,21 +52,25 @@ class MySQLDatabase:
             ]
             for table in non_sensitive_tables:
                 cursor.execute(f"""
-                    GRANT SELECT ON {self.config.get('database')}.{table} TO 'app_user'@'localhost';
+                    GRANT SELECT ON {self.config.get('database')}.{table} TO 'app_user'@'%';
                 """)
-            
             
             # Áp dụng quyền
             cursor.execute("FLUSH PRIVILEGES;")
             
             return {
                 "status": "success",
-                "message": "Users app_user created with appropriate permissions."
+                "message": "User app_user created with appropriate permissions."
             }
         except mysql.connector.Error as e:
             return {
                 "status": "error",
                 "message": f"Failed to create users: {str(e)}"
+            }
+        except ValueError as e:
+            return {
+                "status": "error",
+                "message": str(e)
             }
         finally:
             cursor.close()

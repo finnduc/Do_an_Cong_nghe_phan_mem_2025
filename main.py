@@ -41,7 +41,7 @@ def initialize_database():
     app_user_config = {
         "host": os.environ.get("DB_HOST"),
         "user": "app_user",
-        "password": "secure_password",
+        "password": os.environ.get("DB_APP_USER_PASSWORD"),
         "database": os.environ.get("DB_NAME"),
         "port": os.environ.get("DB_PORT") or 3306,
     }
@@ -188,7 +188,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4000"],  # Specific frontend URL
+    allow_origins=[os.environ.get('FRONTEND_URL')],  # Specific frontend URL
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
