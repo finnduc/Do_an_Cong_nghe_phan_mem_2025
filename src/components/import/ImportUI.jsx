@@ -4,7 +4,7 @@ import { ListFilterPlus } from "lucide-react";
 import { Toaster } from "../ui/sonner";
 import { useImportData } from "./useImportData";
 import ImportFilter from "./ImportFilter";
-import ImportTransactionTable from "./ImportTransactionTable";
+import ImportTable from "./ImportTable";
 
 export default function ImportUI({ data, suppliers, employees }) {
   const {
