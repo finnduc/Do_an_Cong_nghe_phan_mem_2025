@@ -63,4 +63,12 @@ Router.post(
   asyncHandler(PartnerController.searchPartner)
 );
 
+// Get total partner
+Router.get(
+  '/getTotal',
+  hasRole(['manager', 'employee']),
+  hasPermission({ permissions: ['read'], resource: 'partners' }),
+  asyncHandler(PartnerController.getTotalPartner)
+);
+
 module.exports = Router;
