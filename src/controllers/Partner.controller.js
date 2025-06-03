@@ -85,6 +85,18 @@ class PartnerController {
       next(error);
     }
   };
+
+  getTotalPartner = async (req, res, next) => {
+    try {
+      const responces = await PartnerService.getTotalPartner();
+      return new OK({
+        message: 'Get total partner success',
+        metadata: responces,
+      }).send(res);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 module.exports = new PartnerController();

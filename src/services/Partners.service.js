@@ -80,6 +80,12 @@ class PartnerService {
         return await executeQuery(query, [action]);
     }
 
+    getTotalPartner = async () => {
+        const query = `SELECT COUNT(*) AS total FROM partners WHERE is_deleted = FALSE`;
+        const result = await executeQuery(query);
+        return result[0].total;
+    }
+
     deletePartner = async (payload) => {
         const { partner_id } = payload;
         const partnerIds = Array.isArray(partner_id) ? partner_id : [partner_id];
