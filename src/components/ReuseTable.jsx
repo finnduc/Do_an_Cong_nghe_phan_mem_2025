@@ -33,6 +33,7 @@ const ReuseTable = ({
   scrollMode = false,
   maxHeight = "480px",
   showTotal = true,
+  maxWidth = "",
 }) => {
   const [inputValue, setInputValue] = useState(currentPage);
 
@@ -53,12 +54,16 @@ const ReuseTable = ({
     }
   };
 
+  if (maxWidth !== ""){
+    maxLength=100
+  }
+
   return (
     <div>
       <div
         className={`border border-gray-300 shadow-md rounded-lg bg-white ${
           scrollMode && "overflow-y-auto"
-        }`}
+        } ${maxWidth !== '' && `max-w-[${maxWidth}] overflow-x-auto`}`}
         style={scrollMode ? { maxHeight: maxHeight } : {}}
       >
         <table className="w-full text-sm text-left">

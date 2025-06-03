@@ -9,7 +9,6 @@ import { RotateCcw } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 export default function HistoryUI({ dataList, total }) {
-  console.log(dataList)
   const [currentDataList, setCurrentDataList] = useState(dataList);
   const [totalRecords, setTotalRecords] = useState(total);
   const [isLoading, setIsLoading] = useState(false);

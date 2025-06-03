@@ -30,7 +30,7 @@ export default function ImportUI({ data, employees, partners }) {
 
   return (
     <div>
-      <Toaster />
+      <Toaster position="top-right" richColors />
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold mb-2">Import Management</h1>
       </div>

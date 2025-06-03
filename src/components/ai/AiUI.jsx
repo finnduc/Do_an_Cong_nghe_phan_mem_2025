@@ -62,6 +62,7 @@ export default function AiUI() {
         setSqlQuery(formatSQL(data.data.limited_sql_query));
         setCurrentData(data.data.result);
         setTotalRecords(data.data.total_count);
+        setErrorMessage("");
       }
     } catch (e) {
       setErrorMessage(e.message || "Internal sever error");
@@ -174,6 +175,7 @@ export default function AiUI() {
             totalRecords={totalRecords}
             onPageChange={getNextPage}
             currentPage={currentPage}
+            maxWidth="1000px"
           />
         )
       )}

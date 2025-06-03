@@ -3,7 +3,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import DualRangeSlider from "../ui/slider";
 import TransactionFieldCombobox from "../stock/TransactionFieldCombobox";
-import { formatDate } from "@/lib/utils";
+import { convertToMySQLDateTime } from "@/lib/utils";
 
 export default function ExportFilter({
   employeeFilter,
@@ -21,20 +21,18 @@ export default function ExportFilter({
 }) {
 
   const handleStartDateChange = (value) => {
-    const formatted = formatDate(value);
-    setDateFilter((prev) => ({ ...prev, startTime: formatted }));
+    setDateFilter((prev) => ({ ...prev, startDate: value }));
   };
 
   const handleEndDateChange = (value) => {
-    const formatted = formatDate(value);
-    setDateFilter((prev) => ({ ...prev, endTime: formatted }));
+    setDateFilter((prev) => ({ ...prev, endDate: value }));
   };
 
   return (
     <div className="space-y-4 w-full max-w-full pb-4">
       {/* Employee */}
       <div>
-        <label className="block mb-1 font-semibold text-sm">Employee</label>
+        <label className="block mb-1 font-normal text-sm">Employee</label>
         <TransactionFieldCombobox
           items={employees}
           valueField="employee_id"
@@ -48,7 +46,7 @@ export default function ExportFilter({
 
       {/* Partner */}
       <div>
-        <label className="block mb-1 font-semibold text-sm">Partner</label>
+        <label className="block mb-1 font-normal text-sm">Partner</label>
         <TransactionFieldCombobox
           items={partners}
           valueField="partner_id"
@@ -68,21 +66,21 @@ export default function ExportFilter({
 
       {/* Start Date */}
       <div>
-        <label className="block mb-1 font-semibold text-sm">Start Date</label>
+        <label className="block mb-1 font-normal text-sm">Start Date</label>
         <Input
           type="date"
-          value={dateFilter.startTime || ""}
-          onChange={(e) => handleStartDateChange("startTime", e.target.value)}
+          value={dateFilter.startDate || ""}
+          onChange={(e) => handleStartDateChange(e.target.value)}
         />
       </div>
 
       {/* End Date */}
       <div>
-        <label className="block mb-1 font-semibold text-sm">End Date</label>
+        <label className="block mb-1 font-normal text-sm">End Date</label>
         <Input
           type="date"
-          value={dateFilter.endTime || ""}
-          onChange={(e) => handleEndDateChange("endTime", e.target.value)}
+          value={dateFilter.endDate || ""}
+          onChange={(e) => handleEndDateChange(e.target.value)}
         />
       </div>
 

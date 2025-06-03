@@ -1,5 +1,5 @@
 "use client";
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useState } from "react";
 
 // TruncatedCell Component
@@ -25,7 +25,7 @@ const TruncatedCell = ({ text, maxLength = 15 }) => {
 const TransactionTable = ({
   columns = [],
   rows = [],
-  itemColumns = [], // Changed from productColumns
+  itemColumns = [],
   currentPage = 1,
   totalPages = 1,
   maxLength = 15,
@@ -65,7 +65,7 @@ const TransactionTable = ({
   return (
     <div>
       <div
-        className={`border border-gray-300 shadow-md rounded-lg bg-white ${
+        className={`max-w-[900px] overflow-x-auto border border-gray-300 shadow-sm rounded-lg bg-white ${
           scrollMode && "overflow-y-auto"
         }`}
         style={scrollMode ? { maxHeight: maxHeight } : {}}
@@ -74,6 +74,9 @@ const TransactionTable = ({
           <thead className="text-xs text-gray-700 uppercase bg-gray-100">
             <tr>
               <th className="py-3 px-4 border-b text-left sticky top-0 bg-gray-100 z-10 rounded-tl-lg w-12">
+                No
+              </th>
+              <th className="py-3 px-4 border-b text-left sticky top-0 bg-gray-100 z-10 w-12">
                 {/* Empty header for expand button */}
               </th>
               {columns.map((column, index) => (
@@ -102,7 +105,10 @@ const TransactionTable = ({
                     }`}
                   >
                     <td className="px-4 border-b text-left w-12">
-                      {row.items && row.items.length > 0 && ( // Changed from row.products
+                      {rowIndex + 1}
+                    </td>
+                    <td className="px-4 border-b text-left w-12">
+                      {row.items && row.items.length > 0 && (
                         <button
                           onClick={() => toggleRow(rowIndex)}
                           className="p-1"
@@ -141,19 +147,19 @@ const TransactionTable = ({
                       </td>
                     ))}
                   </tr>
-                  {expandedRows[rowIndex] && row.items && ( // Changed from row.products
+                  {expandedRows[rowIndex] && row.items && (
                     <tr>
                       <td
-                        colSpan={columns.length + 1}
+                        colSpan={columns.length + 2} // Increased colSpan to account for "No" column
                         className="px-4 py-2 bg-gray-50"
                       >
                         <div className="ml-8">
                           <table className="w-full text-sm text-left border border-gray-200 rounded-lg">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-100">
                               <tr>
-                                {itemColumns.map((column, index) => ( // Changed from productColumns
+                                {itemColumns.map((column, index) => (
                                   <th
-                                    key={`item-header-${index}`} // Changed from product-header
+                                    key={`item-header-${index}`}
                                     scope="col"
                                     className={`py-2 px-3 text-left ${
                                       index === 0 ? "rounded-tl-lg" : ""
@@ -169,14 +175,14 @@ const TransactionTable = ({
                               </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                              {row.items.map((item, itemIndex) => ( // Changed from row.products
+                              {row.items.map((item, itemIndex) => (
                                 <tr
-                                  key={`item-row-${rowIndex}-${itemIndex}`} // Changed from product-row
+                                  key={`item-row-${rowIndex}-${itemIndex}`}
                                   className="hover:bg-gray-50"
                                 >
                                   {item.map((cell, cellIndex) => (
                                     <td
-                                      key={`item-cell-${rowIndex}-${itemIndex}-${cellIndex}`} // Changed from product-cell
+                                      key={`item-cell-${rowIndex}-${itemIndex}-${cellIndex}`}
                                       className="px-3 py-2"
                                     >
                                       {typeof cell === "string" ? (
@@ -202,7 +208,7 @@ const TransactionTable = ({
             ) : (
               <tr>
                 <td
-                  colSpan={columns.length + 1}
+                  colSpan={columns.length + 2} // Increased colSpan to account for "No" column
                   className="py-8 px-4 text-center text-gray-500 text-lg font-medium rounded-lg"
                 >
                   No Data Available

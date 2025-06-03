@@ -7,8 +7,6 @@ export async function fetchExportTransaction(page, limit = 8, extraParams = {}) 
     action: "export",
     ...extraParams,
   };
-
-
   
   const cleanedPayload = Object.fromEntries(
     Object.entries(payload).filter(
