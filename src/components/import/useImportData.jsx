@@ -118,8 +118,6 @@ export function useImportData(initialData) {
     setPriceRange,
     dateFilter,
     setDateFilter,
-    filterError,
-    setFilterError,
     applyFilters,
     resetFilters,
     getNextPage,
