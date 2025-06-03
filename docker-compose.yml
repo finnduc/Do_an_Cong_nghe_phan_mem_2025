@@ -62,12 +62,14 @@ services:
     build:
       context: ./frontend
       args:
+        - FASTAPI_URL=http://ai_backend:${FASTAPI_PORT:-8000}
         - EXPRESS_URL=http://backend:${EXPRESS_PORT:-4000}
         - NEXT_PUBLIC_EXPRESS_URL=http://localhost:${EXPRESS_PORT:-4000}
         - NEXT_PUBLIC_FASTAPI_URL=http://localhost:${FASTAPI_PORT:-8000}
     ports:
       - "${NEXTJS_PORT:-3000}:3000"
     environment:
+      - FASTAPI_URL=http://ai_backendbackend:${FASTAPI_PORT:-8000}
       - EXPRESS_URL=http://backend:${EXPRESS_PORT:-4000}
       - NEXT_PUBLIC_EXPRESS_URL=http://localhost:${EXPRESS_PORT:-4000}
       - NEXT_PUBLIC_FASTAPI_URL=http://localhost:${FASTAPI_PORT:-8000}
