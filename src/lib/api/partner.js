@@ -1,6 +1,6 @@
 import { authFetch } from "../auth/authWrapper";
 
-export async function fetchPartner(limit, page, extraParams = {}) {
+export async function fetchPartner(limit, page, extraParams = {}, options = {}) {
   const params = {
     limit,
     page,
@@ -13,7 +13,7 @@ export async function fetchPartner(limit, page, extraParams = {}) {
   const data = await authFetch(
     `/v1/api/partner/getAll?${query}`,
     {
-      method: "GET",
+      method: "GET", ...options
     }
   );
   return data;

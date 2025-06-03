@@ -1,7 +1,7 @@
 import { authFetch } from "../auth/authWrapper";
 import { convertToMySQLDateTime } from "../utils";
 
-export async function fetchStock(page, limit = 8, extraParams = {}) {
+export async function fetchStock(page, limit = 8, extraParams = {}, options={}) {
   const payload = {
     page: page,
     limit: limit,
@@ -23,7 +23,7 @@ export async function fetchStock(page, limit = 8, extraParams = {}) {
   const query = new URLSearchParams(cleanedPayload).toString();
 
   const data = await authFetch(
-    `/v1/api/stock/getStock?${query}`
+    `/v1/api/stock/getStock?${query}`, options
   );
 
   return data;

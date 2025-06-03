@@ -27,7 +27,7 @@ const formSchema = z.object({
 });
 
 export default function LoginForm() {
-  const { refreshAuth } = useAuth()
+  const { refreshAuth, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -44,12 +44,14 @@ export default function LoginForm() {
     setIsLoading(true);
     try {
       await login(values.userName, values.password);
-      await refreshAuth()
+      await refreshAuth();
       router.push("/");
     } catch (error) {
       setError(error.message || "Đăng nhập thất bại");
     } finally {
-      setIsLoading(false);
+      if (!isAuthLoading) {
+        setIsLoading(isAuthLoading);
+      }
     }
   }
 

@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import { Button } from "../ui/button";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { Toaster } from "../ui/sonner";
 import { createTransaction } from "@/lib/api/stock";
 import { toast } from "sonner";
 
@@ -55,7 +54,6 @@ export default function TransactionConfirmation({
   onCancel,
 }) {
   const componentRef = useRef();
-  const signatureRef = useRef();
   const [isCreating, setIsCreating] = useState(false);
 
   const generateInvoice = async () => {
@@ -115,7 +113,6 @@ export default function TransactionConfirmation({
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-      <Toaster />
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl">
         <div ref={componentRef} className="text-center">
           <h2 className="text-2xl font-bold mb-4">INVOICE</h2>

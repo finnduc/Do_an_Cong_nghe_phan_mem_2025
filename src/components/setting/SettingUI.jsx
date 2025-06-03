@@ -47,7 +47,7 @@ export default function SettingUI({ user }) {
 
   return (
     <div className="max-w-md mx-auto bg-white rounded-xl shadow-md p-8">
-      <Toaster />
+      <Toaster richColors position='top-right'/>
       <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2 mb-4">
         <Settings size={20} /> Settings
       </h2>

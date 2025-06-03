@@ -49,6 +49,14 @@ export async function addAuthHeaders(options = {}) {
 
 const isServer = typeof window === 'undefined';
 
+const authRedirect = (url) => {
+  if (isServer) {
+    redirect(url);
+  } else {
+    window.location.href = url;
+  }
+};
+
 
 // Function to handle auth and response errors
 export async function authFetch(endpoint, options = {},  isExpress = true) {
@@ -66,8 +74,9 @@ export async function authFetch(endpoint, options = {},  isExpress = true) {
     const authOptions = await addAuthHeaders(options);
     // Make the fetch request
     const response = await fetch(url, authOptions);
+
     if (response.status == 401) {
-      redirect("/login");
+      authRedirect("/login");
     }
     // Handle 403 errors (token expired)
     if (response.status === 403) {
@@ -85,10 +94,10 @@ export async function authFetch(endpoint, options = {},  isExpress = true) {
           return data;
         } catch (error) {
           console.error("Error during retry:", error);
-          redirect("/login"); // Redirect to login on retry failure
+          authRedirect("/login"); // Redirect to login on retry failure
         }
       } else {
-        redirect("/login"); // No refresh token, redirect to login
+        authRedirect("/login"); // No refresh token, redirect to login
       }
     }
 
@@ -103,7 +112,7 @@ export async function authFetch(endpoint, options = {},  isExpress = true) {
       error.message === "No user information or access token" ||
       error.message === "Unable to refresh token"
     ) {
-      redirect("/login");
+      authRedirect("/login");
     }
     // Re-throw other errors for upstream handling
     throw error;
