@@ -33,9 +33,11 @@ initializeDatabase().catch((error) => {
     process.exit(1);
 });
 
+
+
 // Middleware cơ bản
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:4000',
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true
 }));
 app.use(bodyParser.json());
@@ -44,6 +46,10 @@ app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(helmet());
 app.use(compression());
+
+app.get('/', (req, res) => {
+  res.status(200).send('Backend server is running!');
+});
 
 // Cấu hình Routes
 const apiRouter = require('./routers');
