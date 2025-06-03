@@ -23,7 +23,7 @@ export async function fetchStock(page, limit = 8, extraParams = {}) {
   const query = new URLSearchParams(cleanedPayload).toString();
 
   const data = await authFetch(
-    `http://localhost:3000/v1/api/stock/getStock?${query}`
+    `/v1/api/stock/getStock?${query}`
   );
 
   return data;
@@ -45,7 +45,7 @@ export async function createTransaction(transactionData) {
 
   const { action } = transactionData;
   const data = await authFetch(
-    `http://localhost:3000/v1/api/stock/${action}`,
+    `/v1/api/stock/${action}`,
     options
   );
   return data;
@@ -61,7 +61,7 @@ export async function updateExportPrice(stock_id, export_price) {
     body: JSON.stringify({ stock_id, price_stock: export_price }),
   };
   const data = await authFetch(
-    `http://localhost:3000/v1/api/stock/updatePriceExport`,
+    `/v1/api/stock/updatePriceExport`,
     option
   );
   return data;

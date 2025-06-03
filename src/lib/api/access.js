@@ -5,7 +5,7 @@ export const logout = async () => {
   const { user, accessToken } = await get_cookie();
 
   try {
-    await fetch("http://localhost:3000/v1/api/access/logout", {
+    await fetch(`/v1/api/access/logout`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -21,7 +21,7 @@ export const logout = async () => {
 
 export const login = async (userName, password) => {
   try {
-    const res = await fetch("http://localhost:3000/v1/api/access/login", {
+    const res = await fetch(`/v1/api/access/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userName, password }),

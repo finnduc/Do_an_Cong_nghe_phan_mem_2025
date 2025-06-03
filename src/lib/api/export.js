@@ -15,7 +15,7 @@ export async function fetchExportTransaction({ page, limit = 9, ...extraParams }
   const query = new URLSearchParams(cleanedPayload).toString();
 
   const data = await authFetch(
-    `http://localhost:3000/v1/api/transaction/getTransaction?${query}`
+    `/v1/api/transaction/getTransaction?${query}`
   );
 
   return data;

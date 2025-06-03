@@ -2,7 +2,7 @@ import { set_cookie, get_cookie } from "../cookie/action";
 
 export async function refreshAccessToken(storedRefreshToken) {
   const { user, accessToken } = await get_cookie(); // Xác minh get_cookie trả về { user }
-  const res = await fetch("http://localhost:3000/v1/api/access/refreshToken", {
+  const res = await fetch(`/v1/api/access/refreshToken`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

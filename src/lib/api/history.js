@@ -14,7 +14,7 @@ export async function fetchHistories(page, limit = 6, extraParams = {}) {
   const query = new URLSearchParams(cleanedPayload).toString();
 
   const data = await authFetch(
-    `http://localhost:3000/v1/api/transaction/getTransaction?${query}`
+    `/v1/api/transaction/getTransaction?${query}`
   );
   return data;
 }

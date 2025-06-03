@@ -7,14 +7,14 @@ export async function fetchEmployees(page, limit = 10, extraParams = {}) {
   );
   const query = new URLSearchParams(cleanedParams).toString();
   const data = await authFetch(
-    `http://localhost:3000/v1/api/employee/getAll?${query}`,
+    `/v1/api/employee/getAll?${query}`,
     { method: "GET" }
   );
   return data;
 }
 
 export async function createEmployee(employeeData) {
-  const data = await authFetch(`http://localhost:3000/v1/api/employee/create`, {
+  const data = await authFetch(`/v1/api/employee/create`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -28,7 +28,7 @@ export async function updateEmployee(employeeData) {
   if (!employeeData.employee_id) {
     throw new Error("Cần có ID nhân viên để cập nhật.");
   }
-  const data = await authFetch(`http://localhost:3000/v1/api/employee/update`, {
+  const data = await authFetch(`/v1/api/employee/update`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -46,7 +46,7 @@ export async function deleteEmployees(employeeIds) {
     method: "DELETE", 
   };
   const data = await authFetch(
-    `http://localhost:3000/v1/api/employee/delete?${params.toString()}`,
+    `/v1/api/employee/delete?${params.toString()}`,
     options
   );
 
@@ -58,7 +58,7 @@ export async function searchEmployees(searchTerm, page, limit = 10) {
   
 
   const data = await authFetch(
-    `http://localhost:3000/v1/api/employee/search?${queryParams}`,
+    `/v1/api/employee/search?${queryParams}`,
     {
       method: "POST",
       headers: {
@@ -74,7 +74,7 @@ export async function GetAllUser(page, limit = 10) {
   const params = { page, limit };
   const query = new URLSearchParams(params).toString();
   const data = await authFetch(
-    `http://localhost:3000/v1/api/user/getAll?${query}`,
+    `/v1/api/user/getAll?${query}`,
     { method: "GET" }
   );
   return data;

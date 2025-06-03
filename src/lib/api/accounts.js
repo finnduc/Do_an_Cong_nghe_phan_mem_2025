@@ -7,7 +7,7 @@ export async function fetchAccounts(page, limit = 8) {
   };
   const query = new URLSearchParams(payload).toString();
   const data = await authFetch(
-    `http://localhost:3000/v1/api/user/getAll?${query}`
+    `/v1/api/user/getAll?${query}`
   );
 
   return data;
@@ -29,14 +29,14 @@ export async function createAccount(username, password, role_id) {
   };
 
   const data = await authFetch(
-    "http://localhost:3000/v1/api/user/create",
+    `/v1/api/user/create`,
     options
   );
   return data
 }
 
 export async function fetchRoles() {
-  const data = await authFetch("http://localhost:3000/v1/api/user/getRole");
+  const data = await authFetch(`/v1/api/user/getRole`);
   return data;
 }
 
@@ -57,7 +57,7 @@ export async function updateAccount(user_id, username, password) {
   };
 
   const data = await authFetch(
-    "http://localhost:3000/v1/api/user/update",
+    `/v1/api/user/update`,
     options
   );
   return data;
@@ -72,7 +72,7 @@ export async function deleteAccount(user_id) {
   console.log(options)
 
   await authFetch(
-    `http://localhost:3000/v1/api/user/delete/${user_id}`,
+    `/v1/api/user/delete/${user_id}`,
     options
   );
 }

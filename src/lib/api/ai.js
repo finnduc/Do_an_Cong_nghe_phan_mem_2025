@@ -6,7 +6,7 @@ export async function generateSQL(question) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ question }),
   };
-  const data = await authFetch("http://localhost:8000/question", options);
+  const data = await authFetch(`${process.env.FASTAPI_URL}/question`, options);
   return data;
 }
 
@@ -16,6 +16,6 @@ export async function executeSQL(sqlQuery, offset = 0, forceOffset = false) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sql: sqlQuery, offset, force_offset: forceOffset }),
   };
-  const data = await authFetch("http://localhost:8000/execute", options);
+  const data = await authFetch(`${process.env.FASTAPI_URL}/execute`, options);
   return data;
 }

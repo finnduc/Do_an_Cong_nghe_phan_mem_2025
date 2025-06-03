@@ -16,7 +16,7 @@ export async function updateAccountPassword(user_id, userName, password_old, pas
     body: JSON.stringify(payload),
   };
   await authFetch(
-    `http://localhost:3000/v1/api/user/updateSetting`,
+    `/v1/api/user/updateSetting`,
     options
   );
 }

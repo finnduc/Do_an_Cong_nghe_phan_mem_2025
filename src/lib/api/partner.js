@@ -11,7 +11,7 @@ export async function fetchPartner(limit, page, extraParams = {}) {
   );
   const query = new URLSearchParams(cleanedParams).toString();
   const data = await authFetch(
-    `http://localhost:3000/v1/api/partner/getAll?${query}`,
+    `/v1/api/partner/getAll?${query}`,
     {
       method: "GET",
     }
@@ -20,7 +20,7 @@ export async function fetchPartner(limit, page, extraParams = {}) {
 }
 
 export async function createPartner(PartnerData) {
-  const data = await authFetch(`http://localhost:3000/v1/api/partner/create`, {
+  const data = await authFetch(`/v1/api/partner/create`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -31,7 +31,7 @@ export async function createPartner(PartnerData) {
 }
 
 export async function updatePartner(PartnerData) {
-  const data = await authFetch(`http://localhost:3000/v1/api/partner/update`, {
+  const data = await authFetch(`/v1/api/partner/update`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -59,7 +59,7 @@ export async function deletePartner(PartnerIds) {
 
   // 4. Gọi API:
   const data = await authFetch(
-    `http://localhost:3000/v1/api/partner/delete?${params.toString()}`, // URL với query string đúng
+    `/v1/api/partner/delete?${params.toString()}`, // URL với query string đúng
     options
   );
 
@@ -69,7 +69,7 @@ export async function searchPartners(searchTerm, page, limit = 11) {
     const queryParams = new URLSearchParams({ page, limit }).toString();
     
     const data = await authFetch(
-        `http://localhost:3000/v1/api/partner/search?${queryParams}`, 
+        `/v1/api/partner/search?${queryParams}`, 
         {
             method: "POST",
             headers: {

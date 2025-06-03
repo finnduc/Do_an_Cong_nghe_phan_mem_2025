@@ -2,7 +2,7 @@ import { authFetch } from "../auth/authWrapper";
 
 export async function fetchCatetories() {
   const data = await authFetch(
-    "http://localhost:3000/v1/api/parameter/getCate"
+    `/v1/api/parameter/getCate`
   );
 
   return data;
@@ -10,7 +10,7 @@ export async function fetchCatetories() {
 
 export async function fetchManufacturers() {
   const data = await authFetch(
-    "http://localhost:3000/v1/api/parameter/getManu"
+    `/v1/api/parameter/getManu`
   );
 
   return data;
@@ -23,7 +23,7 @@ export async function fetchProducts(page, limit=1000 ) {
   };
   const query = new URLSearchParams(payload).toString();
   const data = await authFetch(
-    `http://localhost:3000/v1/api/parameter/getAll?${query}`
+    `/v1/api/parameter/getAll?${query}`
   );
 
   return data;
@@ -38,7 +38,7 @@ export async function updateCategory(category_id, name) {
     body: JSON.stringify({ category_id: category_id, category: name }),
   };
   const data = await authFetch(
-    "http://localhost:3000/v1/api/parameter/updateCate",
+    `/v1/api/parameter/updateCate`,
     options
   );
   return data;
@@ -51,7 +51,7 @@ export async function createCategory(name) {
     body: JSON.stringify({ category: name }),
   };
   const data = await authFetch(
-    `http://localhost:3000/v1/api/parameter/createCate`,
+    `/v1/api/parameter/createCate`,
     options
   );
   return data;
@@ -66,7 +66,7 @@ export async function deleteCategory(category_id) {
     body: JSON.stringify({ category_id }), // Truyền category_id trong body
   };
   const data = await authFetch(
-    `http://localhost:3000/v1/api/parameter/deleteCate`, // URL giữ nguyên
+    `/v1/api/parameter/deleteCate`, // URL giữ nguyên
     options
   );
   return data;
@@ -79,7 +79,7 @@ export async function createManufacturer(name) {
     body: JSON.stringify({ manufacturer: name }),
   };
   const data = await authFetch(
-    `http://localhost:3000/v1/api/parameter/createManu`,
+    `/v1/api/parameter/createManu`,
     options
   );
   return data;
@@ -92,7 +92,7 @@ export async function updateManufacturer(manufacturer_id, name) {
     body: JSON.stringify({ manufacturer_id, manufacturer: name }),
   };
   const data = await authFetch(
-    `http://localhost:3000/v1/api/parameter/updateManu`,
+    `/v1/api/parameter/updateManu`,
     options
   );
   return data;
@@ -105,7 +105,7 @@ export async function deleteManufacturer(manufacturer_id) {
     body: JSON.stringify({ manufacturer_id }),
   };
   const data = await authFetch(
-    `http://localhost:3000/v1/api/parameter/deleteManu`,
+    `/v1/api/parameter/deleteManu`,
     options
   );
   return data;
@@ -118,7 +118,7 @@ export async function createProduct(productData) {
     body: JSON.stringify(productData),
   };
   const data = await authFetch(
-    `http://localhost:3000/v1/api/parameter/create`,
+    `/v1/api/parameter/create`,
     options
   );
   return data;
@@ -131,7 +131,7 @@ export async function updateProduct(productData) {
     body: JSON.stringify(productData),
   };
   const data = await authFetch(
-    `http://localhost:3000/v1/api/parameter/update`,
+    `/v1/api/parameter/update`,
     options
   );
   return data;
@@ -143,7 +143,7 @@ export async function deleteProduct(parameter_id) {
   };
   const query = new URLSearchParams({ parameter_id }).toString();
   const data = await authFetch(
-    `http://localhost:3000/v1/api/parameter/delete?${query}`,
+    `/v1/api/parameter/delete?${query}`,
     options
   );
   return data;
