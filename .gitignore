@@ -1,2 +1,5 @@
 .env
 init.sql
+backend
+frontend
+ai_backend
