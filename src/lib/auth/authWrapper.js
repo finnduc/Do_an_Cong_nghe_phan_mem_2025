@@ -66,7 +66,9 @@ export async function authFetch(endpoint, options = {},  isExpress = true) {
     const authOptions = await addAuthHeaders(options);
     // Make the fetch request
     const response = await fetch(url, authOptions);
-
+    if (response.status == 401) {
+      redirect("/login");
+    }
     // Handle 403 errors (token expired)
     if (response.status === 403) {
       const { refreshToken } = await get_cookie();

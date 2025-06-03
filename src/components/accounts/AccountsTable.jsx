@@ -45,7 +45,7 @@ export default function AccountsTable({
     if (item.role === "employee") {
       setDeleteDenied(false);
       setDeleteMessage(
-        `Are you sure you want to delete the account with username "${item.userName}"? This action can only be undone by admin.`
+        `Are you sure you want to delete the account with username "${item.username}"? This action can only be undone by admin.`
       );
     } else {
       setDeleteDenied(true);
@@ -108,6 +108,7 @@ export default function AccountsTable({
   };
 
   const handleDeleteSubmission = async () => {
+    console.log(selectedAccount);
     try {
       await deleteAccount(selectedAccount.user_id);
       setSuccessMessage("The account has been deleted successfully.");

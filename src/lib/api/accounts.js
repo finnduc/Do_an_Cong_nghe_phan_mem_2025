@@ -64,15 +64,15 @@ export async function updateAccount(user_id, username, password) {
 }
 
 export async function deleteAccount(user_id) {
-  console.log(user_id)
   const options = {
     method: "DELETE",
   };
-
-  console.log(options)
+  const params = new URLSearchParams();
+  params.append("user_id", user_id);
+  
 
   await authFetch(
-    `/v1/api/user/delete/${user_id}`,
+    `/v1/api/user/delete?${params.toString()}`,
     options
   );
 }
