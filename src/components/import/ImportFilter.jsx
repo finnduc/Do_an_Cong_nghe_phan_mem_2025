@@ -1,175 +1,103 @@
-"use client";
+
 import { Button } from "../ui/button";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "../ui/form";
 import { Input } from "../ui/input";
 import DualRangeSlider from "../ui/slider";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import TransactionFieldCombobox from "../stock/TransactionFieldCombobox";
-
-const filterSchema = z.object({
-  employeeId: z.string().optional(),
-  partnerId: z.string().optional(),
-  priceRange: z.tuple([z.number(), z.number()]),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-});
+import { formatDate } from "@/lib/utils";
 
 export default function ImportFilter({
-  employees = [],
-  suppliers = [],
-  onFilterSubmit,
-  onReset,
-  disabled = false,
+  employeeFilter,
+  setEmployeeFilter,
+  partnerFilter,
+  setPartnerFilter,
+  priceRange,
+  setPriceRange,
+  dateFilter,
+  setDateFilter,
+  applyFilters,
+  resetFilters,
+  employees,
+  partners,
 }) {
-  const form = useForm({
-    resolver: zodResolver(filterSchema),
-    defaultValues: {
-      employeeId: "",
-      partnerId: "",
-      priceRange: [0, 100000],
-      startDate: "",
-      endDate: "",
-    },
-  });
 
-  const handleSubmit = (values) => {
-    onFilterSubmit(values);
+  const handleStartDateChange = (value) => {
+    const formatted = formatDate(value);
+    setDateFilter((prev) => ({ ...prev, startTime: formatted }));
   };
 
-  const handleReset = () => {
-    form.reset();
-    onReset();
-  };
-
-  const handleQuickChange = (field, value) => {
-    form.setValue(field, value);
-    const currentValues = { ...form.getValues(), [field]: value };
-    onFilterSubmit(currentValues);
+  const handleEndDateChange = (value) => {
+    const formatted = formatDate(value);
+    setDateFilter((prev) => ({ ...prev, endTime: formatted }));
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 w-full max-w-full pb-4">
-        {/* Employee */}
-        <FormField
-          control={form.control}
-          name="employeeId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Employee</FormLabel>
-              <FormControl>
-                <TransactionFieldCombobox
-                  items={employees}
-                  valueField="employee_id"
-                  labelField="name"
-                  inputValue={field.value}
-                  setInputValue={field.onChange}
-                  autoSubmitOnSelect={(val) => handleQuickChange("employeeId", val)}
-                  placeholder="Select employee"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <div className="space-y-4 w-full max-w-full pb-4">
+      {/* Employee */}
+      <div>
+        <label className="block mb-1 font-semibold text-sm">Employee</label>
+        <TransactionFieldCombobox
+          items={employees}
+          valueField="employee_id"
+          labelField="name"
+          inputValue={employeeFilter}
+          setInputValue={setEmployeeFilter}
+          placeholder="Select employee"
+          autoSubmitOnSelect={applyFilters}
         />
+      </div>
 
-        {/* Partner (Supplier) */}
-        <FormField
-          control={form.control}
-          name="partnerId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Supplier</FormLabel>
-              <FormControl>
-                <TransactionFieldCombobox
-                  items={suppliers}
-                  valueField="partner_id"
-                  labelField="name"
-                  inputValue={field.value}
-                  setInputValue={field.onChange}
-                  autoSubmitOnSelect={(val) => handleQuickChange("partnerId", val)}
-                  placeholder="Select supplier"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      {/* Partner */}
+      <div>
+        <label className="block mb-1 font-semibold text-sm">Partner</label>
+        <TransactionFieldCombobox
+          items={partners}
+          valueField="partner_id"
+          labelField="name"
+          inputValue={partnerFilter}
+          setInputValue={setPartnerFilter}
+          placeholder="Select partner"
+          autoSubmitOnSelect={applyFilters}
         />
+      </div>
 
-        {/* Price range */}
-        <FormField
-          control={form.control}
-          name="priceRange"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Price range</FormLabel>
-              <FormControl>
-                <DualRangeSlider value={field.value} onValueChange={field.onChange} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      {/* Price Range */}
+      <div className="text-sm text-gray-600">
+        <div>Import price range:</div>
+        <DualRangeSlider value={priceRange} onValueChange={setPriceRange} />
+      </div>
+
+      {/* Start Date */}
+      <div>
+        <label className="block mb-1 font-semibold text-sm">Start Date</label>
+        <Input
+          type="date"
+          value={dateFilter.startTime || ""}
+          onChange={(e) => handleStartDateChange("startTime", e.target.value)}
         />
+      </div>
 
-        {/* Start Date */}
-        <FormField
-          control={form.control}
-          name="startDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Start Date</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      {/* End Date */}
+      <div>
+        <label className="block mb-1 font-semibold text-sm">End Date</label>
+        <Input
+          type="date"
+          value={dateFilter.endTime || ""}
+          onChange={(e) => handleEndDateChange("endTime", e.target.value)}
         />
+      </div>
 
-        {/* End Date */}
-        <FormField
-          control={form.control}
-          name="endDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>End Date</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Buttons */}
-        <div className="flex flex-col gap-2 mt-4">
-          <Button
-            type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-700 text-white"
-            disabled={disabled}
-          >
-            Apply
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full border"
-            onClick={handleReset}
-            disabled={disabled}
-          >
-            Reset Filter
-          </Button>
-        </div>
-      </form>
-    </Form>
+      {/* Buttons */}
+      <div className="flex flex-col gap-2">
+        <Button
+          className="text-white bg-blue-500 hover:bg-blue-700"
+          onClick={applyFilters}
+        >
+          Apply
+        </Button>
+        <Button variant="ghost" className="border" onClick={resetFilters}>
+          Reset Filter
+        </Button>
+      </div>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 import { authFetch } from "../auth/authWrapper";
 
-export async function fetchEmployees(page, limit = 10, extraParams = {}) {
+export async function fetchEmployees(page, limit = 10, extraParams = {}, options={}) {
   const params = { page, limit, ...extraParams };
   const cleanedParams = Object.fromEntries(
     Object.entries(params).filter(([_, v]) => v != null)
@@ -8,7 +8,7 @@ export async function fetchEmployees(page, limit = 10, extraParams = {}) {
   const query = new URLSearchParams(cleanedParams).toString();
   const data = await authFetch(
     `/v1/api/employee/getAll?${query}`,
-    { method: "GET" }
+    { method: "GET", ...options }
   );
   return data;
 }

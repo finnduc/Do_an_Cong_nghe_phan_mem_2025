@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import CreateAccount from "./CreateAccount";
 import AccountsTable from "./AccountsTable";
 import { fetchAccounts } from "@/lib/api/accounts";
-import { set } from "zod";
+import { Toaster } from "../ui/sonner";
 export default function AccountUI({ data, roleData }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [currentData, setCurrentData] = useState(data);
@@ -15,7 +15,7 @@ export default function AccountUI({ data, roleData }) {
     const fetchData = async () => {
       try {
         const data = await fetchAccounts(1, 9);
-        console.log(data)
+        console.log(data);
         setCurrentData(data?.metadata || []);
       } catch (e) {
         console.log(e);
@@ -27,6 +27,10 @@ export default function AccountUI({ data, roleData }) {
 
   return (
     <div className="flex gap-6">
+      <Toaster
+        position="top-right"
+        richColors
+      />
       <CreateAccount roleData={roleData} onSuccess={handleCreated} />
       <AccountsTable
         data={currentData.data}

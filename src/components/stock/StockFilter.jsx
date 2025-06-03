@@ -23,7 +23,7 @@ export default function StockFilter({
     <div className="space-y-4">
       <div className="flex gap-2">
         <Select onValueChange={setCategoryFilter} value={categoryFilter}>
-          <SelectTrigger>
+          <SelectTrigger className='max-w-[135px]'>
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
@@ -35,7 +35,7 @@ export default function StockFilter({
           </SelectContent>
         </Select>
         <Select onValueChange={setManufacturerFilter} value={manufacturerFilter}>
-          <SelectTrigger>
+          <SelectTrigger className='max-w-[135px]'>
             <SelectValue placeholder="Manufacturer" />
           </SelectTrigger>
           <SelectContent>
@@ -49,7 +49,7 @@ export default function StockFilter({
       </div>
       <div className="text-sm text-gray-600">
         <div>Quantity range:</div>
-        <DualRangeSlider value={quantityRange} onValueChange={setQuantityRange} />
+        <DualRangeSlider value={quantityRange} onValueChange={setQuantityRange} max={1000}/>
       </div>
       <div className="text-sm text-gray-600">
         <div>Export price range:</div>

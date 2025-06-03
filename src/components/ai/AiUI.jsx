@@ -114,7 +114,7 @@ export default function AiUI() {
 
   return (
     <div className="w-full flex flex-col gap-2 min-h-[550px] bg-white px-4 py-2 rounded-xl border shadow-sm">
-      <Toaster />
+      <Toaster richColors position='top-right'/>
       <div className="border border-input rounded-xl shadow-sm flex p-3 w-full bg-white">
         <Textarea
           value={question}

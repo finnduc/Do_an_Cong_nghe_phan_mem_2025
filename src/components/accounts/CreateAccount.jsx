@@ -34,11 +34,9 @@ const formSchema = z.object({
   role_id: z.string().min(1, "Please select a role"),
 });
 
-
 export default function CreateUser({ roleData, onSuccess }) {
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({});
-  const [message, setMessage] = useState("");
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -50,9 +48,8 @@ export default function CreateUser({ roleData, onSuccess }) {
   });
 
   async function onSubmit(values) {
-    setMessage("");
     setFormData(values);
-    setIsCreating(true); // Mở modal
+    setIsCreating(true);
   }
 
   async function handleCreateAccount(values) {
@@ -62,17 +59,19 @@ export default function CreateUser({ roleData, onSuccess }) {
         values.password,
         values.role_id
       );
-      setMessage("The account has been created successfully.");
       onSuccess();
+      setIsCreating(false);
+      toast.success("The account has been created successfully.");
     } catch (error) {
-      setMessage(error.message || "An error occurred while creating the account. Please try again or contact the administrator.");
-      toast.error(error.message || "An error occurred while creating the account. Please try again or contact the administrator.");
+      toast.error(
+        error.message ||
+          "An error occurred while creating the account. Please try again or contact the administrator."
+      );
     }
   }
 
   return (
     <div className="font-sans bg-white p-8 w-[400px] h-fit rounded-lg border-[1px] shadow-md flex flex-col gap-4">
-      <Toaster />
       <div className="text-center text-2xl font-semibold text-gray-800 mb-1">
         Create Account
       </div>
@@ -142,29 +141,25 @@ export default function CreateUser({ roleData, onSuccess }) {
       </Form>
       {isCreating && (
         <div className="fixed z-50 inset-0 bg-black/40 flex justify-center items-center">
-          {message ? (
-            <div className="bg-white px-16 py-6 size-fit rounded-lg gap-4 flex flex-col font-medium">
-              <div className="font-semibold text-xl">{message}</div>
-              <Button
-                className="bg-blue-500 hover:bg-blue-700"
-                onClick={() => {
-                  setIsCreating(false);
-                }}
-              >
-                Close
-              </Button>
-            </div>
-          ) : (
-            <div className="bg-white p-6 size-fit rounded-lg gap-4 flex flex-col font-medium">
+          {
+            <div className="bg-white p-6 size-fit rounded-lg gap-4 flex flex-col">
               <div className="font-semibold text-xl">
                 Confirm account information
               </div>
-              <div>Username: {formData.username}</div>
-              <div>Password: {formData.password}</div>
+              <div>
+                Username:{" "}
+                <span className="font-semibold">{formData.username}</span>
+              </div>
+              <div>
+                Password:{" "}
+                <span className="font-semibold">{formData.password}</span>
+              </div>
               <div>
                 Role:{" "}
-                {roleData.find((item) => item.role_id === formData.role_id)
-                  ?.name || "N/A"}
+                <span className="font-semibold">
+                  {roleData.find((item) => item.role_id === formData.role_id)
+                    ?.name || "N/A"}
+                </span>
               </div>
               <div className="flex self-end gap-2">
                 <Button
@@ -181,7 +176,7 @@ export default function CreateUser({ roleData, onSuccess }) {
                 </Button>
               </div>
             </div>
-          )}
+          }
         </div>
       )}
     </div>

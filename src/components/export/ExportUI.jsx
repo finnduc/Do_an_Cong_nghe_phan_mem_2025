@@ -1,21 +1,32 @@
 "use client";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListFilterPlus } from "lucide-react";
 import { Toaster } from "../ui/sonner";
 import { useExportData } from "./useExportData";
 import ExportFilter from "./ExportFilter";
-import TransactionTable from "./ExportTransactionTable";
+import ExportTable from "./ExportTable";
 
-export default function ExportUI({ data, customers, employees }) {
+export default function ExportUI({ data, employees, partners }) {
   const {
     currentData,
     totalPages,
     totalRecords,
     currentPage,
+    searchText,
+    setSearchText,
+    employeeFilter,
+    setEmployeeFilter,
+    partnerFilter,
+    setPartnerFilter,
+    priceRange,
+    setPriceRange,
+    dateFilter,
+    setDateFilter,
     applyFilters,
     resetFilters,
     getNextPage,
-  } = useExportData(data, 9);
+  } = useExportData(data);
 
   return (
     <div>
@@ -33,42 +44,32 @@ export default function ExportUI({ data, customers, employees }) {
             </TabsList>
             <TabsContent value="filter">
               <ExportFilter
+                employeeFilter={employeeFilter}
+                setEmployeeFilter={setEmployeeFilter}
+                partnerFilter={partnerFilter}
+                setPartnerFilter={setPartnerFilter}
+                priceRange={priceRange}
+                setPriceRange={setPriceRange}
+                dateFilter={dateFilter}
+                setDateFilter={setDateFilter}
+                applyFilters={applyFilters}
+                resetFilters={resetFilters}
                 employees={employees}
-                customers={customers} // customers = partner_type: 'customer'
-                onFilterSubmit={applyFilters}
-                onReset={resetFilters}
-                disabled={false}
+                partners={partners}
               />
             </TabsContent>
           </Tabs>
         </div>
 
         <div className="flex-1">
-          <TransactionTable
-            columns={["Transaction id", "Employee", "Partner", "Note", "Total amount", "Created at"]}
-            rows={currentData.map((item) => ({
-              data: [
-                item.header_id,
-                item.employee_name || item.employee_id,
-                item.partner_name || item.partner_id,
-                item.notes || "-",
-                item.total_amount,
-                item.created_at,
-              ],
-              items: item.items?.map((detail) => [
-                detail.product_name,
-                detail.category,
-                detail.manufacturer,
-                detail.quantity?.toString() ?? "",
-                detail.price_per_unit?.toString() ?? "",
-                detail.total?.toString() ?? "",
-              ]) || [],
-            }))}
-            itemColumns={["Product name", "Category", "Manufacturer", "Quantity", "Price per unit", "Total"]}
-            currentPage={currentPage}
+          <ExportTable
+            currentData={currentData}
             totalPages={totalPages}
             totalRecords={totalRecords}
-            onPageChange={getNextPage}
+            currentPage={currentPage}
+            getNextPage={getNextPage}
+            searchText={searchText}
+            setSearchText={setSearchText}
           />
         </div>
       </div>

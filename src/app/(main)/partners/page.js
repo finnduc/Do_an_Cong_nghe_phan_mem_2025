@@ -6,6 +6,7 @@ import CreatePartnerForm from "../../../components/partners/CreatePartner";
 import { fetchPartner, searchPartners } from "../../../lib/api/partner";
 import SearchBar from "../../../components/SearchBar";
 import Loading from "../loading";
+import { useAuth } from "@/lib/auth/authContext";
 
 export default function PartnerPage() {
   const [partnerData, setPartnerData] = useState([]);
@@ -16,6 +17,7 @@ export default function PartnerPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const { user } = useAuth();
   const limit = 11;
 
   useEffect(() => {
@@ -117,9 +119,11 @@ export default function PartnerPage() {
       )}
 
       <div className="flex flex-col md:flex-row flex-grow gap-4 md:gap-2 md:items-start">
-        <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 shadow-md">
-          <CreatePartnerForm onSuccess={() => loadPartners(1, "")} />
-        </div>
+        {user?.role === "manager" && (
+          <div className="w-full md:w-1/3 lg:w-1/4 flex-shrink-0 shadow-md">
+            <CreatePartnerForm onSuccess={() => loadPartners(1, "")} />
+          </div>
+        )}
         <div className="flex-grow overflow-hidden flex flex-col">
           {isLoading ? (
             <Loading />
