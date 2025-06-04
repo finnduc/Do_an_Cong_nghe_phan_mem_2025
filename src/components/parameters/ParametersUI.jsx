@@ -106,7 +106,6 @@ const ProductFormContent = ({
             ))}
           </SelectContent>
         </Select>
-        {/* Manufacturer Select */}
         <Select
           value={selectedManufacturerId}
           onValueChange={setSelectedManufacturerId}
@@ -123,7 +122,6 @@ const ProductFormContent = ({
           </SelectContent>
         </Select>
       </div>
-      {/* Product Name Input */}
       <Input
         id="product-name"
         type="text"
@@ -135,33 +133,29 @@ const ProductFormContent = ({
   );
 };
 
-// --- Component chính ParametersUI ---
 export default function ParametersUI({
   categories: initialCategories,
   manufacturers: initialManufacturers,
   products: initialProducts,
 }) {
-  // --- State Management (Giữ nguyên) ---
   const [categories, setCategories] = useState(initialCategories || []);
   const [manufacturers, setManufacturers] = useState(
     initialManufacturers || []
   );
-  const [products, setProducts] = useState(initialProducts || []); // Use state for products
-
-  // State for form inputs (Giữ nguyên)
+  const [products, setProducts] = useState(initialProducts || []);
   const [categoryName, setCategoryName] = useState("");
   const [manufacturerName, setManufacturerName] = useState("");
   const [productName, setProductName] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedManufacturerId, setSelectedManufacturerId] = useState("");
 
-  // --- Data Refresh Functions (Giữ nguyên) ---
   const refreshCategories = async () => {
     try {
       const updatedData = await fetchCatetories();
       setCategories(updatedData?.metadata || []);
     } catch (error) {
       console.error("Error refreshing categories:", error);
+      toast.error("Error refreshing categories");
     }
   };
 
@@ -171,16 +165,18 @@ export default function ParametersUI({
       setManufacturers(updatedData?.metadata || []);
     } catch (error) {
       console.error("Error refreshing manufacturers:", error);
+      toast.error("Error refreshing manufacturers");
     }
   };
 
   const refreshProducts = async () => {
     try {
-      const updatedData = await fetchProducts(1); // Fetch page 1
-      // Cập nhật state products thay vì initialProducts
+      const updatedData = await fetchProducts(1);
+
       setProducts(updatedData?.metadata || []);
     } catch (error) {
       console.error("Error refreshing products:", error);
+      toast.error("Error refreshing products");
     }
   };
 
@@ -192,6 +188,7 @@ export default function ParametersUI({
       refreshCategories();
     } catch (error) {
       console.error("Error creating category:", error);
+      toast.error("Error creating category");
     }
   };
 
@@ -203,6 +200,7 @@ export default function ParametersUI({
       refreshCategories();
     } catch (error) {
       console.error("Error updating category:", error);
+      toast.error("Error updating category");
     }
   };
 
@@ -214,11 +212,10 @@ export default function ParametersUI({
       refreshCategories();
     } catch (error) {
       console.error("Error deleting category:", error);
-      toast.error("cannot be deleted");
+      toast.error("Cannot be deleted");
     }
   };
 
-  // --- Handlers for Manufacturer ---
   const handleCreateManufacturer = async () => {
     if (!manufacturerName) return;
     try {
@@ -227,6 +224,7 @@ export default function ParametersUI({
       refreshManufacturers();
     } catch (error) {
       console.error("Error creating manufacturer:", error);
+      toast.error("Error creating manufacturer");
     }
   };
 
@@ -238,6 +236,7 @@ export default function ParametersUI({
       refreshManufacturers();
     } catch (error) {
       console.error("Error updating manufacturer:", error);
+      toast.error("Error updating manufacturer");
     }
   };
 
@@ -253,7 +252,6 @@ export default function ParametersUI({
     }
   };
 
-  // --- Handlers for Product (Parameter) ---
   const handleCreateProduct = async () => {
     if (!productName || !selectedCategoryId || !selectedManufacturerId) return;
     try {
@@ -269,6 +267,7 @@ export default function ParametersUI({
       refreshProducts();
     } catch (error) {
       console.error("Error creating product:", error);
+      toast.error("Error creating product");
     }
   };
 
@@ -279,16 +278,14 @@ export default function ParametersUI({
       !selectedManufacturerId ||
       !item?.parameter_id
     ) {
-      // Có thể thêm toast thông báo ở đây nếu các trường form chưa được điền
       console.error("Form data is incomplete.");
+      toast.error("Form data is incomplete.");
       return;
     }
 
     const originalProduct = products.find(
       (p) => p.parameter_id === item.parameter_id
     );
-
-    // Kiểm tra xem originalProduct có tồn tại không
     if (!originalProduct) {
       console.error(
         "Could not find the original product in the local state for parameter_id:",
@@ -296,16 +293,12 @@ export default function ParametersUI({
         "Current item:",
         item,
         "Current products state:",
-        products // Log thêm state products để debug
+        products
       );
-      // Hiển thị thông báo lỗi cho người dùng, ví dụ dùng toast
-      // toast.error("Không tìm thấy thông tin sản phẩm gốc. Vui lòng thử làm mới trang.");
       return;
     }
 
-    const productIdToUpdate = originalProduct.product_id; // Bây giờ originalProduct chắc chắn tồn tại
-
-    // Kiểm tra productIdToUpdate (quan trọng!)
+    const productIdToUpdate = originalProduct.product_id;
     if (!productIdToUpdate) {
       console.error(
         "Could not find product_id for the item being edited (originalProduct found but product_id is missing):",
@@ -314,15 +307,13 @@ export default function ParametersUI({
         "Current item:",
         item
       );
-      // Hiển thị thông báo lỗi cho người dùng
-      // toast.error("Sản phẩm gốc thiếu thông tin product_id. Không thể cập nhật.");
       return;
     }
 
     try {
       const productData = {
         parameter_id: item.parameter_id,
-        product_id: productIdToUpdate, // Đã được kiểm tra
+        product_id: productIdToUpdate,
         name_product: productName,
         category_id: selectedCategoryId,
         manufacturer_id: selectedManufacturerId,
@@ -331,17 +322,14 @@ export default function ParametersUI({
       setProductName("");
       setSelectedCategoryId("");
       setSelectedManufacturerId("");
-      refreshProducts(); // Đảm bảo refreshProducts hoạt động đúng và cập nhật state products
-      // với dữ liệu mới nhất và đầy đủ từ API
-      // toast.success("Sản phẩm đã được cập nhật thành công!");
+      refreshProducts();
     } catch (error) {
       console.error("Error updating product:", error);
-      // toast.error(error.message || "Có lỗi xảy ra khi cập nhật sản phẩm.");
     }
   };
 
   const handleDeleteProduct = async (item) => {
-    if (!item?.parameter_id) return toast.message("loi load id");
+    if (!item?.parameter_id) return toast.message("ID ERROR");
     try {
       await deleteProduct(item.parameter_id);
       refreshProducts();
@@ -350,11 +338,9 @@ export default function ParametersUI({
     }
   };
 
-  // --- Form State Update Function (Giữ nguyên) ---
   const handleFormStateUpdate = useCallback(
     (item, type) => {
       if (!item) {
-        // Reset for Create modal
         if (type === "category") setCategoryName("");
         else if (type === "manufacturer") setManufacturerName("");
         else if (type === "product") {
@@ -380,24 +366,19 @@ export default function ParametersUI({
     },
     [categories, manufacturers]
   );
-
-  // --- JSX Structure (Theo yêu cầu của bạn) ---
   return (
-    // Sử dụng class gốc bạn cung cấp
     <div className="flex flex-col lg:flex-row gap-6 p-4 bg-white rounded-lg border">
       <Toaster />
       <div>
         <ParametersTable
           title="Category"
           data={categories}
-          scrollAble={true} // Giữ scrollAble nếu bạn muốn
-          handleCreateParameters={handleCreateCategory} // Sửa lại đúng handler
+          scrollAble={true}
+          handleCreateParameters={handleCreateCategory}
           handleEditParameters={handleEditCategory}
           handleDeleteParameters={handleDeleteCategory}
         >
-          {(
-            { item } // Render wrapper component
-          ) => (
+          {({ item }) => (
             <CategoryFormContent
               item={item}
               categoryName={categoryName}
@@ -407,13 +388,11 @@ export default function ParametersUI({
           )}
         </ParametersTable>
       </div>
-
-      {/* Manufacturer Table (Không có flex-1, min-w-0) */}
       <div>
         <ParametersTable
           title="Manufacturer"
           data={manufacturers}
-          scrollAble={true} // Giữ scrollAble nếu bạn muốn
+          scrollAble={true}
           handleCreateParameters={handleCreateManufacturer}
           handleEditParameters={handleEditManufacturer}
           handleDeleteParameters={handleDeleteManufacturer}
@@ -433,7 +412,6 @@ export default function ParametersUI({
           title="Product"
           data={products}
           scrollAble={true}
-          //onPageChange={getNexPage}
           handleCreateParameters={handleCreateProduct}
           handleEditParameters={handleEditProduct}
           handleDeleteParameters={handleDeleteProduct}
