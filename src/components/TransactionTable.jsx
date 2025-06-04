@@ -63,9 +63,9 @@ const TransactionTable = ({
   };
 
   return (
-    <div>
+    <div className="max-w-[1000px]">
       <div
-        className={`max-w-[900px] overflow-x-auto border border-gray-300 shadow-sm rounded-lg bg-white ${
+        className={`overflow-x-auto border border-gray-300 shadow-sm rounded-lg bg-white ${
           scrollMode && "overflow-y-auto"
         }`}
         style={scrollMode ? { maxHeight: maxHeight } : {}}
