@@ -29,7 +29,7 @@ export default function StockTable({
   const handleSearchText = (e) => setSearchText(e.target.value);
 
   return (
-    <div className="w-full">
+    <div className="overflow-hidden">
       <div className="flex justify-between items-center">
         <SearchBar value={searchText} placeholderText="Product name" onValueChange={handleSearchText} />
       </div>
@@ -40,7 +40,7 @@ export default function StockTable({
         totalPages={totalPages}
         totalRecords={totalRecords}
         onPageChange={getNextPage}
-        maxLength={25}
+        maxWidth="250px"
       />
     </div>
   );

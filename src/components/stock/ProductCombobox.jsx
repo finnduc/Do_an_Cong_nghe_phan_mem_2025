@@ -43,7 +43,7 @@ export default function ProductCombobox({
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {selectedItem ? selectedItem[labelField] : placeholder}
+          {selectedItem ? (selectedItem[labelField].length > 20 ? `${selectedItem[labelField].slice(0, 30)}...` : selectedItem[labelField]) : placeholder}
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>

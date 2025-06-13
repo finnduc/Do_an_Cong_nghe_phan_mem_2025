@@ -335,6 +335,7 @@ export default function ParametersUI({
       refreshProducts();
     } catch (error) {
       console.error("Error deleting product:", error);
+      toast.error("This product cannot be deleted because it is in use");
     }
   };
 
@@ -368,7 +369,6 @@ export default function ParametersUI({
   );
   return (
     <div className="flex flex-col lg:flex-row  ">
-      <Toaster />
       <div>
         <ParametersTable
           title="Category"

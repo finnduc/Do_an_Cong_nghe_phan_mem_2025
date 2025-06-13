@@ -11,7 +11,6 @@ export default async function StockPage() {
   const employees = await fetchEmployees(1, 10000, {}, { cache: "no-store" });
   const partners = await fetchPartner(10000, 1, {}, { cache: "no-store" });
   return (
-    <div className="overflow-auto">
       <StockUI
         data={initialData?.metadata}
         manufacturers={manufacturers?.metadata}
@@ -19,6 +18,5 @@ export default async function StockPage() {
         employees={employees?.metadata?.data}
         partners={partners?.metadata?.data}
       />
-    </div>
   );
 }
