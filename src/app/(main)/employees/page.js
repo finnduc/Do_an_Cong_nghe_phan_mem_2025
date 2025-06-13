@@ -6,7 +6,6 @@ import { fetchEmployees, searchEmployees } from "../../../lib/api/employee";
 import CreateEmployeeForm from "../../../components/employees/CreateEmployee";
 import SearchBar from "../../../components/SearchBar";
 import Loading from "../loading";
-
 export default function EmployeePage() {
   const [employeeData, setEmployeeData] = useState([]);
   const [totalPages, setTotalPages] = useState(1);

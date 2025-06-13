@@ -1,5 +1,6 @@
 import SideBar from "@/components/SideBar";
 import TopBar from "@/components/TopBar";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function MainLayout({ children }) {
   return (
@@ -11,6 +12,7 @@ export default function MainLayout({ children }) {
           {children}
         </main>
       </div>
+      <Toaster richColors position="top-right" />
     </div>
   );
 }

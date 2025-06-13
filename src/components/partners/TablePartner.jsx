@@ -33,7 +33,7 @@ export default function TablePartner({
 
   const handleDeleteClick = async (item) => {
     if (!item?.partner_id) {
-      toast.error("Không tìm thấy đối tác để xóa");
+      toast.error("Could not find object to delete");
       return;
     }
     toast.warning(
@@ -81,7 +81,7 @@ export default function TablePartner({
 
   return (
     <div>
-      <Toaster /> 
+      <Toaster />
       <ReuseTable
         columns={formattedTableData.columns}
         rows={formattedTableData.rows}

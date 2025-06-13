@@ -82,7 +82,7 @@ export default function EmployeeUI({
 
   return (
     <div>
-      <Toaster /> 
+     
       <ReuseTable
         columns={formattedTableData.columns}
         rows={formattedTableData.rows}
