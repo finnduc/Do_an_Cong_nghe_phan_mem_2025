@@ -367,7 +367,7 @@ export default function ParametersUI({
     [categories, manufacturers]
   );
   return (
-    <div className="flex flex-col lg:flex-row gap-6 p-4 bg-white rounded-lg border">
+    <div className="flex flex-col lg:flex-row  ">
       <Toaster />
       <div>
         <ParametersTable

@@ -49,7 +49,7 @@ export default function TransactionCreator({
 
     let value = Number(inputValue);
     if (isNaN(value)) value = min;
-    if (transactionType === 'export'){
+    if (transactionType === "export") {
       if (value > max) value = max;
     }
     if (value < min) value = min;
@@ -234,7 +234,7 @@ export default function TransactionCreator({
           </button>
           <div className="flex gap-2">
             <Select onValueChange={setCategoryFilter} value={categoryFilter}>
-              <SelectTrigger className='max-w-[135px]'>
+              <SelectTrigger className="max-w-[135px] [&>span]:truncate">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
@@ -249,7 +249,7 @@ export default function TransactionCreator({
               onValueChange={setManufacturerFilter}
               value={manufacturerFilter}
             >
-              <SelectTrigger className='max-w-[135px]'>
+              <SelectTrigger className="max-w-[135px] [&>span]:truncate">
                 <SelectValue placeholder="Manufacturer" />
               </SelectTrigger>
               <SelectContent>
@@ -279,7 +279,11 @@ export default function TransactionCreator({
             id="quantity"
             type="number"
             className="p-1 border rounded-md focus:outline-0 w-full"
-            max={currentProduct && transactionType !== "import" ? currentProduct.quantity : 1000}
+            max={
+              currentProduct && transactionType !== "import"
+                ? currentProduct.quantity
+                : 1000
+            }
             min={1}
             value={currentProduct?.selectedQuantity ?? ""}
             onChange={handleQuantityInput}

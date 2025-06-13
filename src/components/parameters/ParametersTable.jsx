@@ -79,7 +79,7 @@ export default function ParametersTable({
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-start items-center gap-4 mb-4">
         <h1 className="text-xl font-semibold text-gray-800">{title}</h1>
         <Button
           className="text-white bg-blue-500 hover:bg-blue-700"

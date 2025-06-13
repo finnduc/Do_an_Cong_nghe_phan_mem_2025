@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Toaster } from "../ui/sonner";
 import {
   Select,
   SelectContent,
@@ -49,9 +50,9 @@ function CreatePartnerForm({ onSuccess = () => {} }) {
 
     try {
       const response = await createPartner(partnerData);
-      toast.success(response?.message || "Partner added successfully.!");
+      toast.success("Partner added successfully.!");
       resetForm();
-      onSuccess();
+      onSuccess();  
     } catch (err) {
       toast.error("An error occurred while adding the partner.");
     } finally {
