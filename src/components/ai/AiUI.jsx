@@ -115,14 +115,13 @@ export default function AiUI() {
 
   return (
     <div className="w-full flex flex-col gap-2 min-h-[550px] bg-white px-4 py-2 rounded-xl border shadow-sm">
-      <Toaster richColors position='top-right'/>
+      <Toaster richColors position="top-right" />
       <div className="border border-input rounded-xl shadow-sm flex p-3 w-full bg-white">
         <Textarea
           value={question}
           className="min-h-[40px] resize-none overflow-hidden border-0 shadow-none focus-visible:ring-0 px-0 py-0"
           placeholder="Enter your question..."
           onChange={updateHeight}
-          
         />
         <button
           className="size-[40px] p-2 rounded-[50%] text-white flex items-center justify-center hover:bg-blue-700 bg-blue-500"
@@ -175,7 +174,7 @@ export default function AiUI() {
             totalRecords={totalRecords}
             onPageChange={getNextPage}
             currentPage={currentPage}
-            maxWidth="1000px"
+            maxLength={30}
           />
         )
       )}
