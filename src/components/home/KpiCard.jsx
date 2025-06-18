@@ -9,7 +9,7 @@ const KpiCard = ({ title, value, icon: IconComponent, iconBgColor, iconColor,  c
         transition-all duration-200 ease-in-out
         cursor-pointer group
     `}>
-      
+
       <div className="flex justify-between items-start mb-3"> 
         <p className="text-sm font-medium text-gray-500 group-hover:text-white">{title}</p>
         {IconComponent && (
@@ -19,7 +19,7 @@ const KpiCard = ({ title, value, icon: IconComponent, iconBgColor, iconColor,  c
         )}
       </div>
       <p className="text-3xl font-bold text-gray-900 group-hover:text-white mb-4">{value}</p> 
-        <div className="flex items-center text-xs">
+        <div className=" text-xs">
           <span className="text-gray-500 group-hover:text-white ml-1">{changeText}</span>
         </div>
     </div>

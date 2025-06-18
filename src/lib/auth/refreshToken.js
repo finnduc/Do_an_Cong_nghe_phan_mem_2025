@@ -1,13 +1,13 @@
 import { set_cookie, get_cookie } from "../cookie/action";
 
 export async function refreshAccessToken(storedRefreshToken) {
-  const { user, accessToken } = await get_cookie(); // Xác minh get_cookie trả về { user }
+  const { user, accessToken } = await get_cookie(); 
   const res = await fetch(`/v1/api/access/refreshToken`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       'authorization': 'Bearer ' + accessToken,
-      "x-client-id": user?.user_id || "", // thêm dòng này
+      "x-client-id": user?.user_id || "", 
     },
     body: JSON.stringify({ refreshToken: storedRefreshToken }),
   });
@@ -23,6 +23,6 @@ export async function refreshAccessToken(storedRefreshToken) {
     throw new Error("Dữ liệu từ backend không đầy đủ");
   }
 
-  await set_cookie({ accessToken: newAccessToken, refreshToken, user }); // Xác minh set_cookie
+  await set_cookie({ accessToken: newAccessToken, refreshToken, user }); 
   return accessToken;
 }

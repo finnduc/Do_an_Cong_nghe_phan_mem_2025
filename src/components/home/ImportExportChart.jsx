@@ -128,8 +128,8 @@ export default function ImportExportChart() {
       },
       tooltip: {
         enabled: true,
-        mode: 'index',
-        intersect: false,
+        mode: 'index', // di chuột vào thì show ra tt export và import
+        intersect: false, // chỉ cần di chuột vào gần là chọn cột gần nhất 
         backgroundColor: 'rgba(0, 0, 0, 0.7)',
         titleFont: { weight: 'bold' },
         bodyFont: { size: 12 },
@@ -139,15 +139,15 @@ export default function ImportExportChart() {
     },
     scales: {
       x: {
-          stacked: false,
+          stacked: false, // 2 cột cạnh nhau , true => chồng lên nhau
           grid: {
-            display: false
+            display: true
           },
           ticks: {
               color: 'rgb(107, 114, 128)'
           },
           border: {
-              color: 'rgba(0, 0, 0, 0.05)'
+              color: 'rgba(0, 0, 0, 0.05)' // đường kẻ
           }
       },
       y: {

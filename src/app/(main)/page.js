@@ -16,9 +16,7 @@ import {
   Total_Partner,
 } from "../../lib/api/home.js";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 
-// Imports for PDF export functionality
 import { fetchStock } from "@/lib/api/stock";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -167,7 +165,6 @@ export default function DashboardHomePage() {
         <ImportExportChart />
       </div>
 
-      {/* Confirmation Dialog */}
       {isConfirmingExport && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
           <div className="bg-white rounded-lg border shadow-md p-6 max-w-sm w-full">
@@ -182,7 +179,6 @@ export default function DashboardHomePage() {
               <Button
                 variant="outline"
                 onClick={() => setIsConfirmingExport(false)}
-                disabled={isExporting}
               >
                 Cancel
               </Button>
@@ -191,7 +187,7 @@ export default function DashboardHomePage() {
                 onClick={handleExportClick}
                 disabled={isExporting}
               >
-                {isExporting ? "Đang xuất..." : "Confirm"}
+                {isExporting ? "Đang xuất..." : "Confirm"} 
               </Button>
             </div>
           </div>
@@ -249,7 +245,7 @@ export default function DashboardHomePage() {
                       ${Number(item.product_price_import).toFixed(2)}
                     </td>
                     <td className="border border-slate-300 p-2 text-right">
-                      ${Number(item.product_price_export).toFixed(2)}
+                      ${Number(item.product_price_export).toFixed(2)} 
                     </td>
                   </tr>
                 ))}

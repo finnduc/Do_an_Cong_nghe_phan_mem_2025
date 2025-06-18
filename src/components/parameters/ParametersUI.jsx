@@ -154,7 +154,6 @@ export default function ParametersUI({
       const updatedData = await fetchCatetories();
       setCategories(updatedData?.metadata || []);
     } catch (error) {
-      console.error("Error refreshing categories:", error);
       toast.error("Error refreshing categories");
     }
   };
@@ -164,7 +163,6 @@ export default function ParametersUI({
       const updatedData = await fetchManufacturers();
       setManufacturers(updatedData?.metadata || []);
     } catch (error) {
-      console.error("Error refreshing manufacturers:", error);
       toast.error("Error refreshing manufacturers");
     }
   };
@@ -172,7 +170,6 @@ export default function ParametersUI({
   const refreshProducts = async () => {
     try {
       const updatedData = await fetchProducts(1);
-
       setProducts(updatedData?.metadata || []);
     } catch (error) {
       console.error("Error refreshing products:", error);
@@ -184,10 +181,10 @@ export default function ParametersUI({
     if (!categoryName) return;
     try {
       await createCategory(categoryName);
+      toast.success("Category Create successfully!");
       setCategoryName("");
       refreshCategories();
     } catch (error) {
-      console.error("Error creating category:", error);
       toast.error("Error creating category");
     }
   };
@@ -196,10 +193,10 @@ export default function ParametersUI({
     if (!categoryName || !item?.category_id) return;
     try {
       await updateCategory(item.category_id, categoryName);
+      toast.success("Category update successfully!");
       setCategoryName("");
       refreshCategories();
     } catch (error) {
-      console.error("Error updating category:", error);
       toast.error("Error updating category");
     }
   };
@@ -211,7 +208,6 @@ export default function ParametersUI({
       toast.success("Category deleted successfully!");
       refreshCategories();
     } catch (error) {
-      console.error("Error deleting category:", error);
       toast.error("Cannot be deleted");
     }
   };
@@ -220,10 +216,10 @@ export default function ParametersUI({
     if (!manufacturerName) return;
     try {
       await createManufacturer(manufacturerName);
+      toast.success("Manufacturer Create successfully!");
       setManufacturerName("");
       refreshManufacturers();
     } catch (error) {
-      console.error("Error creating manufacturer:", error);
       toast.error("Error creating manufacturer");
     }
   };
@@ -232,6 +228,7 @@ export default function ParametersUI({
     if (!manufacturerName || !item?.manufacturer_id) return;
     try {
       await updateManufacturer(item.manufacturer_id, manufacturerName);
+      toast.success("Manufacturer Edit successfully!");
       setManufacturerName("");
       refreshManufacturers();
     } catch (error) {
@@ -261,12 +258,12 @@ export default function ParametersUI({
         manufacturer_id: selectedManufacturerId,
       };
       await createProduct(productData);
+      toast.success("Product Create successfully!");
       setProductName("");
       setSelectedCategoryId("");
       setSelectedManufacturerId("");
       refreshProducts();
     } catch (error) {
-      console.error("Error creating product:", error);
       toast.error("Error creating product");
     }
   };
@@ -278,7 +275,6 @@ export default function ParametersUI({
       !selectedManufacturerId ||
       !item?.parameter_id
     ) {
-      console.error("Form data is incomplete.");
       toast.error("Form data is incomplete.");
       return;
     }
@@ -319,6 +315,7 @@ export default function ParametersUI({
         manufacturer_id: selectedManufacturerId,
       };
       await updateProduct(productData);
+      toast.success("Product update successfully!")
       setProductName("");
       setSelectedCategoryId("");
       setSelectedManufacturerId("");
@@ -332,9 +329,9 @@ export default function ParametersUI({
     if (!item?.parameter_id) return toast.message("ID ERROR");
     try {
       await deleteProduct(item.parameter_id);
+      toast.success("Product Delete successfully!");
       refreshProducts();
     } catch (error) {
-      console.error("Error deleting product:", error);
       toast.error("This product cannot be deleted because it is in use");
     }
   };
@@ -369,6 +366,7 @@ export default function ParametersUI({
   );
   return (
     <div className="flex flex-col lg:flex-row  ">
+      <Toaster position="top-right" richColors />
       <div>
         <ParametersTable
           title="Category"
