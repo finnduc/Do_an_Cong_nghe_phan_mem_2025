@@ -1,6 +1,6 @@
 import { authFetch } from "../auth/authWrapper";
 
-export async function fetchImportTransaction(page, limit = 8, extraParams = {}) {
+export async function fetchImportTransaction(page, limit = 8, extraParams = {}, options = {}) {
   const payload = {
     page: page,
     limit: limit,
@@ -23,7 +23,8 @@ export async function fetchImportTransaction(page, limit = 8, extraParams = {}) 
   const query = new URLSearchParams(cleanedPayload).toString();
 
   const data = await authFetch(
-    `/v1/api/transaction/getTransaction?${query}`
+    `/v1/api/transaction/getTransaction?${query}`,
+    { method: "GET", ...options }
   );
 
   return data;
