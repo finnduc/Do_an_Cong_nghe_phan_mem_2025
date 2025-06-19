@@ -4,7 +4,7 @@ import { fetchEmployees } from "@/lib/api/employee";
 import { fetchPartner } from "@/lib/api/partner";
 
 export default async function ExportPage() {
-  const initialData = await fetchExportTransaction(1, 9, {}, { cache: "no-store" });    
+  const initialData = await fetchExportTransaction(1, 8, {}, { cache: "no-store" });    
     const employees = await fetchEmployees(1, 10000);
     const partners = await fetchPartner(10000, 1);
     return (
