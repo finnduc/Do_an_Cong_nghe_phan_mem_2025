@@ -1,5 +1,5 @@
 # --- Cấu hình các Repository và Nhánh ---
-$monorepoUrl = "https://github.com/finnduc/NHOM.git"
+$monorepoUrl = "https://github.com/finnduc/Do_an_Cong_nghe_phan_mem_2025.git"
 $backendBranch = "backend"
 $aiBackendBranch = "ai_backend"
 $frontendBranch = "frontend"
