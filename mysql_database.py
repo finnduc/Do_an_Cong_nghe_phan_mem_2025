@@ -192,6 +192,15 @@ class MySQLDatabase:
         except Exception as e:
             print(f"Error executing query: {e}")
             return None
+        finally:
+            if cursor:
+                cursor.close()
+            # Assume self.connection_pool.put_connection is the correct way to release
+            # a connection back to your specific pool implementation.
+            # You should NOT call connection.close() *before* putting it back if
+            # put_connection is meant to recycle the connection.
+            if connection:
+                connection.close()
 
     def get_key_store_by_user_id(self, user_id):
         connection = self.connection_pool.get_connection()
