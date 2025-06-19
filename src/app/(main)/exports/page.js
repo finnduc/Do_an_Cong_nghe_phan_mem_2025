@@ -5,8 +5,8 @@ import { fetchPartner } from "@/lib/api/partner";
 
 export default async function ExportPage() {
   const initialData = await fetchExportTransaction(1, 8, {}, { cache: "no-store" });    
-    const employees = await fetchEmployees(1, 10000);
-    const partners = await fetchPartner(10000, 1);
+  const employees = await fetchEmployees(1, 10000, {}, { cache: "no-store" });
+  const partners = await fetchPartner(10000, 1, {}, { cache: "no-store" });
     return (
       <div className="overflow-auto">
         <ExportUI data={initialData?.metadata} employees={employees?.metadata?.data} partners={partners?.metadata?.data}/>

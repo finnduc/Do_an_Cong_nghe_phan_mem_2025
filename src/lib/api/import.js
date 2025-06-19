@@ -24,7 +24,7 @@ export async function fetchImportTransaction(page, limit = 8, extraParams = {}, 
 
   const data = await authFetch(
     `/v1/api/transaction/getTransaction?${query}`,
-    { method: "GET", ...options }
+    options
   );
 
   return data;
