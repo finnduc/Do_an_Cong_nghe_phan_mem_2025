@@ -37,5 +37,5 @@ USER node
 COPY package.json package-lock.json ./
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/.next ./.next
-EXPOSE 3000
+EXPOSE 4000
 CMD ["npm", "start"]
